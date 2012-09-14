@@ -30,10 +30,10 @@ class Card(object):
 class Deck(object):
 	remainingCards = []
 
-	def __init__(self):
+	def __init__(self, minValue=VALUE_MIN, maxValue=VALUE_ACE):
 		self.remainingCards = []
 		for curSuit in range(SUIT_CLUBS, SUIT_HEARTS + 1):
-			for curValue in range(VALUE_MIN, VALUE_ACE + 1):
+			for curValue in range(minValue, maxValue + 1):
 				self.remainingCards.append(Card(curSuit, curValue))
 
 	def shuffle(self):

@@ -33,5 +33,14 @@ class DeckTest(unittest.TestCase):
 		self.deck.shuffle()
 		self.assertNotEqual(prevDeck, self.deck.remainingCards)
 
+	def testCanBuildDeckWithCardValueRange(self):
+		minValue = 6
+		maxValue = euchre.VALUE_JACK
+		self.deck = euchre.Deck(minValue=minValue, maxValue=maxValue)
+		cardsPerSuit = maxValue - minValue + 1
+		self.assertEqual(cardsPerSuit * euchre.NUM_SUITS, len(self.deck.remainingCards))
+		for card in self.deck.remainingCards:
+			self.assertTrue(card.value >= minValue and card.value <= maxValue)
+
 if __name__ == "__main__":
 	unittest.main()
