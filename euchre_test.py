@@ -23,13 +23,13 @@ class DeckTest(unittest.TestCase):
 			self.assertEqual(euchre.NUM_CARDS_IN_SUIT, suitCounts[i])
 
 	def testShuffleChangesOrderOfCards(self):
-		prevDeck = [card for card in self.deck.remainingCards]
+		prevDeck = self.deck.remainingCards[:]
 		self.deck.shuffle()
 		self.assertNotEqual(prevDeck, self.deck.remainingCards)
 
 	def testShuffleDoesNotAlwaysGiveSameResult(self):
 		self.deck.shuffle()
-		prevDeck = [card for card in self.deck.remainingCards]
+		prevDeck = self.deck.remainingCards[:]
 		self.deck.shuffle()
 		self.assertNotEqual(prevDeck, self.deck.remainingCards)
 
@@ -41,6 +41,13 @@ class DeckTest(unittest.TestCase):
 		self.assertEqual(cardsPerSuit * euchre.NUM_SUITS, len(self.deck.remainingCards))
 		for card in self.deck.remainingCards:
 			self.assertTrue(card.value >= minValue and card.value <= maxValue)
+
+	def testDealingCardRemovesItFromDeck(self):
+		initialNumCards = len(self.deck.remainingCards)
+		dealtCards = self.deck.deal(1)
+		self.assertEqual(1, len(dealtCards))
+		self.assertEqual(initialNumCards - 1, len(self.deck.remainingCards))
+		self.assertEqual(0, self.deck.remainingCards.count(dealtCards[0]))
 
 if __name__ == "__main__":
 	unittest.main()

@@ -38,3 +38,8 @@ class Deck(object):
 
 	def shuffle(self):
 		random.shuffle(self.remainingCards)
+
+	def deal(self, numCards):
+		cards = self.remainingCards[:numCards]
+		self.remainingCards = self.remainingCards[numCards:]
+		return cards
