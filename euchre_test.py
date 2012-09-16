@@ -58,6 +58,17 @@ class DeckTest(unittest.TestCase):
 		for dealtCard in dealtCards:
 			self.assertEqual(0, self.deck.remainingCards.count(dealtCard))
 
+class HandTest(unittest.TestCase):
+	hand = None
+
+	def setUp(self):
+		self.hand = euchre.Hand()
+
+	def testHandContainsCardsAddedToIt(self):
+		cards = [euchre.Card(euchre.SUIT_SPADES, 8), euchre.Card(euchre.SUIT_HEARTS, 3), euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_KING)]
+		self.hand.add(cards)
+		for card in cards:
+			self.assertEqual(1, self.hand._cards.count(card))
 
 if __name__ == "__main__":
 	unittest.main()

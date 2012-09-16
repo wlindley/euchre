@@ -43,3 +43,9 @@ class Deck(object):
 		cards = self.remainingCards[:numCards]
 		self.remainingCards = self.remainingCards[numCards:]
 		return cards
+
+class Hand(object):
+	_cards = []
+
+	def add(self, cards):
+		self._cards.extend(cards)
