@@ -49,5 +49,15 @@ class DeckTest(unittest.TestCase):
 		self.assertEqual(initialNumCards - 1, len(self.deck.remainingCards))
 		self.assertEqual(0, self.deck.remainingCards.count(dealtCards[0]))
 
+	def testDealingManyCardRemovesThemFromDeck(self):
+		cardsToDeal = 5
+		initialNumCards = len(self.deck.remainingCards)
+		dealtCards = self.deck.deal(cardsToDeal)
+		self.assertEqual(cardsToDeal, len(dealtCards))
+		self.assertEqual(initialNumCards - cardsToDeal, len(self.deck.remainingCards))
+		for dealtCard in dealtCards:
+			self.assertEqual(0, self.deck.remainingCards.count(dealtCard))
+
+
 if __name__ == "__main__":
 	unittest.main()
