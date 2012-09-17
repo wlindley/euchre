@@ -84,5 +84,33 @@ class HandTest(unittest.TestCase):
 		cardList = self.hand.getCards()
 		self.assertEqual(cards, cardList)
 
+class TrickTest(unittest.TestCase):
+	trick = None
+
+	def setUp(self):
+		self.trick = euchre.Trick()
+
+	def testAddingFirstCardSetsLedSuit(self):
+		self.assertEqual(None, self.trick.ledSuit)
+		self.trick.add(euchre.Card(euchre.SUIT_CLUBS, 5))
+		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
+
+	def testAddingSecondCardDoesNotChangeLedSuit(self):
+		self.trick.add(euchre.Card(euchre.SUIT_CLUBS, 5))
+		self.trick.add(euchre.Card(euchre.SUIT_DIAMONDS, 8))
+		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
+
+class TrickEvaluatorTest(unittest.TestCase):
+	evaluator = None
+
+	def setUp(self):
+		self.evaluator = euchre.TrickEvaluator()
+
+	def testCardOfTrumpSuitWinsAgainstNonTrumps(self):
+		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
+		trumpSuit = euchre.SUIT_HEARTS
+		self.evaluator.setTrump(trumpSuit)
+		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+
 if __name__ == "__main__":
 	unittest.main()

@@ -56,3 +56,15 @@ class Hand(object):
 
 	def getCards(self):
 		return self._cards[:]
+
+class Trick(object):
+	playedCards = []
+	ledSuit = None
+
+	def add(self, card):
+		if None == self.ledSuit:
+			self.ledSuit = card.suit
+		self.playedCards.append(card)
+
+class TrickEvaluator(object):
+	pass
