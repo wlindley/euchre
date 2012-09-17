@@ -70,5 +70,19 @@ class HandTest(unittest.TestCase):
 		for card in cards:
 			self.assertEqual(1, self.hand._cards.count(card))
 
+	def testPlayingCardRemovesItFromHand(self):
+		cards = [euchre.Card(euchre.SUIT_SPADES, 8), euchre.Card(euchre.SUIT_HEARTS, 3), euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_KING)]
+		self.hand.add(cards)
+		self.hand.play(cards[1])
+		self.assertEqual(1, self.hand._cards.count(cards[0]))
+		self.assertEqual(0, self.hand._cards.count(cards[1]))
+		self.assertEqual(1, self.hand._cards.count(cards[2]))
+
+	def testGetCardsReturnsListOfCardsInHand(self):
+		cards = [euchre.Card(euchre.SUIT_SPADES, 8), euchre.Card(euchre.SUIT_HEARTS, 3), euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_KING)]
+		self.hand.add(cards)
+		cardList = self.hand.getCards()
+		self.assertEqual(cards, cardList)
+
 if __name__ == "__main__":
 	unittest.main()

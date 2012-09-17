@@ -49,3 +49,10 @@ class Hand(object):
 
 	def add(self, cards):
 		self._cards.extend(cards)
+
+	def play(self, card):
+		if self._cards.count(card) > 0:
+			self._cards.remove(card)
+
+	def getCards(self):
+		return self._cards[:]
