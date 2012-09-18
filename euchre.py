@@ -28,8 +28,10 @@ class Card(object):
 		self.value = value
 
 	def __eq__(self, other):
+		if not other:
+			return False
 		if not isinstance(other, Card):
-			return self == other
+			return other.__eq__(self)
 		return self.value == other.value and self.suit == other.suit
 
 	def __str__(self):
@@ -95,5 +97,12 @@ class TrickEvaluator(object):
 			if card.suit == self.trumpSuit and card.value > highestTrumpValue:
 				highestTrumpValue = card.value
 				highestTrumpCard = card
+			if card.suit == trick.ledSuit and card.value > highestLedValue:
+				highestLedValue = card.value
+				highestLedCard = card
+
 		if highestTrumpCard:
 			return highestTrumpCard
+		if highestLedCard:
+			return highestLedCard
+		return None

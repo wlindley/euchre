@@ -137,5 +137,15 @@ class TrickEvaluatorTest(unittest.TestCase):
 		self.evaluator.setTrump(trumpSuit)
 		self.assertEqual(cards[-1], self.evaluator.evaluateTrick(trick))
 
+	def testCardOfLedSuitWinsAgainstNonLed(self):
+		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
+		trick = euchre.Trick()
+		for card in cards:
+			trick.add(card)
+		trumpSuit = euchre.SUIT_NONE
+		self.evaluator.setTrump(trumpSuit)
+		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+
+
 if __name__ == "__main__":
 	unittest.main()
