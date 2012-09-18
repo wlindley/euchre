@@ -2,6 +2,28 @@
 import unittest
 import euchre
 
+class CardTest(unittest.TestCase):
+	card1 = None
+	card2 = None
+
+	def setUp(self):
+		self.card1 = euchre.Card()
+		self.card2 = euchre.Card()
+
+	def testCardsWithSameSuitAndValueAreEqual(self):
+		self.card1.suit = euchre.SUIT_HEARTS
+		self.card1.value = 9
+		self.card2.suit = euchre.SUIT_HEARTS
+		self.card2.value = 9
+		self.assertEqual(self.card1, self.card2)
+
+	def testCardsWithDifferentSuitAndValueAreNotEqual(self):
+		self.card1.suit = euchre.SUIT_HEARTS
+		self.card1.value = 9
+		self.card2.suit = euchre.SUIT_CLUBS
+		self.card2.value = 6
+		self.assertNotEqual(self.card1, self.card2)
+
 class DeckTest(unittest.TestCase):
 	deck = None
 
@@ -107,10 +129,13 @@ class TrickEvaluatorTest(unittest.TestCase):
 		self.evaluator = euchre.TrickEvaluator()
 
 	def testCardOfTrumpSuitWinsAgainstNonTrumps(self):
-		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
+		cards = [euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE), euchre.Card(euchre.SUIT_HEARTS, 2)]
+		trick = euchre.Trick()
+		for card in cards:
+			trick.add(card)
 		trumpSuit = euchre.SUIT_HEARTS
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+		self.assertEqual(cards[-1], self.evaluator.evaluateTrick(trick))
 
 if __name__ == "__main__":
 	unittest.main()

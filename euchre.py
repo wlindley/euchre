@@ -27,6 +27,17 @@ class Card(object):
 		self.suit = suit
 		self.value = value
 
+	def __eq__(self, other):
+		if not isinstance(other, Card):
+			return self == other
+		return self.value == other.value and self.suit == other.suit
+
+	def __str__(self):
+		return "Card suit %s, value %s" % (self.suit, self.value)
+
+	def __repr__(self):
+		return "Card(%s, %s)" % (self.suit, self.value)
+
 class Deck(object):
 	remainingCards = []
 
@@ -45,7 +56,10 @@ class Deck(object):
 		return cards
 
 class Hand(object):
-	_cards = []
+	_cards = None
+
+	def __init__(self):
+		self._cards = []
 
 	def add(self, cards):
 		self._cards.extend(cards)
@@ -67,4 +81,19 @@ class Trick(object):
 		self.playedCards.append(card)
 
 class TrickEvaluator(object):
-	pass
+	trumpSuit = SUIT_NONE
+
+	def setTrump(self, trumpSuit):
+		self.trumpSuit = trumpSuit
+
+	def evaluateTrick(self, trick):
+		highestTrumpValue = -1
+		highestLedValue = -1
+		highestTrumpCard = None
+		highestLedCard = None
+		for card in trick.playedCards:
+			if card.suit == self.trumpSuit and card.value > highestTrumpValue:
+				highestTrumpValue = card.value
+				highestTrumpCard = card
+		if highestTrumpCard:
+			return highestTrumpCard
