@@ -218,5 +218,12 @@ class RoundTest(unittest.TestCase):
 		with self.assertRaises(game.GameRuleException):
 			self.round.playCard(self.players[0], card)
 
+	def testPlayingCardAddsItToCurrentTrick(self):
+		self.round.startRound()
+		self.round.curTrick = mock.Mock(euchre.Trick)
+		card = self.round.hands[self.players[0].playerId][2]
+		self.round.playCard(self.players[0], card)
+		self.round.curTrick.add.assert_called_with(card)
+
 if __name__ == "__main__":
 	unittest.main()
