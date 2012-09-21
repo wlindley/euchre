@@ -1,4 +1,5 @@
 import random
+import game
 
 SUIT_NONE = 0
 SUIT_CLUBS = 1
@@ -112,7 +113,7 @@ class TrickEvaluator(object):
 
 class Round(object):
 	def __init__(self, deck, players):
-		self.deck = deck
+		self._deck = deck
 		self.players = players
 		self.hands = {}
 		self.hasDealt = False
@@ -120,7 +121,14 @@ class Round(object):
 	def startRound(self):
 		if self.hasDealt:
 			return
-		handSize = len(self.deck.remainingCards) / len(self.players)
+		handSize = len(self._deck.remainingCards) / len(self.players)
 		for player in self.players:
-			self.hands[player.playerId] = self.deck.deal(handSize)
+			self.hands[player.playerId] = self._deck.deal(handSize)
 		self.hasDealt = True
+
+	def playCard(self, player, card):
+		if None == player or player.playerId not in self.hands:
+			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
+		if card not in self.hands[player.playerId]:
+			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
+		self.hands[player.playerId].remove(card)

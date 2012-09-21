@@ -199,5 +199,24 @@ class RoundTest(unittest.TestCase):
 		for i in range(len(curHands)):
 			self.assertEqual(curHands[i][1], self.round.hands[curHands[i][0]])
 
+	def testPlayingCardRemovesItFromPlayersHand(self):
+		self.round.startRound()
+		card = self.round.hands[self.players[0].playerId][0]
+		self.round.playCard(self.players[0], card)
+		self.assertEqual(0, self.round.hands[self.players[0].playerId].count(card))
+
+	def testPlayerNotInRoundPlayingCardThrowsException(self):
+		self.round.startRound()
+		otherPlayer = game.Player("5")
+		card = self.round.hands[self.players[1].playerId][0]
+		with self.assertRaises(game.InvalidPlayerException):
+			self.round.playCard(otherPlayer, card)
+
+	def testPlayerPlayingCardNotInTheirHandThrowsException(self):
+		self.round.startRound()
+		card = self.round.hands[self.players[2].playerId][1]
+		with self.assertRaises(game.GameRuleException):
+			self.round.playCard(self.players[0], card)
+
 if __name__ == "__main__":
 	unittest.main()
