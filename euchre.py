@@ -20,9 +20,6 @@ NUM_CARDS_IN_DECK = 52
 NUM_CARDS_IN_SUIT = 13
 
 class Card(object):
-	suit = 0
-	value = 0
-
 	def __init__(self, suit = 0, value = 0):
 		self.suit = suit
 		self.value = value
@@ -41,8 +38,6 @@ class Card(object):
 		return "Card(%s, %s)" % (self.suit, self.value)
 
 class Deck(object):
-	remainingCards = []
-
 	def __init__(self, minValue=VALUE_MIN, maxValue=VALUE_ACE):
 		self.remainingCards = []
 		for curSuit in range(SUIT_CLUBS, SUIT_HEARTS + 1):
@@ -58,8 +53,6 @@ class Deck(object):
 		return cards
 
 class Hand(object):
-	_cards = None
-
 	def __init__(self):
 		self._cards = []
 
@@ -74,8 +67,9 @@ class Hand(object):
 		return self._cards[:]
 
 class Trick(object):
-	playedCards = []
-	ledSuit = None
+	def __init__(self):
+		self.playedCards = []
+		self.ledSuit = None
 
 	def add(self, card):
 		if None == self.ledSuit:
@@ -83,7 +77,8 @@ class Trick(object):
 		self.playedCards.append(card)
 
 class TrickEvaluator(object):
-	trumpSuit = SUIT_NONE
+	def __init__(self):
+		self.trumpSuit = SUIT_NONE
 
 	def setTrump(self, trumpSuit):
 		self.trumpSuit = trumpSuit

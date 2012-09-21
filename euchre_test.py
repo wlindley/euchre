@@ -3,9 +3,6 @@ import unittest
 import euchre
 
 class CardTest(unittest.TestCase):
-	card1 = None
-	card2 = None
-
 	def setUp(self):
 		self.card1 = euchre.Card()
 		self.card2 = euchre.Card()
@@ -24,14 +21,16 @@ class CardTest(unittest.TestCase):
 		self.card2.value = 6
 		self.assertNotEqual(self.card1, self.card2)
 
-class DeckTest(unittest.TestCase):
-	deck = None
+	def testAssigningCardChangesSuit(self):
+		self.card1.suit = euchre.SUIT_HEARTS
+		self.card1.value = 9
+		self.card1 = euchre.Card(euchre.SUIT_SPADES, 2)
+		self.assertEqual(euchre.SUIT_SPADES, self.card1.suit)
+		self.assertEqual(2, self.card1.value)
 
+class DeckTest(unittest.TestCase):
 	def setUp(self):
 		self.deck = euchre.Deck()
-
-	def tearDown(self):
-		self.deck = None
 
 	def testDeckHas52CardsByDefault(self):
 		self.assertEqual(euchre.NUM_CARDS_IN_DECK, len(self.deck.remainingCards))
@@ -81,8 +80,6 @@ class DeckTest(unittest.TestCase):
 			self.assertEqual(0, self.deck.remainingCards.count(dealtCard))
 
 class HandTest(unittest.TestCase):
-	hand = None
-
 	def setUp(self):
 		self.hand = euchre.Hand()
 
@@ -107,8 +104,6 @@ class HandTest(unittest.TestCase):
 		self.assertEqual(cards, cardList)
 
 class TrickTest(unittest.TestCase):
-	trick = None
-
 	def setUp(self):
 		self.trick = euchre.Trick()
 
@@ -123,8 +118,6 @@ class TrickTest(unittest.TestCase):
 		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
 
 class TrickEvaluatorTest(unittest.TestCase):
-	evaluator = None
-
 	def setUp(self):
 		self.evaluator = euchre.TrickEvaluator()
 
@@ -146,6 +139,23 @@ class TrickEvaluatorTest(unittest.TestCase):
 		self.evaluator.setTrump(trumpSuit)
 		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
 
+	def testHighestTrumpSuitCardWins(self):
+		cards = [euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_ACE), euchre.Card(euchre.SUIT_SPADES, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING)]
+		trick = euchre.Trick()
+		for card in cards:
+			trick.add(card)
+		trumpSuit = euchre.SUIT_SPADES
+		self.evaluator.setTrump(trumpSuit)
+		self.assertEqual(cards[-1], self.evaluator.evaluateTrick(trick))
+
+	def testHighestLedSuitCardWins(self):
+		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_HEARTS, 10), euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
+		trick = euchre.Trick()
+		for card in cards:
+			trick.add(card)
+		trumpSuit = euchre.SUIT_CLUBS
+		self.evaluator.setTrump(trumpSuit)
+		self.assertEqual(cards[-2], self.evaluator.evaluateTrick(trick))
 
 if __name__ == "__main__":
 	unittest.main()
