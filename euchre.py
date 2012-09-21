@@ -109,3 +109,18 @@ class TrickEvaluator(object):
 		if highestLedCard:
 			return highestLedCard
 		return None
+
+class Round(object):
+	def __init__(self, deck, players):
+		self.deck = deck
+		self.players = players
+		self.hands = {}
+		self.hasDealt = False
+
+	def startRound(self):
+		if self.hasDealt:
+			return
+		handSize = len(self.deck.remainingCards) / len(self.players)
+		for player in self.players:
+			self.hands[player.playerId] = self.deck.deal(handSize)
+		self.hasDealt = True

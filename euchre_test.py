@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import unittest
+import mock
 import euchre
+import game
 
 class CardTest(unittest.TestCase):
 	def setUp(self):
@@ -175,6 +177,27 @@ class TrickEvaluatorTest(unittest.TestCase):
 		self.evaluator.setTrump(trumpSuit)
 		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
 
+class RoundTest(unittest.TestCase):
+	def setUp(self):
+		self.deck = euchre.Deck(9)
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.round = euchre.Round(self.deck, self.players)
+
+	def testStartingRoundDealsAllCardsToPlayersAndAllHaveSameHandSize(self):
+		numCards = len(self.deck.remainingCards)
+		self.round.startRound()
+		self.assertEqual(len(self.players), len(self.round.hands))
+		handSizes = [len(hand) for playerId, hand in self.round.hands.iteritems()]
+		self.assertEqual(numCards, sum(handSizes))
+		for handSize in handSizes:
+			self.assertEqual(handSizes[0], handSize)
+
+	def testStartingRoundTwiceDoesNotRedeal(self):
+		self.round.startRound()
+		curHands = [(playerId, hand[:]) for playerId, hand in self.round.hands.iteritems()]
+		self.round.startRound()
+		for i in range(len(curHands)):
+			self.assertEqual(curHands[i][1], self.round.hands[curHands[i][0]])
 
 if __name__ == "__main__":
 	unittest.main()
