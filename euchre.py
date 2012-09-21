@@ -89,11 +89,19 @@ class TrickEvaluator(object):
 		highestTrumpCard = None
 		highestLedCard = None
 		for card in trick.playedCards:
-			if card.suit == self.trumpSuit and card.value > highestTrumpValue:
-				highestTrumpValue = card.value
+			cardSuit = card.suit
+			cardValue = card.value
+			if cardValue == VALUE_JACK:
+				if cardSuit == self.trumpSuit:
+					cardValue = VALUE_RIGHT_BOWER
+				elif cardSuit % 2 == self.trumpSuit % 2:
+					cardSuit = self.trumpSuit
+					cardValue = VALUE_LEFT_BOWER
+			if cardSuit == self.trumpSuit and cardValue > highestTrumpValue:
+				highestTrumpValue = cardValue
 				highestTrumpCard = card
-			if card.suit == trick.ledSuit and card.value > highestLedValue:
-				highestLedValue = card.value
+			if cardSuit == trick.ledSuit and cardValue > highestLedValue:
+				highestLedValue = cardValue
 				highestLedCard = card
 
 		if highestTrumpCard:
