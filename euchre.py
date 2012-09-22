@@ -85,8 +85,8 @@ class Trick(object):
 		return len(self.playedCards) >= NUM_PLAYERS
 
 class TrickEvaluator(object):
-	def __init__(self):
-		self.trumpSuit = SUIT_NONE
+	def __init__(self, trump=SUIT_NONE):
+		self.trumpSuit = trump
 
 	def setTrump(self, trumpSuit):
 		self.trumpSuit = trumpSuit
