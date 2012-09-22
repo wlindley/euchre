@@ -69,13 +69,15 @@ class Hand(object):
 
 class Trick(object):
 	def __init__(self):
-		self.playedCards = []
+		self.playedCards = {}
 		self.ledSuit = None
 
-	def add(self, card):
+	def add(self, player, card):
 		if None == self.ledSuit:
 			self.ledSuit = card.suit
-		self.playedCards.append(card)
+		if player.playerId in self.playedCards:
+			raise game.GameRuleException("Player with id %s has already played a card in this trick" % player.playerId)
+		self.playedCards[player.playerId] = card
 
 class TrickEvaluator(object):
 	def __init__(self):
@@ -89,7 +91,9 @@ class TrickEvaluator(object):
 		highestLedValue = -1
 		highestTrumpCard = None
 		highestLedCard = None
-		for card in trick.playedCards:
+		highestTrumpId = None
+		highestLedId = None
+		for playerId, card in trick.playedCards.iteritems():
 			cardSuit = card.suit
 			cardValue = card.value
 			if cardValue == VALUE_JACK:
@@ -101,14 +105,16 @@ class TrickEvaluator(object):
 			if cardSuit == self.trumpSuit and cardValue > highestTrumpValue:
 				highestTrumpValue = cardValue
 				highestTrumpCard = card
+				highestTrumpId = playerId
 			if cardSuit == trick.ledSuit and cardValue > highestLedValue:
 				highestLedValue = cardValue
 				highestLedCard = card
+				highestLedId = playerId
 
 		if highestTrumpCard:
-			return highestTrumpCard
+			return highestTrumpId
 		if highestLedCard:
-			return highestLedCard
+			return highestLedId
 		return None
 
 class Round(object):
@@ -136,4 +142,4 @@ class Round(object):
 		if None == self.curTrick:
 			self.curTrick = Trick()
 		self.hands[player.playerId].remove(card)
-		self.curTrick.add(card)
+		self.curTrick.add(player, card)

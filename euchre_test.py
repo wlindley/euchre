@@ -108,74 +108,87 @@ class HandTest(unittest.TestCase):
 class TrickTest(unittest.TestCase):
 	def setUp(self):
 		self.trick = euchre.Trick()
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
 	def testAddingFirstCardSetsLedSuit(self):
 		self.assertEqual(None, self.trick.ledSuit)
-		self.trick.add(euchre.Card(euchre.SUIT_CLUBS, 5))
+		self.trick.add(self.players[2], euchre.Card(euchre.SUIT_CLUBS, 5))
 		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
 
 	def testAddingSecondCardDoesNotChangeLedSuit(self):
-		self.trick.add(euchre.Card(euchre.SUIT_CLUBS, 5))
-		self.trick.add(euchre.Card(euchre.SUIT_DIAMONDS, 8))
+		self.trick.add(self.players[2], euchre.Card(euchre.SUIT_CLUBS, 5))
+		self.trick.add(self.players[1], euchre.Card(euchre.SUIT_DIAMONDS, 8))
 		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
+
+	def testPlayerPlayingMoreThanOneCardThrowsException(self):
+		self.trick.add(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 5))
+		with self.assertRaises(game.GameRuleException):
+			self.trick.add(self.players[0], euchre.Card(euchre.SUIT_DIAMONDS, 8))
 
 class TrickEvaluatorTest(unittest.TestCase):
 	def setUp(self):
 		self.evaluator = euchre.TrickEvaluator()
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
 	def testCardOfTrumpSuitWinsAgainstNonTrumps(self):
 		cards = [euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE), euchre.Card(euchre.SUIT_HEARTS, 2)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_HEARTS
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[-1], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[-1], trick.playedCards[winner])
 
 	def testCardOfLedSuitWinsAgainstNonLed(self):
 		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_NONE
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[0], trick.playedCards[winner])
 
 	def testHighestTrumpSuitCardWins(self):
 		cards = [euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_ACE), euchre.Card(euchre.SUIT_SPADES, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_SPADES
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[-1], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[-1], trick.playedCards[winner])
 
 	def testHighestLedSuitCardWins(self):
 		cards = [euchre.Card(euchre.SUIT_HEARTS, 2), euchre.Card(euchre.SUIT_HEARTS, 10), euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_KING), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_ACE)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_CLUBS
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[-2], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[-2], trick.playedCards[winner])
 
 	def testLeftBowerBeatsLowerTrumps(self):
 		cards = [euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_JACK), euchre.Card(euchre.SUIT_SPADES, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_SPADES
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[0], trick.playedCards[winner])
 
 	def testRightBowerBeatsOtherTrumps(self):
 		cards = [euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_JACK), euchre.Card(euchre.SUIT_SPADES, 2), euchre.Card(euchre.SUIT_SPADES, 10), euchre.Card(euchre.SUIT_SPADES, euchre.VALUE_KING)]
 		trick = euchre.Trick()
-		for card in cards:
-			trick.add(card)
+		for i in range(len(cards)):
+			trick.add(self.players[i], cards[i])
 		trumpSuit = euchre.SUIT_SPADES
 		self.evaluator.setTrump(trumpSuit)
-		self.assertEqual(cards[0], self.evaluator.evaluateTrick(trick))
+		winner = self.evaluator.evaluateTrick(trick)
+		self.assertEqual(cards[0], trick.playedCards[winner])
 
 class RoundTest(unittest.TestCase):
 	def setUp(self):
@@ -223,7 +236,7 @@ class RoundTest(unittest.TestCase):
 		self.round.curTrick = mock.Mock(euchre.Trick)
 		card = self.round.hands[self.players[0].playerId][2]
 		self.round.playCard(self.players[0], card)
-		self.round.curTrick.add.assert_called_with(card)
+		self.round.curTrick.add.assert_called_with(self.players[0], card)
 
 if __name__ == "__main__":
 	unittest.main()
