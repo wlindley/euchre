@@ -132,6 +132,7 @@ class Round(object):
 		self.prevTricks = []
 		self.scores = {}
 		self._trickEvaluator = trickEvaluator
+		self._currentPlayerIndex = -1
 
 	def startRound(self):
 		if self.hasDealt:
@@ -140,6 +141,7 @@ class Round(object):
 		for player in self.players:
 			self.hands[player.playerId] = self._deck.deal(handSize)
 		self.curTrick = Trick()
+		self._currentPlayerIndex = 0
 		self.hasDealt = True
 
 	def playCard(self, player, card):
@@ -150,6 +152,7 @@ class Round(object):
 
 		self.hands[player.playerId].remove(card)
 		self.curTrick.add(player, card)
+		self._nextTurn()
 
 		if self.curTrick.isComplete():
 			self._nextTrick()
@@ -159,6 +162,9 @@ class Round(object):
 			if 0 >= len(self.hands[player.playerId]):
 				return True
 		return False
+
+	def getCurrentPlayerId(self):
+		return self.players[self._currentPlayerIndex].playerId
 
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
@@ -171,3 +177,6 @@ class Round(object):
 			self.scores[playerId] += 1
 		else:
 			self.scores[playerId] = 1
+
+	def _nextTurn(self):
+		self._currentPlayerIndex = (self._currentPlayerIndex + 1) % len(self.players)

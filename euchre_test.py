@@ -281,5 +281,14 @@ class RoundTest(unittest.TestCase):
 		self.assertEqual(0, len(self.round.hands[self.players[0].playerId]))
 		self.assertTrue(self.round.isComplete())
 
+	def testAfterStartingRoundItIsPlayer0sTurn(self):
+		self.round.startRound()
+		self.assertEqual(self.players[0].playerId, self.round.getCurrentPlayerId())
+
+	def testPlayingCardAdvancesPlayerTurn(self):
+		self.round.startRound()
+		self.round.playCard(self.players[0], self.round.hands[self.players[0].playerId][0])
+		self.assertEqual(self.players[1].playerId, self.round.getCurrentPlayerId())
+
 if __name__ == "__main__":
 	unittest.main()
