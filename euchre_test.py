@@ -199,9 +199,12 @@ class TrickEvaluatorTest(unittest.TestCase):
 
 class RoundTest(unittest.TestCase):
 	def setUp(self):
+		self.trump = euchre.SUIT_CLUBS
+		self.trickEvaluator = euchre.TrickEvaluator()
+		self.trickEvaluator.setTrump(self.trump)
 		self.deck = euchre.Deck(9)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.round = euchre.Round(self.deck, self.players)
+		self.round = euchre.Round(self.trickEvaluator, self.deck, self.players)
 
 	def testStartingRoundDealsAllCardsToPlayersAndAllHaveSameHandSize(self):
 		numCards = len(self.deck.remainingCards)
@@ -240,10 +243,43 @@ class RoundTest(unittest.TestCase):
 
 	def testPlayingCardAddsItToCurrentTrick(self):
 		self.round.startRound()
-		self.round.curTrick = mock.Mock(euchre.Trick)
+		mockTrick = mock.Mock(euchre.Trick)
+		mockTrick.playedCards = {}
+		self.round.curTrick = mockTrick
 		card = self.round.hands[self.players[0].playerId][2]
 		self.round.playCard(self.players[0], card)
-		self.round.curTrick.add.assert_called_with(self.players[0], card)
+		mockTrick.add.assert_called_with(self.players[0], card)
+
+	def testPlayingLastCardInTrickStartsNewTrick(self):
+		self.round.startRound()
+		firstTrick = self.round.curTrick
+		for player in self.players:
+			self.round.playCard(player, self.round.hands[player.playerId][0])
+		self.assertNotEqual(firstTrick, self.round.curTrick)
+		self.assertEqual(1, self.round.prevTricks.count(firstTrick))
+
+	def testCompletingTrickIncrementsScoreOfWinningPlayer(self):
+		self.round.startRound()
+		initialScores = self.round.scores.copy()
+		for player in self.players:
+			self.round.playCard(player, self.round.hands[player.playerId][0])
+		winner = self.round._trickEvaluator.evaluateTrick(self.round.prevTricks[0])
+		for player in self.players:
+			prevScore = initialScores[player.playerId] if player.playerId in initialScores else 0
+			curScore = self.round.scores[player.playerId] if player.playerId in self.round.scores else 0
+			if winner == player.playerId:
+				self.assertLess(prevScore, curScore)
+			else:
+				self.assertEqual(prevScore, curScore)
+
+	def testRoundEndsWhenAtLeastOnePlayersHandIsEmpty(self):
+		self.round.startRound()
+		self.assertFalse(self.round.isComplete())
+		while 0 < len(self.round.hands[self.players[0].playerId]):
+			for player in self.players:
+				self.round.playCard(player, self.round.hands[player.playerId][0])
+		self.assertEqual(0, len(self.round.hands[self.players[0].playerId]))
+		self.assertTrue(self.round.isComplete())
 
 if __name__ == "__main__":
 	unittest.main()

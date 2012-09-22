@@ -123,12 +123,15 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, deck, players):
+	def __init__(self, trickEvaluator, deck, players):
 		self._deck = deck
 		self.players = players
 		self.hands = {}
 		self.hasDealt = False
 		self.curTrick = None
+		self.prevTricks = []
+		self.scores = {}
+		self._trickEvaluator = trickEvaluator
 
 	def startRound(self):
 		if self.hasDealt:
@@ -136,6 +139,7 @@ class Round(object):
 		handSize = len(self._deck.remainingCards) / len(self.players)
 		for player in self.players:
 			self.hands[player.playerId] = self._deck.deal(handSize)
+		self.curTrick = Trick()
 		self.hasDealt = True
 
 	def playCard(self, player, card):
@@ -144,7 +148,26 @@ class Round(object):
 		if card not in self.hands[player.playerId]:
 			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
 
-		if None == self.curTrick:
-			self.curTrick = Trick()
 		self.hands[player.playerId].remove(card)
 		self.curTrick.add(player, card)
+
+		if self.curTrick.isComplete():
+			self._nextTrick()
+
+	def isComplete(self):
+		for player in self.players:
+			if 0 >= len(self.hands[player.playerId]):
+				return True
+		return False
+
+	def _nextTrick(self):
+		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
+		self._incrementScore(winner)
+		self.prevTricks.append(self.curTrick)
+		self.curTrick = Trick()
+
+	def _incrementScore(self, playerId):
+		if playerId in self.scores:
+			self.scores[playerId] += 1
+		else:
+			self.scores[playerId] = 1
