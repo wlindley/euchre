@@ -125,6 +125,13 @@ class TrickTest(unittest.TestCase):
 		with self.assertRaises(game.GameRuleException):
 			self.trick.add(self.players[0], euchre.Card(euchre.SUIT_DIAMONDS, 8))
 
+	def testTrickIsCompleteOnce4PlayersHavePlayed(self):
+		self.assertFalse(self.trick.isComplete())
+		cards = [euchre.Card(euchre.SUIT_CLUBS, 5), euchre.Card(euchre.SUIT_DIAMONDS, 8), euchre.Card(euchre.SUIT_CLUBS, 4), euchre.Card(euchre.SUIT_DIAMONDS, 7)]
+		for i in range(len(cards)):
+			self.trick.add(self.players[i], cards[i])
+		self.assertTrue(self.trick.isComplete())
+
 class TrickEvaluatorTest(unittest.TestCase):
 	def setUp(self):
 		self.evaluator = euchre.TrickEvaluator()

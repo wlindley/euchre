@@ -20,6 +20,8 @@ VALUE_RIGHT_BOWER = 16
 NUM_CARDS_IN_DECK = 52
 NUM_CARDS_IN_SUIT = 13
 
+NUM_PLAYERS = 4
+
 class Card(object):
 	def __init__(self, suit = 0, value = 0):
 		self.suit = suit
@@ -78,6 +80,9 @@ class Trick(object):
 		if player.playerId in self.playedCards:
 			raise game.GameRuleException("Player with id %s has already played a card in this trick" % player.playerId)
 		self.playedCards[player.playerId] = card
+
+	def isComplete(self):
+		return len(self.playedCards) >= NUM_PLAYERS
 
 class TrickEvaluator(object):
 	def __init__(self):
