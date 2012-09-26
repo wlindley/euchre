@@ -171,6 +171,7 @@ class Round(object):
 		self._incrementScore(winner)
 		self.prevTricks.append(self.curTrick)
 		self.curTrick = Trick()
+		self._setPlayerTurn(winner)
 
 	def _incrementScore(self, playerId):
 		if playerId in self.scores:
@@ -180,3 +181,9 @@ class Round(object):
 
 	def _nextTurn(self):
 		self._currentPlayerIndex = (self._currentPlayerIndex + 1) % len(self.players)
+
+	def _setPlayerTurn(self, playerId):
+		for i in range(len(self.players)):
+			if playerId == self.players[i].playerId:
+				self._currentPlayerIndex = i
+				return

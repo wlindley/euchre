@@ -290,5 +290,16 @@ class RoundTest(unittest.TestCase):
 		self.round.playCard(self.players[0], self.round.hands[self.players[0].playerId][0])
 		self.assertEqual(self.players[1].playerId, self.round.getCurrentPlayerId())
 
+	def testCompletingTrickSetsTurnToWinningPlayer(self):
+		self.trickEvaluator.setTrump(euchre.SUIT_DIAMONDS)
+		self.round.startRound()
+		for player in self.players:
+			self.round.playCard(player, self.round.hands[player.playerId][0])
+		winner = None
+		for player in self.players:
+			if player.playerId in self.round.scores and self.round.scores[player.playerId] > 0:
+				winner = player
+		self.assertEqual(winner.playerId, self.round.getCurrentPlayerId())
+
 if __name__ == "__main__":
 	unittest.main()
