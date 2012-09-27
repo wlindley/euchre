@@ -21,6 +21,7 @@ NUM_CARDS_IN_DECK = 52
 NUM_CARDS_IN_SUIT = 13
 
 NUM_PLAYERS = 4
+HAND_SIZE = 5
 
 class Card(object):
 	def __init__(self, suit = 0, value = 0):
@@ -141,6 +142,8 @@ class Round(object):
 			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
 		if card not in self.hands[player.playerId]:
 			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
+		if self.players[self._currentPlayerIndex] != player:
+			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self.players[self._currentPlayerIndex].playerId))
 
 		self.hands[player.playerId].remove(card)
 		self.curTrick.add(player, card)
@@ -150,10 +153,7 @@ class Round(object):
 			self._nextTrick()
 
 	def isComplete(self):
-		for player in self.players:
-			if 0 >= len(self.hands[player.playerId]):
-				return True
-		return False
+		return HAND_SIZE <= len(self.prevTricks)
 
 	def getCurrentPlayerId(self):
 		return self.players[self._currentPlayerIndex].playerId

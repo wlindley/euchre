@@ -205,26 +205,11 @@ class RoundTest(unittest.TestCase):
 		self.deck = euchre.Deck(9)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.hands = {}
-		self.handSize = 5
+		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
 
 		self.round = euchre.Round(self.trickEvaluator, self.players, self.hands)
-
-	def testStartingRoundDealsAllCardsToPlayersAndAllHaveSameHandSize(self):
-		self.round.startRound()
-		self.assertEqual(len(self.players), len(self.round.hands))
-		handSizes = [len(hand) for playerId, hand in self.round.hands.iteritems()]
-		self.assertEqual(self.handSize * len(self.players), sum(handSizes))
-		for handSize in handSizes:
-			self.assertEqual(handSizes[0], handSize)
-
-	def testStartingRoundTwiceDoesNotRedeal(self):
-		self.round.startRound()
-		curHands = [(playerId, hand[:]) for playerId, hand in self.round.hands.iteritems()]
-		self.round.startRound()
-		for i in range(len(curHands)):
-			self.assertEqual(curHands[i][1], self.round.hands[curHands[i][0]])
 
 	def testPlayingCardRemovesItFromPlayersHand(self):
 		self.round.startRound()
@@ -276,13 +261,10 @@ class RoundTest(unittest.TestCase):
 			else:
 				self.assertEqual(prevScore, curScore)
 
-	def testRoundEndsWhenAtLeastOnePlayersHandIsEmpty(self):
+	def testRoundEndsWhenCorrectNumberOfTricksIsPlayed(self):
 		self.round.startRound()
-		self.assertFalse(self.round.isComplete())
-		while 0 < len(self.round.hands[self.players[0].playerId]):
-			for player in self.players:
-				self.round.playCard(player, self.round.hands[player.playerId][0])
-		self.assertEqual(0, len(self.round.hands[self.players[0].playerId]))
+		for i in range(self.handSize):
+			self.round._nextTrick()
 		self.assertTrue(self.round.isComplete())
 
 	def testAfterStartingRoundItIsPlayer0sTurn(self):
@@ -304,6 +286,11 @@ class RoundTest(unittest.TestCase):
 			if player.playerId in self.round.scores and self.round.scores[player.playerId] > 0:
 				winner = player
 		self.assertEqual(winner.playerId, self.round.getCurrentPlayerId())
+
+	def testPlayerPlayerOutOfTurnThrowsException(self):
+		self.round.startRound()
+		with self.assertRaises(game.GameRuleException):
+			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
 
 if __name__ == "__main__":
 	unittest.main()
