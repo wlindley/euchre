@@ -204,14 +204,18 @@ class RoundTest(unittest.TestCase):
 		self.trickEvaluator.setTrump(self.trump)
 		self.deck = euchre.Deck(9)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.round = euchre.Round(self.trickEvaluator, self.deck, self.players)
+		self.hands = {}
+		self.handSize = 5
+		for player in self.players:
+			self.hands[player.playerId] = self.deck.deal(self.handSize)
+
+		self.round = euchre.Round(self.trickEvaluator, self.players, self.hands)
 
 	def testStartingRoundDealsAllCardsToPlayersAndAllHaveSameHandSize(self):
-		numCards = len(self.deck.remainingCards)
 		self.round.startRound()
 		self.assertEqual(len(self.players), len(self.round.hands))
 		handSizes = [len(hand) for playerId, hand in self.round.hands.iteritems()]
-		self.assertEqual(numCards, sum(handSizes))
+		self.assertEqual(self.handSize * len(self.players), sum(handSizes))
 		for handSize in handSizes:
 			self.assertEqual(handSizes[0], handSize)
 

@@ -123,11 +123,9 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, trickEvaluator, deck, players):
-		self._deck = deck
+	def __init__(self, trickEvaluator, players, hands):
 		self.players = players
-		self.hands = {}
-		self.hasDealt = False
+		self.hands = hands
 		self.curTrick = None
 		self.prevTricks = []
 		self.scores = {}
@@ -135,14 +133,8 @@ class Round(object):
 		self._currentPlayerIndex = -1
 
 	def startRound(self):
-		if self.hasDealt:
-			return
-		handSize = len(self._deck.remainingCards) / len(self.players)
-		for player in self.players:
-			self.hands[player.playerId] = self._deck.deal(handSize)
 		self.curTrick = Trick()
 		self._currentPlayerIndex = 0
-		self.hasDealt = True
 
 	def playCard(self, player, card):
 		if None == player or player.playerId not in self.hands:
