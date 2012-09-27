@@ -200,7 +200,7 @@ class TrickEvaluatorTest(unittest.TestCase):
 class RoundTest(unittest.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
-		self.trickEvaluator = euchre.TrickEvaluator()
+		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
 		self.trickEvaluator.setTrump(self.trump)
 		self.deck = euchre.Deck(9)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -291,6 +291,9 @@ class RoundTest(unittest.TestCase):
 		self.round.startRound()
 		with self.assertRaises(game.GameRuleException):
 			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
+
+#	def testScoreIsCorrectAfterACompleteRound(self):
+#		print self.round.hands
 
 if __name__ == "__main__":
 	unittest.main()
