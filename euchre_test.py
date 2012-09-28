@@ -310,5 +310,14 @@ class RoundTest(unittest.TestCase):
 		for playerId, score in self.round.scores.iteritems():
 			self.assertEqual(scores[playerId], score)
 
+class TrumpSelectorTest(unittest.TestCase):
+	def setUp(self):
+		self.trumpSelector = euchre.TrumpSelector(euchre.SUIT_SPADES)
+
+	def testSelectingTrumpCompletesProcess(self):
+		self.trumpSelector.selectTrump(self.trumpSelector.availableTrump)
+		self.assertTrue(self.trumpSelector.isComplete())
+		self.assertEqual(self.trumpSelector.availableTrump, self.trumpSelector.selectedTrump)
+
 if __name__ == "__main__":
 	unittest.main()

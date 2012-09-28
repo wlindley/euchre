@@ -179,3 +179,14 @@ class Round(object):
 			if playerId == self.players[i].playerId:
 				self._currentPlayerIndex = i
 				return
+
+class TrumpSelector(object):
+	def __init__(self, availableTrump=None):
+		self.availableTrump = availableTrump
+		self.selectedTrump = None
+
+	def selectTrump(self, trumpSuit):
+		self.selectedTrump = trumpSuit
+
+	def isComplete(self):
+		return None != self.selectedTrump
