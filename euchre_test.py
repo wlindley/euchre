@@ -292,8 +292,23 @@ class RoundTest(unittest.TestCase):
 		with self.assertRaises(game.GameRuleException):
 			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
 
-#	def testScoreIsCorrectAfterACompleteRound(self):
-#		print self.round.hands
+	def testScoreIsCorrectAfterACompleteRound(self):
+		self.round.startRound()
+		trickEvaluator = euchre.TrickEvaluator(self.trump)
+		scores = {}
+		for player in self.players:
+			scores[player.playerId] = 0
+		for i in range(self.handSize):
+			curTrick = euchre.Trick()
+			for offset in range(len(self.players)):
+				curPlayer = self.players[self.round._currentPlayerIndex]
+				curCard = self.round.hands[curPlayer.playerId][0]
+				curTrick.add(curPlayer, curCard)
+				self.round.playCard(curPlayer, curCard)
+			winner = trickEvaluator.evaluateTrick(curTrick)
+			scores[winner] += 1
+		for playerId, score in self.round.scores.iteritems():
+			self.assertEqual(scores[playerId], score)
 
 if __name__ == "__main__":
 	unittest.main()
