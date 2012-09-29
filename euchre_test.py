@@ -313,16 +313,28 @@ class RoundTest(unittest.TestCase):
 
 class TrumpSelectorTest(unittest.TestCase):
 	def setUp(self):
-		self.trumpSelector = euchre.TrumpSelector(euchre.SUIT_SPADES)
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.availableTrump = euchre.SUIT_SPADES
+		self.turnTracker = game.TurnTracker(self.players)
+		self.trumpSelector = euchre.TrumpSelector(self.turnTracker, self.availableTrump)
 
 	def testSelectingTrumpCompletesProcess(self):
-		self.trumpSelector.selectTrump(self.trumpSelector.availableTrump)
+		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.availableTrump)
 		self.assertTrue(self.trumpSelector.isComplete())
 		self.assertEqual(self.trumpSelector.availableTrump, self.trumpSelector.selectedTrump)
 
 	def testCanOnlySelectAvailableTrumpIfItIsSet(self):
 		with self.assertRaises(game.GameRuleException):
-			self.trumpSelector.selectTrump(euchre.SUIT_CLUBS)
+			self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_CLUBS)
+
+	def testOnlyActivePlayerCanSelectTrump(self):
+		with self.assertRaises(game.GameRuleException):
+			self.trumpSelector.selectTrump(self.players[1], self.availableTrump)
+
+	def testAnySuitCanBeSelectedIfNoTrumpIsAvailable(self):
+		self.trumpSelector.availableTrump = None
+		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_HEARTS)
+		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.selectedTrump)
 
 if __name__ == "__main__":
 	unittest.main()

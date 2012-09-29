@@ -174,11 +174,14 @@ class Round(object):
 		self._turnTracker.setTurnByPlayerId(playerId)
 
 class TrumpSelector(object):
-	def __init__(self, availableTrump=None):
+	def __init__(self, turnTracker, availableTrump=None):
+		self._turnTracker = turnTracker
 		self.availableTrump = availableTrump
 		self.selectedTrump = None
 
-	def selectTrump(self, trumpSuit):
+	def selectTrump(self, player, trumpSuit):
+		if self._turnTracker.getCurrentPlayerId() != player.playerId:
+			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 		if None != self.availableTrump and self.availableTrump != trumpSuit:
 			raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self.availableTrump))
 		self.selectedTrump = trumpSuit
