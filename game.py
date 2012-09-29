@@ -10,17 +10,23 @@ class GameRuleException(Exception):
 
 class TurnTracker(object):
 	def __init__(self, players):
-		self.players = players
+		self._players = players
 		self._currentIndex = 0
+		self._allTurnCount = 0
 
 	def getCurrentPlayerId(self):
-		return self.players[self._currentIndex].playerId
+		return self._players[self._currentIndex].playerId
 
 	def advanceTurn(self):
-		self._currentIndex = (self._currentIndex + 1) % len(self.players)
+		if (len(self._players) - 1) == self._currentIndex:
+			self._allTurnCount += 1
+		self._currentIndex = (self._currentIndex + 1) % len(self._players)
 
 	def setTurnByPlayerId(self, playerId):
-		for i in range(len(self.players)):
-			if playerId == self.players[i].playerId:
+		for i in range(len(self._players)):
+			if playerId == self._players[i].playerId:
 				self._currentIndex = i
 				return
+
+	def getAllTurnCount(self):
+		return self._allTurnCount

@@ -26,5 +26,13 @@ class TurnTrackerTest(unittest.TestCase):
 		self.assertEqual(2, self.turnTracker._currentIndex)
 		self.assertEqual(playerId, self.turnTracker.getCurrentPlayerId())
 
+	def testGetAllTurnCountReturnsCorrectNumberOfFullTurns(self):
+		for player in self.players:
+			self.assertEqual(0, self.turnTracker.getAllTurnCount())
+			self.turnTracker.advanceTurn()
+		self.assertEqual(1, self.turnTracker.getAllTurnCount())
+		self.turnTracker.advanceTurn()
+		self.assertEqual(1, self.turnTracker.getAllTurnCount())
+
 if __name__ == "__main__":
 	unittest.main()

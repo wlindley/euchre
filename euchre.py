@@ -182,9 +182,11 @@ class TrumpSelector(object):
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
-		if None != self.availableTrump and self.availableTrump != trumpSuit:
-			raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self.availableTrump))
-		self.selectedTrump = trumpSuit
+		if None != trumpSuit:
+			if None != self.availableTrump and self.availableTrump != trumpSuit:
+				raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self.availableTrump))
+			self.selectedTrump = trumpSuit
+		self._turnTracker.advanceTurn()
 
 	def isComplete(self):
-		return None != self.selectedTrump
+		return None != self.selectedTrump or 1 <= self._turnTracker.getAllTurnCount()

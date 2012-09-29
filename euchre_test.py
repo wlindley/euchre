@@ -336,5 +336,15 @@ class TrumpSelectorTest(unittest.TestCase):
 		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_HEARTS)
 		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.selectedTrump)
 
+	def testSelectingSuitNoneAdvancesTurnWithoutSettingTrump(self):
+		self.trumpSelector.selectTrump(self.players[0], None)
+		self.assertEqual(self.players[1].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
+		self.assertEqual(None, self.trumpSelector.selectedTrump)
+
+	def testIsCompleteIfAllPlayersDeclineToSelectATrump(self):
+		for player in self.players:
+			self.trumpSelector.selectTrump(player, None)
+		self.assertTrue(self.trumpSelector.isComplete())
+
 if __name__ == "__main__":
 	unittest.main()
