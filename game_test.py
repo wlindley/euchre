@@ -34,5 +34,12 @@ class TurnTrackerTest(unittest.TestCase):
 		self.turnTracker.advanceTurn()
 		self.assertEqual(1, self.turnTracker.getAllTurnCount())
 
+	def testResetResetsStateButLeavesPlayerList(self):
+		for player in self.players:
+			self.turnTracker.advanceTurn()
+		self.turnTracker.reset()
+		self.assertEqual(self.players[0].playerId, self.turnTracker.getCurrentPlayerId())
+		self.assertEqual(0, self.turnTracker.getAllTurnCount())
+
 if __name__ == "__main__":
 	unittest.main()

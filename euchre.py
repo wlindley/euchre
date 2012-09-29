@@ -22,6 +22,7 @@ NUM_CARDS_IN_SUIT = 13
 
 NUM_PLAYERS = 4
 HAND_SIZE = 5
+MIN_4_PLAYER_CARD_VALUE = 9
 
 class Card(object):
 	def __init__(self, suit = 0, value = 0):
@@ -190,3 +191,8 @@ class TrumpSelector(object):
 
 	def isComplete(self):
 		return None != self.selectedTrump or 1 <= self._turnTracker.getAllTurnCount()
+
+	def reset(self):
+		self._turnTracker.reset()
+		self.availableTrump = None
+		self.selectedTrump = None

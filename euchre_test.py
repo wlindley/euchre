@@ -346,5 +346,29 @@ class TrumpSelectorTest(unittest.TestCase):
 			self.trumpSelector.selectTrump(player, None)
 		self.assertTrue(self.trumpSelector.isComplete())
 
+	def testResetResetsTurnTrackerAndClearsAvailableTrump(self):
+		for player in self.players:
+			self.trumpSelector.selectTrump(player, None)
+		self.trumpSelector.reset()
+		self.assertEqual(self.players[0].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
+		self.assertEqual(None, self.trumpSelector.availableTrump)
+
+	def testResetClearsSelectedTrump(self):
+		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.availableTrump)
+		self.trumpSelector.reset()
+		self.assertEqual(None, self.trumpSelector.selectedTrump)
+
+class SequenceTest(unittest.TestCase):
+	def setUp(self):
+		deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.hands = {}
+		for player in players:
+			self.hands[player.playerId] = deck.deal(euchre.HAND_SIZE)
+		self.trumpSelector = euchre.TrumpSelector(game.TurnTracker(self.players), self.players)
+		self.trickEvaluator = euchre.TrickEvaluator()
+		self.round = euchre.Round(game.TurnTracker(self.players), self.trickEvaluator, self.players, self.hands)
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.players)
+
 if __name__ == "__main__":
 	unittest.main()

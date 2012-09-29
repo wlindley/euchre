@@ -11,8 +11,7 @@ class Player(object):
 class TurnTracker(object):
 	def __init__(self, players):
 		self._players = players
-		self._currentIndex = 0
-		self._allTurnCount = 0
+		self.reset()
 
 	def getCurrentPlayerId(self):
 		return self._players[self._currentIndex].playerId
@@ -30,3 +29,7 @@ class TurnTracker(object):
 
 	def getAllTurnCount(self):
 		return self._allTurnCount
+
+	def reset(self):
+		self._currentIndex = 0
+		self._allTurnCount = 0
