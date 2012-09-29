@@ -233,7 +233,7 @@ class RoundTest(unittest.TestCase):
 
 	def testPlayingCardAddsItToCurrentTrick(self):
 		self.round.startRound()
-		mockTrick = mock.Mock(euchre.Trick)
+		mockTrick = mock.create_autospec(euchre.Trick)
 		mockTrick.playedCards = {}
 		self.round.curTrick = mockTrick
 		card = self.round.hands[self.players[0].playerId][2]
