@@ -319,5 +319,9 @@ class TrumpSelectorTest(unittest.TestCase):
 		self.assertTrue(self.trumpSelector.isComplete())
 		self.assertEqual(self.trumpSelector.availableTrump, self.trumpSelector.selectedTrump)
 
+	def testCanOnlySelectAvailableTrumpIfItIsSet(self):
+		with self.assertRaises(game.GameRuleException):
+			self.trumpSelector.selectTrump(euchre.SUIT_CLUBS)
+
 if __name__ == "__main__":
 	unittest.main()

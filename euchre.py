@@ -186,6 +186,8 @@ class TrumpSelector(object):
 		self.selectedTrump = None
 
 	def selectTrump(self, trumpSuit):
+		if None != self.availableTrump and self.availableTrump != trumpSuit:
+			raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self.availableTrump))
 		self.selectedTrump = trumpSuit
 
 	def isComplete(self):
