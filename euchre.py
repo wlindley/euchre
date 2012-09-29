@@ -124,26 +124,25 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, trickEvaluator, players, hands):
+	def __init__(self, turnTracker, trickEvaluator, players, hands):
 		self.players = players
 		self.hands = hands
 		self.curTrick = None
 		self.prevTricks = []
 		self.scores = {}
 		self._trickEvaluator = trickEvaluator
-		self._currentPlayerIndex = -1
+		self._turnTracker = turnTracker
 
 	def startRound(self):
 		self.curTrick = Trick()
-		self._currentPlayerIndex = 0
 
 	def playCard(self, player, card):
 		if None == player or player.playerId not in self.hands:
 			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
 		if card not in self.hands[player.playerId]:
 			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
-		if self.players[self._currentPlayerIndex] != player:
-			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self.players[self._currentPlayerIndex].playerId))
+		if self._turnTracker.getCurrentPlayerId() != player.playerId:
+			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 
 		self.hands[player.playerId].remove(card)
 		self.curTrick.add(player, card)
@@ -154,9 +153,6 @@ class Round(object):
 
 	def isComplete(self):
 		return HAND_SIZE <= len(self.prevTricks)
-
-	def getCurrentPlayerId(self):
-		return self.players[self._currentPlayerIndex].playerId
 
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
@@ -172,13 +168,10 @@ class Round(object):
 			self.scores[playerId] = 1
 
 	def _nextTurn(self):
-		self._currentPlayerIndex = (self._currentPlayerIndex + 1) % len(self.players)
+		self._turnTracker.advanceTurn()
 
 	def _setPlayerTurn(self, playerId):
-		for i in range(len(self.players)):
-			if playerId == self.players[i].playerId:
-				self._currentPlayerIndex = i
-				return
+		self._turnTracker.setTurnByPlayerId(playerId)
 
 class TrumpSelector(object):
 	def __init__(self, availableTrump=None):

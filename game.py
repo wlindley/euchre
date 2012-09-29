@@ -18,3 +18,9 @@ class TurnTracker(object):
 
 	def advanceTurn(self):
 		self._currentIndex = (self._currentIndex + 1) % len(self.players)
+
+	def setTurnByPlayerId(self, playerId):
+		for i in range(len(self.players)):
+			if playerId == self.players[i].playerId:
+				self._currentIndex = i
+				return

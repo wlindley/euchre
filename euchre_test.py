@@ -200,16 +200,17 @@ class TrickEvaluatorTest(unittest.TestCase):
 class RoundTest(unittest.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.turnTracker = game.TurnTracker(self.players)
 		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
 		self.trickEvaluator.setTrump(self.trump)
 		self.deck = euchre.Deck(9)
-		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.hands = {}
 		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
 
-		self.round = euchre.Round(self.trickEvaluator, self.players, self.hands)
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.players, self.hands)
 
 	def testPlayingCardRemovesItFromPlayersHand(self):
 		self.round.startRound()
@@ -269,12 +270,12 @@ class RoundTest(unittest.TestCase):
 
 	def testAfterStartingRoundItIsPlayer0sTurn(self):
 		self.round.startRound()
-		self.assertEqual(self.players[0].playerId, self.round.getCurrentPlayerId())
+		self.assertEqual(self.players[0].playerId, self.round._turnTracker.getCurrentPlayerId())
 
 	def testPlayingCardAdvancesPlayerTurn(self):
 		self.round.startRound()
 		self.round.playCard(self.players[0], self.round.hands[self.players[0].playerId][0])
-		self.assertEqual(self.players[1].playerId, self.round.getCurrentPlayerId())
+		self.assertEqual(self.players[1].playerId, self.round._turnTracker.getCurrentPlayerId())
 
 	def testCompletingTrickSetsTurnToWinningPlayer(self):
 		self.trickEvaluator.setTrump(euchre.SUIT_DIAMONDS)
@@ -285,7 +286,7 @@ class RoundTest(unittest.TestCase):
 		for player in self.players:
 			if player.playerId in self.round.scores and self.round.scores[player.playerId] > 0:
 				winner = player
-		self.assertEqual(winner.playerId, self.round.getCurrentPlayerId())
+		self.assertEqual(winner.playerId, self.round._turnTracker.getCurrentPlayerId())
 
 	def testPlayerPlayerOutOfTurnThrowsException(self):
 		self.round.startRound()
@@ -301,7 +302,7 @@ class RoundTest(unittest.TestCase):
 		for i in range(self.handSize):
 			curTrick = euchre.Trick()
 			for offset in range(len(self.players)):
-				curPlayer = self.players[self.round._currentPlayerIndex]
+				curPlayer = self.players[self.round._turnTracker._currentIndex]
 				curCard = self.round.hands[curPlayer.playerId][0]
 				curTrick.add(curPlayer, curCard)
 				self.round.playCard(curPlayer, curCard)
