@@ -332,31 +332,31 @@ class TrumpSelectorTest(unittest.TestCase):
 			self.trumpSelector.selectTrump(self.players[1], self.availableTrump)
 
 	def testAnySuitCanBeSelectedIfNoTrumpIsAvailable(self):
-		self.trumpSelector._availableTrump = None
+		self.trumpSelector._availableTrump = euchre.SUIT_NONE
 		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_HEARTS)
 		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.getSelectedTrump())
 
 	def testSelectingSuitNoneAdvancesTurnWithoutSettingTrump(self):
-		self.trumpSelector.selectTrump(self.players[0], None)
+		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_NONE)
 		self.assertEqual(self.players[1].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
-		self.assertEqual(None, self.trumpSelector.getSelectedTrump())
+		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getSelectedTrump())
 
 	def testIsCompleteIfAllPlayersDeclineToSelectATrump(self):
 		for player in self.players:
-			self.trumpSelector.selectTrump(player, None)
+			self.trumpSelector.selectTrump(player, euchre.SUIT_NONE)
 		self.assertTrue(self.trumpSelector.isComplete())
 
 	def testResetResetsTurnTrackerAndClearsAvailableTrump(self):
 		for player in self.players:
-			self.trumpSelector.selectTrump(player, None)
+			self.trumpSelector.selectTrump(player, euchre.SUIT_NONE)
 		self.trumpSelector.reset()
 		self.assertEqual(self.players[0].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
-		self.assertEqual(None, self.trumpSelector.getAvailableTrump())
+		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getAvailableTrump())
 
 	def testResetClearsSelectedTrump(self):
 		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
 		self.trumpSelector.reset()
-		self.assertEqual(None, self.trumpSelector.getSelectedTrump())
+		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getSelectedTrump())
 
 class SequenceTest(unittest.TestCase):
 	def _createPlayersAndHands(self):
