@@ -212,6 +212,10 @@ class RoundTest(unittest.TestCase):
 
 		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.players, self.hands)
 
+	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
+		self.round.startRound()
+		self.assertEqual(0, self.round.getScore(self.players[0].playerId))
+
 	def testPlayingCardRemovesItFromPlayersHand(self):
 		self.round.startRound()
 		card = self.round.hands[self.players[0].playerId][0]
@@ -250,13 +254,15 @@ class RoundTest(unittest.TestCase):
 
 	def testCompletingTrickIncrementsScoreOfWinningPlayer(self):
 		self.round.startRound()
-		initialScores = self.round.scores.copy()
+		initialScores = {}
+		for player in self.players:
+			initialScores[player.playerId] = self.round.getScore(player.playerId)
 		for player in self.players:
 			self.round.playCard(player, self.round.hands[player.playerId][0])
 		winner = self.round._trickEvaluator.evaluateTrick(self.round.prevTricks[0])
 		for player in self.players:
-			prevScore = initialScores[player.playerId] if player.playerId in initialScores else 0
-			curScore = self.round.scores[player.playerId] if player.playerId in self.round.scores else 0
+			prevScore = initialScores[player.playerId]
+			curScore = self.round.getScore(player.playerId)
 			if winner == player.playerId:
 				self.assertLess(prevScore, curScore)
 			else:
@@ -284,7 +290,7 @@ class RoundTest(unittest.TestCase):
 			self.round.playCard(player, self.round.hands[player.playerId][0])
 		winner = None
 		for player in self.players:
-			if player.playerId in self.round.scores and self.round.scores[player.playerId] > 0:
+			if self.round.getScore(player.playerId) > 0:
 				winner = player
 		self.assertEqual(winner.playerId, self.round._turnTracker.getCurrentPlayerId())
 
@@ -308,8 +314,8 @@ class RoundTest(unittest.TestCase):
 				self.round.playCard(curPlayer, curCard)
 			winner = trickEvaluator.evaluateTrick(curTrick)
 			scores[winner] += 1
-		for playerId, score in self.round.scores.iteritems():
-			self.assertEqual(scores[playerId], score)
+		for player in self.players:
+			self.assertEqual(scores[player.playerId], self.round.getScore(player.playerId))
 
 class TrumpSelectorTest(unittest.TestCase):
 	def setUp(self):
@@ -395,6 +401,15 @@ class SequenceTest(unittest.TestCase):
 		self.trumpSelector.isComplete.return_value = True
 		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
+
+class ScoreTrackerTest(unittest.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.teams = {
+			0 : [self.players[0].playerId, self.players[2].playerId],
+			1 : [self.players[1].playerId, self.players[3].playerId]
+		}
+		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
 
 if __name__ == "__main__":
 	unittest.main()

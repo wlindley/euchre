@@ -130,7 +130,7 @@ class Round(object):
 		self.hands = hands
 		self.curTrick = None
 		self.prevTricks = []
-		self.scores = {}
+		self._scores = {}
 		self._trickEvaluator = trickEvaluator
 		self._turnTracker = turnTracker
 
@@ -155,6 +155,11 @@ class Round(object):
 	def isComplete(self):
 		return HAND_SIZE <= len(self.prevTricks)
 
+	def getScore(self, playerId):
+		if playerId in self._scores:
+			return self._scores[playerId]
+		return 0
+
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
 		self._incrementScore(winner)
@@ -163,10 +168,10 @@ class Round(object):
 		self._setPlayerTurn(winner)
 
 	def _incrementScore(self, playerId):
-		if playerId in self.scores:
-			self.scores[playerId] += 1
+		if playerId in self._scores:
+			self._scores[playerId] += 1
 		else:
-			self.scores[playerId] = 1
+			self._scores[playerId] = 1
 
 	def _nextTurn(self):
 		self._turnTracker.advanceTurn()
