@@ -177,22 +177,42 @@ class Round(object):
 class TrumpSelector(object):
 	def __init__(self, turnTracker, availableTrump=None):
 		self._turnTracker = turnTracker
-		self.availableTrump = availableTrump
-		self.selectedTrump = None
+		self._availableTrump = availableTrump
+		self._selectedTrump = None
+
+	def getAvailableTrump(self):
+		return self._availableTrump
+
+	def getSelectedTrump(self):
+		return self._selectedTrump
 
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 		if None != trumpSuit:
-			if None != self.availableTrump and self.availableTrump != trumpSuit:
-				raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self.availableTrump))
-			self.selectedTrump = trumpSuit
+			if None != self._availableTrump and self._availableTrump != trumpSuit:
+				raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self._availableTrump))
+			self._selectedTrump = trumpSuit
 		self._turnTracker.advanceTurn()
 
 	def isComplete(self):
-		return None != self.selectedTrump or 1 <= self._turnTracker.getAllTurnCount()
+		return None != self._selectedTrump or 1 <= self._turnTracker.getAllTurnCount()
 
 	def reset(self):
 		self._turnTracker.reset()
-		self.availableTrump = None
-		self.selectedTrump = None
+		self._availableTrump = None
+		self._selectedTrump = None
+
+class Sequence(object):
+	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
+	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
+
+	def __init__(self, trumpSelector, round, players):
+		self._trumpSelector = trumpSelector
+		self._round = round
+		self._players = players
+
+	def getState(self):
+		if self._trumpSelector.isComplete() and None != self._trumpSelector.getSelectedTrump():
+			return Sequence.STATE_PLAYING_ROUND
+		return Sequence.STATE_TRUMP_SELECTION

@@ -319,9 +319,9 @@ class TrumpSelectorTest(unittest.TestCase):
 		self.trumpSelector = euchre.TrumpSelector(self.turnTracker, self.availableTrump)
 
 	def testSelectingTrumpCompletesProcess(self):
-		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.availableTrump)
+		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
 		self.assertTrue(self.trumpSelector.isComplete())
-		self.assertEqual(self.trumpSelector.availableTrump, self.trumpSelector.selectedTrump)
+		self.assertEqual(self.trumpSelector.getAvailableTrump(), self.trumpSelector.getSelectedTrump())
 
 	def testCanOnlySelectAvailableTrumpIfItIsSet(self):
 		with self.assertRaises(game.GameRuleException):
@@ -332,14 +332,14 @@ class TrumpSelectorTest(unittest.TestCase):
 			self.trumpSelector.selectTrump(self.players[1], self.availableTrump)
 
 	def testAnySuitCanBeSelectedIfNoTrumpIsAvailable(self):
-		self.trumpSelector.availableTrump = None
+		self.trumpSelector._availableTrump = None
 		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_HEARTS)
-		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.selectedTrump)
+		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.getSelectedTrump())
 
 	def testSelectingSuitNoneAdvancesTurnWithoutSettingTrump(self):
 		self.trumpSelector.selectTrump(self.players[0], None)
 		self.assertEqual(self.players[1].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
-		self.assertEqual(None, self.trumpSelector.selectedTrump)
+		self.assertEqual(None, self.trumpSelector.getSelectedTrump())
 
 	def testIsCompleteIfAllPlayersDeclineToSelectATrump(self):
 		for player in self.players:
@@ -351,24 +351,50 @@ class TrumpSelectorTest(unittest.TestCase):
 			self.trumpSelector.selectTrump(player, None)
 		self.trumpSelector.reset()
 		self.assertEqual(self.players[0].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
-		self.assertEqual(None, self.trumpSelector.availableTrump)
+		self.assertEqual(None, self.trumpSelector.getAvailableTrump())
 
 	def testResetClearsSelectedTrump(self):
-		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.availableTrump)
+		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
 		self.trumpSelector.reset()
-		self.assertEqual(None, self.trumpSelector.selectedTrump)
+		self.assertEqual(None, self.trumpSelector.getSelectedTrump())
 
 class SequenceTest(unittest.TestCase):
-	def setUp(self):
-		deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)
+	def _createPlayersAndHands(self):
+		self.deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.hands = {}
-		for player in players:
-			self.hands[player.playerId] = deck.deal(euchre.HAND_SIZE)
+		for player in self.players:
+			self.hands[player.playerId] = self.deck.deal(euchre.HAND_SIZE)
+
+	def _createSequence(self):
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.players)
+
+	def _createSequenceWithRealObjects(self):
+		self._createPlayersAndHands()
 		self.trumpSelector = euchre.TrumpSelector(game.TurnTracker(self.players), self.players)
 		self.trickEvaluator = euchre.TrickEvaluator()
 		self.round = euchre.Round(game.TurnTracker(self.players), self.trickEvaluator, self.players, self.hands)
-		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.players)
+		self._createSequence()
+
+	def _createSequenceWithMocks(self):
+		self._createPlayersAndHands()
+		self.trumpSelector = mock.create_autospec(euchre.TrumpSelector)
+		self.trickEvaluator = mock.create_autospec(euchre.TrickEvaluator)
+		self.round = mock.create_autospec(euchre.Round)
+		self._createSequence()
+
+	def setUp(self):
+		self._createSequenceWithMocks()
+
+	def testDefaultsToTrumpSelection(self):
+		self.trumpSelector.isComplete.return_value = False
+		self.trumpSelector.getSelectedTrump.return_value = None
+		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION, self.sequence.getState())
+
+	def testAdvancesToRoundWhenTrumpSelectionIsSuccessfullyCompleted(self):
+		self.trumpSelector.isComplete.return_value = True
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
+		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
 
 if __name__ == "__main__":
 	unittest.main()
