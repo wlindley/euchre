@@ -4,6 +4,9 @@ class InvalidPlayerException(Exception):
 class GameRuleException(Exception):
 	pass
 
+class GameStateException(Exception):
+	pass
+
 class Player(object):
 	def __init__(self, playerId):
 		self.playerId = playerId

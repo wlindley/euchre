@@ -410,6 +410,37 @@ class ScoreTrackerTest(unittest.TestCase):
 			1 : [self.players[1].playerId, self.players[3].playerId]
 		}
 		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
+		self.round = mock.create_autospec(euchre.Round)
+		self.round.isComplete.return_value = True
+
+	def testRecordRoundScoreGrants1PointToWinningTeamIfTheyGotMajorityOfTricks(self):
+		scores = {
+			self.players[0].playerId : 2,
+			self.players[1].playerId : 1,
+			self.players[2].playerId : 1,
+			self.players[3].playerId : 1
+		}
+		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		self.scoreTracker.recordRoundScore(self.round)
+		self.assertEqual(1, self.scoreTracker.getTeamScore(0))
+		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
+
+	def testRecordRoundScoreGrants2PointsToTeamThatWinsAllTricks(self):
+		scores = {
+			self.players[0].playerId : 2,
+			self.players[1].playerId : 0,
+			self.players[2].playerId : 3,
+			self.players[3].playerId : 0
+		}
+		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		self.scoreTracker.recordRoundScore(self.round)
+		self.assertEqual(2, self.scoreTracker.getTeamScore(0))
+		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
+
+	def testRecordRoundScoreThrowsExceptionIfIncompleteRoundIsPassedIn(self):
+		self.round.isComplete.return_value = False
+		with self.assertRaises(game.GameStateException):
+			self.scoreTracker.recordRoundScore(self.round)
 
 if __name__ == "__main__":
 	unittest.main()

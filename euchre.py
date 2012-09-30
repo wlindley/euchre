@@ -221,3 +221,24 @@ class Sequence(object):
 		if self._trumpSelector.isComplete() and None != self._trumpSelector.getSelectedTrump():
 			return Sequence.STATE_PLAYING_ROUND
 		return Sequence.STATE_TRUMP_SELECTION
+
+class ScoreTracker(object):
+	def __init__(self, players, teams):
+		self._players = players
+		self._teams = teams
+		self._teamScores = {0:0, 1:0}
+
+	def recordRoundScore(self, round):
+		if not round.isComplete():
+			raise game.GameStateException("Cannot score incomplete Round")
+		teamTricks = {0:0, 1:0}
+		for teamId, playerIds in self._teams.iteritems():
+			for playerId in playerIds:
+				teamTricks[teamId] += round.getScore(playerId)
+		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
+		self._teamScores[winningTeam] += 1
+		if HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
+			self._teamScores[winningTeam] += 1
+
+	def getTeamScore(self, teamId):
+		return self._teamScores[teamId]
