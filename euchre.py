@@ -125,9 +125,10 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, turnTracker, trickEvaluator, players, hands):
+	def __init__(self, turnTracker, trickEvaluator, players, hands, callingPlayerId):
 		self.players = players
 		self.hands = hands
+		self._callingPlayerId = callingPlayerId
 		self.curTrick = None
 		self.prevTricks = []
 		self._scores = {}
@@ -159,6 +160,9 @@ class Round(object):
 		if playerId in self._scores:
 			return self._scores[playerId]
 		return 0
+
+	def getCallingPlayerId(self):
+		return self._callingPlayerId
 
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
@@ -237,8 +241,16 @@ class ScoreTracker(object):
 				teamTricks[teamId] += round.getScore(playerId)
 		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
 		self._teamScores[winningTeam] += 1
-		if HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
+		if winningTeam != self._getTeamIdFromPlayerId(round.getCallingPlayerId()):
+			self._teamScores[winningTeam] += 1
+		elif HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
 			self._teamScores[winningTeam] += 1
 
 	def getTeamScore(self, teamId):
 		return self._teamScores[teamId]
+
+	def _getTeamIdFromPlayerId(self, playerId):
+		for teamId, players in self._teams.iteritems():
+			for curId in players:
+				if playerId == curId:
+					return teamId

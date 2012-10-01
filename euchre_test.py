@@ -201,6 +201,7 @@ class RoundTest(unittest.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.callingPlayerId = self.players[0].playerId
 		self.turnTracker = game.TurnTracker(self.players)
 		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
 		self.trickEvaluator.setTrump(self.trump)
@@ -209,8 +210,7 @@ class RoundTest(unittest.TestCase):
 		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
-
-		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.players, self.hands)
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.players, self.hands, self.callingPlayerId)
 
 	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
 		self.round.startRound()
@@ -412,8 +412,9 @@ class ScoreTrackerTest(unittest.TestCase):
 		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
 		self.round = mock.create_autospec(euchre.Round)
 		self.round.isComplete.return_value = True
+		self.round.getCallingPlayerId.return_value = self.players[0].playerId
 
-	def testRecordRoundScoreGrants1PointToWinningTeamIfTheyGotMajorityOfTricks(self):
+	def testRecordRoundScoreGrants1PointToMakersTeamIfTheyGetMajorityOfTricks(self):
 		scores = {
 			self.players[0].playerId : 2,
 			self.players[1].playerId : 1,
@@ -425,7 +426,7 @@ class ScoreTrackerTest(unittest.TestCase):
 		self.assertEqual(1, self.scoreTracker.getTeamScore(0))
 		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
 
-	def testRecordRoundScoreGrants2PointsToTeamThatWinsAllTricks(self):
+	def testRecordRoundScoreGrants2PointsToMakersTeamIfTheyWinAllTricks(self):
 		scores = {
 			self.players[0].playerId : 2,
 			self.players[1].playerId : 0,
@@ -436,6 +437,18 @@ class ScoreTrackerTest(unittest.TestCase):
 		self.scoreTracker.recordRoundScore(self.round)
 		self.assertEqual(2, self.scoreTracker.getTeamScore(0))
 		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
+
+	def testRecordRoundScoreGrants2PointsToDefendersTeamIfTheyGetMajorityOfTricks(self):
+		scores = {
+			self.players[0].playerId : 2,
+			self.players[1].playerId : 3,
+			self.players[2].playerId : 0,
+			self.players[3].playerId : 0
+		}
+		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		self.scoreTracker.recordRoundScore(self.round)
+		self.assertEqual(0, self.scoreTracker.getTeamScore(0))
+		self.assertEqual(2, self.scoreTracker.getTeamScore(1))
 
 	def testRecordRoundScoreThrowsExceptionIfIncompleteRoundIsPassedIn(self):
 		self.round.isComplete.return_value = False
