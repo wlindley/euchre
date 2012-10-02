@@ -57,20 +57,6 @@ class Deck(object):
 		self.remainingCards = self.remainingCards[numCards:]
 		return cards
 
-class Hand(object):
-	def __init__(self):
-		self._cards = []
-
-	def add(self, cards):
-		self._cards.extend(cards)
-
-	def play(self, card):
-		if self._cards.count(card) > 0:
-			self._cards.remove(card)
-
-	def getCards(self):
-		return self._cards[:]
-
 class Trick(object):
 	def __init__(self):
 		self.playedCards = {}
