@@ -185,7 +185,7 @@ class RoundTest(unittest.TestCase):
 		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
-		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.players, self.hands)
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
 
 	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
 		self.round.startRound()

@@ -25,7 +25,14 @@ HAND_SIZE = 5
 MIN_4_PLAYER_CARD_VALUE = 9
 
 class Card(object):
-	def __init__(self, suit = 0, value = 0):
+	instance = None
+	@classmethod
+	def getInstance(cls, suit=SUIT_NONE, value=0):
+		if None != cls.instance:
+			return cls.instance
+		return Card(suit, value)
+
+	def __init__(self, suit=SUIT_NONE, value=0):
 		self.suit = suit
 		self.value = value
 
@@ -43,6 +50,13 @@ class Card(object):
 		return "Card(%s, %s)" % (self.suit, self.value)
 
 class Deck(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, minValue=VALUE_MIN, maxValue=VALUE_ACE):
+		if None != cls.instance:
+			return cls.instance
+		return Deck(minValue, maxValue)
+
 	def __init__(self, minValue=VALUE_MIN, maxValue=VALUE_ACE):
 		self.remainingCards = []
 		for curSuit in range(SUIT_CLUBS, SUIT_HEARTS + 1):
@@ -58,6 +72,13 @@ class Deck(object):
 		return cards
 
 class Trick(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return Trick()
+
 	def __init__(self):
 		self.playedCards = {}
 		self.ledSuit = None
@@ -73,6 +94,13 @@ class Trick(object):
 		return len(self.playedCards) >= NUM_PLAYERS
 
 class TrickEvaluator(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, trump=SUIT_NONE):
+		if None != cls.instance:
+			return cls.instance
+		return TrickEvaluator(trump)
+
 	def __init__(self, trump=SUIT_NONE):
 		self.trumpSuit = trump
 
@@ -111,8 +139,14 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, turnTracker, trickEvaluator, players, hands):
-		self.players = players
+	instance = None
+	@classmethod
+	def getInstance(cls, players, hands):
+		if None != cls.instance:
+			return cls.instance
+		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(), hands)
+
+	def __init__(self, turnTracker, trickEvaluator, hands):
 		self.hands = hands
 		self.curTrick = None
 		self.prevTricks = []
@@ -166,6 +200,13 @@ class Round(object):
 		self._turnTracker.setTurnByPlayerId(playerId)
 
 class TrumpSelector(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, players, availableTrump=SUIT_NONE):
+		if None != cls.instance:
+			return cls.instance
+		return TrumpSelector(game.TurnTracker.getInstance(players), availableTrump)
+
 	def __init__(self, turnTracker, availableTrump=SUIT_NONE):
 		self._turnTracker = turnTracker
 		self._availableTrump = availableTrump
@@ -198,6 +239,13 @@ class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
 
+	instance = None
+	@classmethod
+	def getInstance(cls, players, hands, availableTrump=SUIT_NONE):
+		if None != cls.instance:
+			return cls.instance
+		return Sequence(TrumpSelector.getInstance(players, availableTrump), Round.getInstance(players, hands))
+
 	def __init__(self, trumpSelector, round):
 		self._trumpSelector = trumpSelector
 		self._round = round
@@ -208,6 +256,13 @@ class Sequence(object):
 		return Sequence.STATE_TRUMP_SELECTION
 
 class ScoreTracker(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, players, teams):
+		if None != cls.instance:
+			return cls.instance
+		return ScoreTracker(players, teams)
+
 	def __init__(self, players, teams):
 		self._players = players
 		self._teams = teams

@@ -8,10 +8,18 @@ class GameStateException(Exception):
 	pass
 
 class Player(object):
+	@staticmethod
+	def getInstance(playerId):
+		return Player(playerId)
+
 	def __init__(self, playerId):
 		self.playerId = playerId
 
 class TurnTracker(object):
+	@staticmethod
+	def getInstance(players):
+		return TurnTracker(players)
+
 	def __init__(self, players):
 		self._players = players
 		self.reset()
