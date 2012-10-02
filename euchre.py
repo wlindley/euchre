@@ -198,10 +198,9 @@ class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
 
-	def __init__(self, trumpSelector, round, players):
+	def __init__(self, trumpSelector, round):
 		self._trumpSelector = trumpSelector
 		self._round = round
-		self._players = players
 
 	def getState(self):
 		if self._trumpSelector.isComplete() and None != self._trumpSelector.getSelectedTrump():

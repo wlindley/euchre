@@ -348,7 +348,7 @@ class SequenceTest(unittest.TestCase):
 			self.hands[player.playerId] = self.deck.deal(euchre.HAND_SIZE)
 
 	def _createSequence(self):
-		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.players)
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round)
 
 	def _createSequenceWithRealObjects(self):
 		self._createPlayersAndHands()
@@ -433,7 +433,7 @@ class ScoreTrackerTest(unittest.TestCase):
 class GameTest(unittest.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.game = euchre.Game()
+		self.game = euchre.Game(self.players)
 
 if __name__ == "__main__":
 	unittest.main()
