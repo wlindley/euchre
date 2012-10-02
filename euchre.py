@@ -111,10 +111,9 @@ class TrickEvaluator(object):
 		return None
 
 class Round(object):
-	def __init__(self, turnTracker, trickEvaluator, players, hands, callingPlayerId):
+	def __init__(self, turnTracker, trickEvaluator, players, hands):
 		self.players = players
 		self.hands = hands
-		self._callingPlayerId = callingPlayerId
 		self.curTrick = None
 		self.prevTricks = []
 		self._scores = {}
@@ -146,9 +145,6 @@ class Round(object):
 		if playerId in self._scores:
 			return self._scores[playerId]
 		return 0
-
-	def getCallingPlayerId(self):
-		return self._callingPlayerId
 
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
@@ -218,7 +214,7 @@ class ScoreTracker(object):
 		self._teams = teams
 		self._teamScores = {0:0, 1:0}
 
-	def recordRoundScore(self, round):
+	def recordRoundScore(self, round, callingPlayerId):
 		if not round.isComplete():
 			raise game.GameStateException("Cannot score incomplete Round")
 		teamTricks = {0:0, 1:0}
@@ -227,7 +223,7 @@ class ScoreTracker(object):
 				teamTricks[teamId] += round.getScore(playerId)
 		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
 		self._teamScores[winningTeam] += 1
-		if winningTeam != self._getTeamIdFromPlayerId(round.getCallingPlayerId()):
+		if winningTeam != self._getTeamIdFromPlayerId(callingPlayerId):
 			self._teamScores[winningTeam] += 1
 		elif HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
 			self._teamScores[winningTeam] += 1
