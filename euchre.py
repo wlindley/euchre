@@ -141,10 +141,10 @@ class TrickEvaluator(object):
 class Round(object):
 	instance = None
 	@classmethod
-	def getInstance(cls, players, hands):
+	def getInstance(cls, players, hands, trumpSuit=SUIT_NONE):
 		if None != cls.instance:
 			return cls.instance
-		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(), hands)
+		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(trumpSuit), hands)
 
 	def __init__(self, turnTracker, trickEvaluator, hands):
 		self.hands = hands
@@ -179,6 +179,9 @@ class Round(object):
 		if playerId in self._scores:
 			return self._scores[playerId]
 		return 0
+
+	def setTrump(self, trumpSuit):
+		self._trickEvaluator.setTrump(trumpSuit)
 
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
@@ -238,6 +241,7 @@ class TrumpSelector(object):
 class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
+	STATE_COMPLETE = "STATE_COMPLETE"
 
 	instance = None
 	@classmethod
@@ -252,8 +256,20 @@ class Sequence(object):
 
 	def getState(self):
 		if self._trumpSelector.isComplete() and None != self._trumpSelector.getSelectedTrump():
+			if self._round.isComplete():
+				return Sequence.STATE_COMPLETE
 			return Sequence.STATE_PLAYING_ROUND
 		return Sequence.STATE_TRUMP_SELECTION
+
+	def selectTrump(self, player, trumpSuit):
+		if Sequence.STATE_TRUMP_SELECTION != self.getState():
+			raise game.GameStateException("Cannot select trump once trump selection is complete")
+		self._trumpSelector.selectTrump(player, trumpSuit)
+
+	def playCard(self, player, card):
+		if Sequence.STATE_PLAYING_ROUND != self.getState():
+			raise game.GameStateException("Cannont play card once round is complete")
+		self._round.playCard(player, card)
 
 class ScoreTracker(object):
 	instance = None

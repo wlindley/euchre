@@ -178,15 +178,16 @@ class RoundTest(testhelper.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.turnTracker = game.TurnTracker(self.players)
-		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
-		self.trickEvaluator.setTrump(self.trump)
 		self.deck = euchre.Deck(9)
 		self.hands = {}
 		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
-		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.round = euchre.Round.getInstance(self.players, self.hands, self.trump)
+		#self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
 
 	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
 		self.round.startRound()
@@ -260,7 +261,6 @@ class RoundTest(testhelper.TestCase):
 		self.assertEqual(self.players[1].playerId, self.round._turnTracker.getCurrentPlayerId())
 
 	def testCompletingTrickSetsTurnToWinningPlayer(self):
-		self.trickEvaluator.setTrump(euchre.SUIT_DIAMONDS)
 		self.round.startRound()
 		for player in self.players:
 			self.round.playCard(player, self.round.hands[player.playerId][0])
@@ -292,6 +292,13 @@ class RoundTest(testhelper.TestCase):
 			scores[winner] += 1
 		for player in self.players:
 			self.assertEqual(scores[player.playerId], self.round.getScore(player.playerId))
+
+	def testSettingTrumpOnRoundSetsTrumpOnTheTrickEvaluator(self):
+		trickEvaluator = testhelper.createSingletonMock(euchre.TrickEvaluator)
+		trump = euchre.SUIT_HEARTS
+		self._buildTestObj()
+		self.round.setTrump(trump)
+		trickEvaluator.setTrump.assert_called_with(trump)
 
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
@@ -370,13 +377,41 @@ class SequenceTest(testhelper.TestCase):
 
 	def testDefaultsToTrumpSelection(self):
 		self.trumpSelector.isComplete.return_value = False
+		self.round.isComplete.return_value = False
 		self.trumpSelector.getSelectedTrump.return_value = None
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION, self.sequence.getState())
 
 	def testAdvancesToRoundWhenTrumpSelectionIsSuccessfullyCompleted(self):
 		self.trumpSelector.isComplete.return_value = True
+		self.round.isComplete.return_value = False
 		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
+
+	def testSelectTrumpCallsSelectTrumpOnTrumpSelector(self):
+		self.trumpSelector.isComplete.return_value = False
+		player = self.players[0]
+		trump = euchre.SUIT_CLUBS
+		self.sequence.selectTrump(player, trump)
+		self.trumpSelector.selectTrump.assert_called_with(player, trump)
+
+	def testSelectTrumpThrowsExceptionIfTrumpSelectionIsComplete(self):
+		self.trumpSelector.isComplete.return_value = True
+		with self.assertRaises(game.GameStateException):
+			self.sequence.selectTrump(self.players[0], euchre.SUIT_SPADES)
+
+	def testPlayCardCallsPlayCardOnRound(self):
+		self.trumpSelector.isComplete.return_value = True
+		self.round.isComplete.return_value = False
+		player = self.players[0]
+		card = self.hands[player.playerId][0]
+		self.sequence.playCard(player, card)
+		self.round.playCard.assert_called_with(player, card)
+
+	def testPlayCardThrowsExceptionIfRoundIsComplete(self):
+		self.trumpSelector.isComplete.return_value = True
+		self.round.isComplete.return_value = True
+		with self.assertRaises(game.GameStateException):
+			self.sequence.playCard(self.players[0], self.hands[self.players[0].playerId][0])
 
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
