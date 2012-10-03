@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import testhelper
 import unittest
 import mock
 import game
 
-class TurnTrackerTest(unittest.TestCase):
+class TurnTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.turnTracker = game.TurnTracker(self.players)

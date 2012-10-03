@@ -8,16 +8,22 @@ class GameStateException(Exception):
 	pass
 
 class Player(object):
-	@staticmethod
-	def getInstance(playerId):
+	instance = None
+	@classmethod
+	def getInstance(cls, playerId):
+		if None != cls.instance:
+			return cls.instance
 		return Player(playerId)
 
 	def __init__(self, playerId):
 		self.playerId = playerId
 
 class TurnTracker(object):
-	@staticmethod
-	def getInstance(players):
+	instance = None
+	@classmethod
+	def getInstance(cls, players):
+		if None != cls.instance:
+			return cls.instance
 		return TurnTracker(players)
 
 	def __init__(self, players):

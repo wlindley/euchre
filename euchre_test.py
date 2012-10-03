@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+import testhelper
 import unittest
 import mock
 import euchre
 import game
 
-class CardTest(unittest.TestCase):
+class CardTest(testhelper.TestCase):
 	def setUp(self):
 		self.card1 = euchre.Card()
 		self.card2 = euchre.Card()
@@ -30,7 +31,7 @@ class CardTest(unittest.TestCase):
 		self.assertEqual(euchre.SUIT_SPADES, self.card1.suit)
 		self.assertEqual(2, self.card1.value)
 
-class DeckTest(unittest.TestCase):
+class DeckTest(testhelper.TestCase):
 	def setUp(self):
 		self.deck = euchre.Deck()
 
@@ -81,7 +82,7 @@ class DeckTest(unittest.TestCase):
 		for dealtCard in dealtCards:
 			self.assertEqual(0, self.deck.remainingCards.count(dealtCard))
 
-class TrickTest(unittest.TestCase):
+class TrickTest(testhelper.TestCase):
 	def setUp(self):
 		self.trick = euchre.Trick()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -108,7 +109,7 @@ class TrickTest(unittest.TestCase):
 			self.trick.add(self.players[i], cards[i])
 		self.assertTrue(self.trick.isComplete())
 
-class TrickEvaluatorTest(unittest.TestCase):
+class TrickEvaluatorTest(testhelper.TestCase):
 	def setUp(self):
 		self.evaluator = euchre.TrickEvaluator()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -173,7 +174,7 @@ class TrickEvaluatorTest(unittest.TestCase):
 		winner = self.evaluator.evaluateTrick(trick)
 		self.assertEqual(cards[0], trick.playedCards[winner])
 
-class RoundTest(unittest.TestCase):
+class RoundTest(testhelper.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -212,7 +213,7 @@ class RoundTest(unittest.TestCase):
 
 	def testPlayingCardAddsItToCurrentTrick(self):
 		self.round.startRound()
-		mockTrick = mock.create_autospec(euchre.Trick)
+		mockTrick = testhelper.createSingletonMock(euchre.Trick)
 		mockTrick.playedCards = {}
 		self.round.curTrick = mockTrick
 		card = self.round.hands[self.players[0].playerId][2]
@@ -292,7 +293,7 @@ class RoundTest(unittest.TestCase):
 		for player in self.players:
 			self.assertEqual(scores[player.playerId], self.round.getScore(player.playerId))
 
-class TrumpSelectorTest(unittest.TestCase):
+class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.availableTrump = euchre.SUIT_SPADES
@@ -339,7 +340,7 @@ class TrumpSelectorTest(unittest.TestCase):
 		self.trumpSelector.reset()
 		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getSelectedTrump())
 
-class SequenceTest(unittest.TestCase):
+class SequenceTest(testhelper.TestCase):
 	def _createPlayersAndHands(self):
 		self.deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -348,7 +349,7 @@ class SequenceTest(unittest.TestCase):
 			self.hands[player.playerId] = self.deck.deal(euchre.HAND_SIZE)
 
 	def _createSequence(self):
-		self.sequence = euchre.Sequence(self.trumpSelector, self.round)
+		self.sequence = euchre.Sequence.getInstance(self.players, self.hands)
 
 	def _createSequenceWithRealObjects(self):
 		self._createPlayersAndHands()
@@ -359,9 +360,9 @@ class SequenceTest(unittest.TestCase):
 
 	def _createSequenceWithMocks(self):
 		self._createPlayersAndHands()
-		self.trumpSelector = mock.create_autospec(euchre.TrumpSelector)
-		self.trickEvaluator = mock.create_autospec(euchre.TrickEvaluator)
-		self.round = mock.create_autospec(euchre.Round)
+		self.trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
+		self.trickEvaluator = testhelper.createSingletonMock(euchre.TrickEvaluator)
+		self.round = testhelper.createSingletonMock(euchre.Round)
 		self._createSequence()
 
 	def setUp(self):
@@ -377,7 +378,7 @@ class SequenceTest(unittest.TestCase):
 		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
 
-class ScoreTrackerTest(unittest.TestCase):
+class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = {
@@ -386,7 +387,7 @@ class ScoreTrackerTest(unittest.TestCase):
 		}
 		self.callingPlayerId = self.players[0].playerId
 		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
-		self.round = mock.create_autospec(euchre.Round)
+		self.round = testhelper.createSingletonMock(euchre.Round)
 		self.round.isComplete.return_value = True
 
 	def testRecordRoundScoreGrants1PointToMakersTeamIfTheyGetMajorityOfTricks(self):
@@ -430,7 +431,7 @@ class ScoreTrackerTest(unittest.TestCase):
 		with self.assertRaises(game.GameStateException):
 			self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 
-class GameTest(unittest.TestCase):
+class GameTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.game = euchre.Game(self.players)
