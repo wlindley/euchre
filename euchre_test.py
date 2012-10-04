@@ -423,6 +423,26 @@ class SequenceTest(testhelper.TestCase):
 		self.sequence.playCard(player, card)
 		self.round.playCard.assert_called_with(player, card)
 
+	def testAllPlayersPassingOnTrumpSelectionResetsTrumpSelector(self):
+		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_SPADES
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
+		self.trumpSelector.isComplete.return_value = True
+		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_NONE)
+		self.trumpSelector.reset.assert_called_with()
+
+	def testTrumpSelectionNotResetIfTrumpSelected(self):
+		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_SPADES
+		self.trumpSelector.getSelectedTrump.side_effect = [euchre.SUIT_NONE, euchre.SUIT_SPADES]
+		self.trumpSelector.isComplete.return_value = True
+		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_SPADES)
+		self.assertFalse(self.trumpSelector.reset.called)
+
+	def testFailingSecondTrumpSelectionMakesStateTrumpSelectionFailed(self):
+		self.trumpSelector.isComplete.return_value = True
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
+		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_NONE
+		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_FAILED, self.sequence.getState())
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
