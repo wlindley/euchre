@@ -443,6 +443,14 @@ class SequenceTest(testhelper.TestCase):
 		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_NONE
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_FAILED, self.sequence.getState())
 
+	def testCompletingTrumpSelectionSetsTrumpOnRound(self):
+		trump = euchre.SUIT_DIAMONDS
+		self.trumpSelector.isComplete.return_value = True
+		self.trumpSelector.getAvailableTrump.return_value = trump
+		self.trumpSelector.getSelectedTrump.side_effect = [euchre.SUIT_NONE, trump]
+		self.sequence.selectTrump(self.players[-1].playerId, trump)
+		self.round.setTrump.assert_called_with(trump)
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]

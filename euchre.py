@@ -274,8 +274,12 @@ class Sequence(object):
 		if Sequence.STATE_TRUMP_SELECTION != self.getState():
 			raise game.GameStateException("Cannot select trump once trump selection is complete")
 		self._trumpSelector.selectTrump(player, trumpSuit)
-		if self._trumpSelector.isComplete() and SUIT_NONE == self._trumpSelector.getSelectedTrump():
-			self._trumpSelector.reset()
+		if self._trumpSelector.isComplete():
+			selectedTrump = self._trumpSelector.getSelectedTrump()
+			if SUIT_NONE == selectedTrump:
+				self._trumpSelector.reset()
+			else:
+				self._round.setTrump(selectedTrump)
 
 	def playCard(self, player, card):
 		if Sequence.STATE_PLAYING_ROUND != self.getState():
