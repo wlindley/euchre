@@ -240,8 +240,10 @@ class TrumpSelector(object):
 
 class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
+	STATE_TRUMP_SELECTION_2 = "STATE_TRUMP_SELECTION_2"
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
 	STATE_COMPLETE = "STATE_COMPLETE"
+	STATE_INVALID = "STATE_INVALID"
 
 	instance = None
 	@classmethod
@@ -255,11 +257,15 @@ class Sequence(object):
 		self._round = round
 
 	def getState(self):
-		if self._trumpSelector.isComplete() and None != self._trumpSelector.getSelectedTrump():
-			if self._round.isComplete():
-				return Sequence.STATE_COMPLETE
-			return Sequence.STATE_PLAYING_ROUND
-		return Sequence.STATE_TRUMP_SELECTION
+		if SUIT_NONE == self._trumpSelector.getSelectedTrump():
+			if SUIT_NONE == self._trumpSelector.getAvailableTrump():
+				return Sequence.STATE_TRUMP_SELECTION_2
+			return Sequence.STATE_TRUMP_SELECTION
+		elif self._trumpSelector.isComplete:
+			if not self._round.isComplete():
+				return Sequence.STATE_PLAYING_ROUND
+			return Sequence.STATE_COMPLETE
+		return Sequence.STATE_INVALID
 
 	def selectTrump(self, player, trumpSuit):
 		if Sequence.STATE_TRUMP_SELECTION != self.getState():

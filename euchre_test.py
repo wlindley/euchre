@@ -376,18 +376,28 @@ class SequenceTest(testhelper.TestCase):
 		self._createSequenceWithMocks()
 
 	def testDefaultsToTrumpSelection(self):
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
 		self.trumpSelector.isComplete.return_value = False
 		self.round.isComplete.return_value = False
-		self.trumpSelector.getSelectedTrump.return_value = None
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION, self.sequence.getState())
 
+	def testStateIsTrumpSelection2IfNoTrumpIsSelectedInFirstProcess(self):
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
+		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_NONE
+		self.trumpSelector.isComplete.return_value = False
+		self.round.isComplete.return_value = False
+		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_2, self.sequence.getState())
+
 	def testAdvancesToRoundWhenTrumpSelectionIsSuccessfullyCompleted(self):
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_CLUBS
 		self.trumpSelector.isComplete.return_value = True
 		self.round.isComplete.return_value = False
 		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
 
 	def testSelectTrumpCallsSelectTrumpOnTrumpSelector(self):
+		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_CLUBS
+		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
 		self.trumpSelector.isComplete.return_value = False
 		player = self.players[0]
 		trump = euchre.SUIT_CLUBS
@@ -399,6 +409,12 @@ class SequenceTest(testhelper.TestCase):
 		with self.assertRaises(game.GameStateException):
 			self.sequence.selectTrump(self.players[0], euchre.SUIT_SPADES)
 
+	def testPlayCardThrowsExceptionIfRoundIsComplete(self):
+		self.trumpSelector.isComplete.return_value = True
+		self.round.isComplete.return_value = True
+		with self.assertRaises(game.GameStateException):
+			self.sequence.playCard(self.players[0], self.hands[self.players[0].playerId][0])
+
 	def testPlayCardCallsPlayCardOnRound(self):
 		self.trumpSelector.isComplete.return_value = True
 		self.round.isComplete.return_value = False
@@ -406,12 +422,6 @@ class SequenceTest(testhelper.TestCase):
 		card = self.hands[player.playerId][0]
 		self.sequence.playCard(player, card)
 		self.round.playCard.assert_called_with(player, card)
-
-	def testPlayCardThrowsExceptionIfRoundIsComplete(self):
-		self.trumpSelector.isComplete.return_value = True
-		self.round.isComplete.return_value = True
-		with self.assertRaises(game.GameStateException):
-			self.sequence.playCard(self.players[0], self.hands[self.players[0].playerId][0])
 
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
