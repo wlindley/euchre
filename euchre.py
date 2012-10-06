@@ -321,3 +321,19 @@ class ScoreTracker(object):
 			for curId in players:
 				if playerId == curId:
 					return teamId
+
+class Game(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, players, teams):
+		if None != cls.instance:
+			return cls.instance
+		return Game(players, Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE), ScoreTracker.getInstance(players, teams))
+
+	def __init__(self, players, deck, scoreTracker):
+		self._players = players
+		self._deck = deck
+		self._scoreTracker = scoreTracker
+
+	def startGame(self):
+		self._deck.shuffle()

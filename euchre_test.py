@@ -505,9 +505,23 @@ class ScoreTrackerTest(testhelper.TestCase):
 			self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 
 class GameTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.game = euchre.Game.getInstance(self.players, self.teams)
+
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.game = euchre.Game(self.players)
+		self.teams = {
+			0 : [self.players[0].playerId, self.players[2].playerId],
+			1 : [self.players[1].playerId, self.players[3].playerId]
+		}
+		testhelper.createSingletonMock(euchre.ScoreTracker)
+		self._buildTestObj()
+
+	def testStartGameShufflesDeck(self):
+		deck = testhelper.createSingletonMock(euchre.Deck)
+		self._buildTestObj()
+		self.game.startGame()
+		self.assertTrue(deck.shuffle.called)
 
 if __name__ == "__main__":
 	unittest.main()
