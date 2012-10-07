@@ -523,5 +523,14 @@ class GameTest(testhelper.TestCase):
 		self.game.startGame()
 		self.assertTrue(deck.shuffle.called)
 
+	def testStartGameDealsCards(self):
+		self.game.startGame()
+		for player in self.players:
+			self.assertEqual(euchre.HAND_SIZE, len(self.game._hands[player.playerId]))
+
+	def testStartGameCreatesASequence(self):
+		self.game.startGame()
+		self.assertIsNotNone(self.game.getSequence())
+
 if __name__ == "__main__":
 	unittest.main()

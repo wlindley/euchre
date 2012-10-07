@@ -71,6 +71,9 @@ class Deck(object):
 		self.remainingCards = self.remainingCards[numCards:]
 		return cards
 
+	def peekTop(self):
+		return self.remainingCards[0]
+
 class Trick(object):
 	instance = None
 	@classmethod
@@ -328,12 +331,23 @@ class Game(object):
 	def getInstance(cls, players, teams):
 		if None != cls.instance:
 			return cls.instance
-		return Game(players, Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE), ScoreTracker.getInstance(players, teams))
+		return Game(players, ScoreTracker.getInstance(players, teams))
 
-	def __init__(self, players, deck, scoreTracker):
+	def __init__(self, players, scoreTracker):
 		self._players = players
-		self._deck = deck
 		self._scoreTracker = scoreTracker
+		self._hands = {}
+		self._curSequence = None
 
 	def startGame(self):
-		self._deck.shuffle()
+		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
+		deck.shuffle()
+		self._dealHands(deck)
+		self._curSequence = Sequence.getInstance(self._players, self._hands, deck.peekTop())
+
+	def getSequence(self):
+		return self._curSequence
+
+	def _dealHands(self, deck):
+		for player in self._players:
+			self._hands[player.playerId] = deck.deal(HAND_SIZE)
