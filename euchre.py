@@ -348,6 +348,15 @@ class Game(object):
 	def getSequence(self):
 		return self._curSequence
 
+	def selectTrump(self, player, suit):
+		self._curSequence.selectTrump(player, suit)
+
+	def playCard(self, player, card):
+		self._curSequence.playCard(player, card)
+
+	def getSequenceState(self):
+		return self._curSequence.getState()
+
 	def _dealHands(self, deck):
 		for player in self._players:
 			self._hands[player.playerId] = deck.deal(HAND_SIZE)

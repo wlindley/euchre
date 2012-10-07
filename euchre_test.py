@@ -532,5 +532,19 @@ class GameTest(testhelper.TestCase):
 		self.game.startGame()
 		self.assertIsNotNone(self.game.getSequence())
 
+	def testPassesCallsThroughToSequence(self):
+		sequence = testhelper.createSingletonMock(euchre.Sequence)
+		trumpSuit = euchre.SUIT_CLUBS
+		player = self.players[0]
+		card = euchre.Card(euchre.SUIT_DIAMONDS, 10)
+		state = "foo"
+		sequence.getState.return_value = state
+		self.game.startGame()
+		self.game.selectTrump(player, trumpSuit)
+		self.game.playCard(player, card)
+		sequence.selectTrump.assert_called_with(player, trumpSuit)
+		sequence.playCard.assert_called_with(player, card)
+		self.assertEqual(state, self.game.getSequenceState())
+
 if __name__ == "__main__":
 	unittest.main()
