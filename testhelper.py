@@ -15,7 +15,8 @@ def createSingletonMock(cls):
 
 def destroySingletonMocks():
 	for cls in classesToRemoveInstancesFrom:
-		cls.instance = None
+		if "instance" in cls.__dict__:
+			cls.instance = None
 
 class TestCase(unittest.TestCase):
 	def tearDown(self):

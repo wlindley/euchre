@@ -546,5 +546,17 @@ class GameTest(testhelper.TestCase):
 		sequence.playCard.assert_called_with(player, card)
 		self.assertEqual(state, self.game.getSequenceState())
 
+	def testPlayCardCreatesANewSequenceAndShufflesDeckIfCurrentOneIsComplete(self):
+		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
+		sequenceFactory.buildSequence.side_effect = lambda a, b, c: mock.create_autospec(euchre.Sequence)
+		deck = testhelper.createSingletonMock(euchre.Deck)
+		self._buildTestObj()
+		self.game.startGame()
+		sequence = self.game.getSequence()
+		sequence.getState.return_value = euchre.Sequence.STATE_COMPLETE
+		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 9))
+		self.assertNotEqual(sequence, self.game.getSequence())
+		self.assertTrue(deck.shuffle.called)
+
 if __name__ == "__main__":
 	unittest.main()

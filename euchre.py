@@ -289,6 +289,17 @@ class Sequence(object):
 			raise game.GameStateException("Cannont play card once round is complete")
 		self._round.playCard(player, card)
 
+class SequenceFactory(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return SequenceFactory()
+
+	def buildSequence(self, players, hands, availableSuit=SUIT_NONE):
+		return Sequence.getInstance(players, hands, availableSuit)
+
 class ScoreTracker(object):
 	instance = None
 	@classmethod
@@ -331,19 +342,17 @@ class Game(object):
 	def getInstance(cls, players, teams):
 		if None != cls.instance:
 			return cls.instance
-		return Game(players, ScoreTracker.getInstance(players, teams))
+		return Game(players, ScoreTracker.getInstance(players, teams), SequenceFactory.getInstance())
 
-	def __init__(self, players, scoreTracker):
+	def __init__(self, players, scoreTracker, sequenceFactory):
 		self._players = players
 		self._scoreTracker = scoreTracker
+		self._sequenceFactory = sequenceFactory
 		self._hands = {}
 		self._curSequence = None
 
 	def startGame(self):
-		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
-		deck.shuffle()
-		self._dealHands(deck)
-		self._curSequence = Sequence.getInstance(self._players, self._hands, deck.peekTop())
+		self._buildNextSequence()
 
 	def getSequence(self):
 		return self._curSequence
@@ -353,6 +362,8 @@ class Game(object):
 
 	def playCard(self, player, card):
 		self._curSequence.playCard(player, card)
+		if Sequence.STATE_COMPLETE == self._curSequence.getState():
+			self._buildNextSequence()
 
 	def getSequenceState(self):
 		return self._curSequence.getState()
@@ -360,3 +371,9 @@ class Game(object):
 	def _dealHands(self, deck):
 		for player in self._players:
 			self._hands[player.playerId] = deck.deal(HAND_SIZE)
+
+	def _buildNextSequence(self):
+		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
+		deck.shuffle()
+		self._dealHands(deck)
+		self._curSequence = self._sequenceFactory.buildSequence(self._players, self._hands, deck.peekTop())
