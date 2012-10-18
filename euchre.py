@@ -322,14 +322,14 @@ class ScoreTracker(object):
 	def __init__(self, players, teams):
 		self._players = players
 		self._teams = teams
-		self._teamScores = {0:0, 1:0}
+		self._teamScores = [0, 0]
 
 	def recordRoundScore(self, round, callingPlayerId):
 		if not round.isComplete():
 			raise game.GameStateException("Cannot score incomplete Round")
-		teamTricks = {0:0, 1:0}
-		for teamId, playerIds in self._teams.iteritems():
-			for playerId in playerIds:
+		teamTricks = [0, 0]
+		for teamId in range(len(self._teams)):
+			for playerId in self._teams[teamId]:
 				teamTricks[teamId] += round.getScore(playerId)
 		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
 		self._teamScores[winningTeam] += 1
@@ -342,8 +342,8 @@ class ScoreTracker(object):
 		return self._teamScores[teamId]
 
 	def _getTeamIdFromPlayerId(self, playerId):
-		for teamId, players in self._teams.iteritems():
-			for curId in players:
+		for teamId in range(len(self._teams)):
+			for curId in self._teams[teamId]:
 				if playerId == curId:
 					return teamId
 
