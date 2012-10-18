@@ -347,6 +347,11 @@ class TrumpSelectorTest(testhelper.TestCase):
 		self.trumpSelector.reset()
 		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getSelectedTrump())
 
+	def testSelectingTrumpRecordsIdOfSelectingPlayer(self):
+		self.assertEqual(None, self.trumpSelector.getSelectingPlayerId())
+		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
+		self.assertEqual(self.players[0].playerId, self.trumpSelector.getSelectingPlayerId())
+
 class SequenceTest(testhelper.TestCase):
 	def _createPlayersAndHands(self):
 		self.deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)
@@ -451,6 +456,13 @@ class SequenceTest(testhelper.TestCase):
 		self.sequence.selectTrump(self.players[-1].playerId, trump)
 		self.round.setTrump.assert_called_with(trump)
 
+	def testScoreCurrentRoundCallsIntoScoreTracker(self):
+		callingPlayerId = "12345"
+		scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
+		self.trumpSelector.getSelectingPlayerId.return_value = callingPlayerId
+		self.sequence.scoreCurrentRound(scoreTracker)
+		scoreTracker.recordRoundScore.assert_called_with(self.round, callingPlayerId)
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -514,7 +526,7 @@ class GameTest(testhelper.TestCase):
 			0 : [self.players[0].playerId, self.players[2].playerId],
 			1 : [self.players[1].playerId, self.players[3].playerId]
 		}
-		testhelper.createSingletonMock(euchre.ScoreTracker)
+		self.scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
 		self._buildTestObj()
 
 	def testStartGameShufflesDeck(self):
@@ -557,6 +569,17 @@ class GameTest(testhelper.TestCase):
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 9))
 		self.assertNotEqual(sequence, self.game.getSequence())
 		self.assertTrue(deck.shuffle.called)
+
+	def testPlayCardScoresRoundWhenCurSequenceIsComplete(self):
+		callingPlayerId = self.players[1].playerId
+		sequence = testhelper.createSingletonMock(euchre.Sequence)
+		trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
+		sequence.getState.return_value = euchre.Sequence.STATE_COMPLETE
+		trumpSelector.getSelectingPlayerId.return_value = callingPlayerId
+		self._buildTestObj()
+		self.game.startGame()
+		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_JACK))
+		sequence.scoreCurrentRound.assert_called_with(self.scoreTracker)
 
 if __name__ == "__main__":
 	unittest.main()

@@ -217,6 +217,7 @@ class TrumpSelector(object):
 		self._turnTracker = turnTracker
 		self._availableTrump = availableTrump
 		self._selectedTrump = SUIT_NONE
+		self._selectingPlayerId = None
 
 	def getAvailableTrump(self):
 		return self._availableTrump
@@ -224,13 +225,16 @@ class TrumpSelector(object):
 	def getSelectedTrump(self):
 		return self._selectedTrump
 
+	def getSelectingPlayerId(self):
+		return self._selectingPlayerId
+
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 		if SUIT_NONE != trumpSuit:
 			if SUIT_NONE != self._availableTrump and self._availableTrump != trumpSuit:
 				raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self._availableTrump))
-			self._selectedTrump = trumpSuit
+			self._recordTrumpSelection(player, trumpSuit)
 		self._turnTracker.advanceTurn()
 
 	def isComplete(self):
@@ -240,6 +244,10 @@ class TrumpSelector(object):
 		self._turnTracker.reset()
 		self._availableTrump = SUIT_NONE
 		self._selectedTrump = SUIT_NONE
+
+	def _recordTrumpSelection(self, player, trumpSuit):
+		self._selectedTrump = trumpSuit
+		self._selectingPlayerId = player.playerId
 
 class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
@@ -288,6 +296,9 @@ class Sequence(object):
 		if Sequence.STATE_PLAYING_ROUND != self.getState():
 			raise game.GameStateException("Cannont play card once round is complete")
 		self._round.playCard(player, card)
+
+	def scoreCurrentRound(self, scoreTracker):
+		scoreTracker.recordRoundScore(self._round, self._trumpSelector.getSelectingPlayerId())
 
 class SequenceFactory(object):
 	instance = None
@@ -363,6 +374,7 @@ class Game(object):
 	def playCard(self, player, card):
 		self._curSequence.playCard(player, card)
 		if Sequence.STATE_COMPLETE == self._curSequence.getState():
+			self._scoreCurrentSequence()
 			self._buildNextSequence()
 
 	def getSequenceState(self):
@@ -371,6 +383,9 @@ class Game(object):
 	def _dealHands(self, deck):
 		for player in self._players:
 			self._hands[player.playerId] = deck.deal(HAND_SIZE)
+
+	def _scoreCurrentSequence(self):
+		self._curSequence.scoreCurrentRound(self._scoreTracker)
 
 	def _buildNextSequence(self):
 		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
