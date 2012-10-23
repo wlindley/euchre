@@ -18,6 +18,13 @@ class Player(object):
 	def __init__(self, playerId):
 		self.playerId = playerId
 
+	def __eq__(self, other):
+		if not other:
+			return False
+		if not isinstance(other, Player):
+			return other.__eq__(self)
+		return self.playerId == other.playerId
+
 class TurnTracker(object):
 	instance = None
 	@classmethod
@@ -28,6 +35,8 @@ class TurnTracker(object):
 
 	def __init__(self, players):
 		self._players = players
+		self._currentIndex = 0
+		self._allTurnCount = 0
 		self.reset()
 
 	def getCurrentPlayerId(self):

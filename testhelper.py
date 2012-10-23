@@ -1,5 +1,6 @@
 import unittest
 import mock
+from google.appengine.ext import testbed
 
 classesToRemoveInstancesFrom = []
 
@@ -19,5 +20,12 @@ def destroySingletonMocks():
 			cls.instance = None
 
 class TestCase(unittest.TestCase):
+	def setUp(self):
+		super(TestCase, self).setUp()
+		self.testbed = testbed.Testbed()
+		self.testbed.activate()
+
 	def tearDown(self):
 		destroySingletonMocks()
+		self.testbed.deactivate()
+		super(TestCase, self).tearDown()

@@ -4,8 +4,20 @@ import unittest
 import mock
 import game
 
+class PlayerTest(testhelper.TestCase):
+	def setUp(self):
+		super(PlayerTest, self).setUp()
+		self.player1 = game.Player("123")
+		self.player2 = game.Player("456")
+
+	def testPlayerEquality(self):
+		player3 = game.Player("123")
+		self.assertEqual(player3, self.player1)
+		self.assertNotEqual(self.player2, self.player1)
+
 class TurnTrackerTest(testhelper.TestCase):
 	def setUp(self):
+		super(TurnTrackerTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.turnTracker = game.TurnTracker(self.players)
 

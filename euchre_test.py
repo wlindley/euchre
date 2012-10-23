@@ -7,6 +7,7 @@ import game
 
 class CardTest(testhelper.TestCase):
 	def setUp(self):
+		super(CardTest, self).setUp()
 		self.card1 = euchre.Card()
 		self.card2 = euchre.Card()
 
@@ -33,6 +34,7 @@ class CardTest(testhelper.TestCase):
 
 class DeckTest(testhelper.TestCase):
 	def setUp(self):
+		super(DeckTest, self).setUp()
 		self.deck = euchre.Deck()
 
 	def testDeckHas52CardsByDefault(self):
@@ -84,6 +86,7 @@ class DeckTest(testhelper.TestCase):
 
 class TrickTest(testhelper.TestCase):
 	def setUp(self):
+		super(TrickTest, self).setUp()
 		self.trick = euchre.Trick()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
@@ -111,6 +114,7 @@ class TrickTest(testhelper.TestCase):
 
 class TrickEvaluatorTest(testhelper.TestCase):
 	def setUp(self):
+		super(TrickEvaluatorTest, self).setUp()
 		self.evaluator = euchre.TrickEvaluator()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
@@ -176,6 +180,7 @@ class TrickEvaluatorTest(testhelper.TestCase):
 
 class RoundTest(testhelper.TestCase):
 	def setUp(self):
+		super(RoundTest, self).setUp()
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.deck = euchre.Deck(9)
@@ -302,6 +307,7 @@ class RoundTest(testhelper.TestCase):
 
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
+		super(TrumpSelectorTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.availableTrump = euchre.SUIT_SPADES
 		self.turnTracker = game.TurnTracker(self.players)
@@ -378,6 +384,7 @@ class SequenceTest(testhelper.TestCase):
 		self._createSequence()
 
 	def setUp(self):
+		super(SequenceTest, self).setUp()
 		self._createSequenceWithMocks()
 
 	def testDefaultsToTrumpSelection(self):
@@ -465,6 +472,7 @@ class SequenceTest(testhelper.TestCase):
 
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
+		super(ScoreTrackerTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = {
 			0 : [self.players[0].playerId, self.players[2].playerId],
@@ -521,6 +529,7 @@ class GameTest(testhelper.TestCase):
 		self.game = euchre.Game.getInstance(self.players, self.teams)
 
 	def setUp(self):
+		super(GameTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = {
 			0 : [self.players[0].playerId, self.players[2].playerId],
