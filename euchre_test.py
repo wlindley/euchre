@@ -545,9 +545,15 @@ class GameTest(testhelper.TestCase):
 		self.assertTrue(deck.shuffle.called)
 
 	def testStartGameDealsCards(self):
+		prevFactory = self.game._sequenceFactory
+		self.game._sequenceFactory = testhelper.createMock(euchre.SequenceFactory)
+		hands = {}
+		def verifyHandSize(players, hands, topCard):
+			for player in self.players:
+				self.assertEqual(euchre.HAND_SIZE, len(hands[player.playerId]))
+			return prevFactory.buildSequence(player, hands, topCard)
+		self.game._sequenceFactory.buildSequence = verifyHandSize
 		self.game.startGame()
-		for player in self.players:
-			self.assertEqual(euchre.HAND_SIZE, len(self.game._hands[player.playerId]))
 
 	def testStartGameCreatesASequence(self):
 		self.game.startGame()

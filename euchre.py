@@ -359,7 +359,6 @@ class Game(object):
 		self._players = players
 		self._scoreTracker = scoreTracker
 		self._sequenceFactory = sequenceFactory
-		self._hands = {}
 		self._curSequence = None
 
 	def startGame(self):
@@ -381,8 +380,10 @@ class Game(object):
 		return self._curSequence.getState()
 
 	def _dealHands(self, deck):
+		hands = {}
 		for player in self._players:
-			self._hands[player.playerId] = deck.deal(HAND_SIZE)
+			hands[player.playerId] = deck.deal(HAND_SIZE)
+		return hands
 
 	def _scoreCurrentSequence(self):
 		self._curSequence.scoreCurrentRound(self._scoreTracker)
@@ -390,5 +391,5 @@ class Game(object):
 	def _buildNextSequence(self):
 		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
 		deck.shuffle()
-		self._dealHands(deck)
-		self._curSequence = self._sequenceFactory.buildSequence(self._players, self._hands, deck.peekTop())
+		hands = self._dealHands(deck)
+		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())

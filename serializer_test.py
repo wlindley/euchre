@@ -5,19 +5,22 @@ import mock
 import serializer
 import game
 import euchre
-import model
 
-class SerializerTest(testhelper.TestCase):
+class PlayerSerializerTest(testhelper.TestCase):
 	def setUp(self):
-		super(SerializerTest, self).setUp()
-		self.serializer = serializer.Serializer()
+		super(PlayerSerializerTest, self).setUp()
+		self.testObj = serializer.PlayerSerializer()
+		self.playerId = "123"
 
 	def testSerializesPlayerCorrectly(self):
-		player = game.Player("123")
-		obj = self.serializer.serialize(player)
-		self.assertEqual("123", obj.playerId)
+		player = game.Player(self.playerId)
+		data = self.testObj.serialize(player)
+		self.assertEqual(self.playerId, data["playerId"])
 
 	def testDeserializesPlayerCorrectly(self):
-		obj = model.PlayerModel(playerId="123")
-		player = self.serializer.deserialize(obj)
-		self.assertEqual("123", player.playerId)
+		data = {"playerId" : self.playerId}
+		player = self.testObj.deserialize(data)
+		self.assertEqual(self.playerId, player.playerId)
+
+if __name__ == "__main__":
+	unittest.main()
