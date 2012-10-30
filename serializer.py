@@ -41,7 +41,7 @@ class GameSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return GameSerialize(PlayerSerializer(), ScoreTrackerSerializer(), SequenceSerialize())
+		return GameSerializer(PlayerSerializer.getInstance(), ScoreTrackerSerializer.getInstance(), SequenceSerializer.getInstance())
 
 	def __init__(self, playerSerializer, scoreTrackerSerializer, sequenceSerializer):
 		self.playerSerializer = playerSerializer
@@ -66,7 +66,8 @@ class GameSerializer(AbstractSerializer):
 		players = self._deserializePlayers(data["players"])
 		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"])
 		game = euchre.Game(players, scoreTracker, euchre.SequenceFactory.getInstance())
-		game._curSequence = self.sequenceSerialize.deserialize(data["curSequence"])
+		game._curSequence = self.sequenceSerializer.deserialize(data["curSequence"])
+		return game
 
 	def _deserializePlayers(self, playersData):
 		players = []
@@ -75,7 +76,17 @@ class GameSerializer(AbstractSerializer):
 		return players
 
 class ScoreTrackerSerializer(AbstractSerializer):
-	pass
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return ScoreTrackerSerializer()
 
 class SequenceSerializer(AbstractSerializer):
-	pass
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return SequenceSerializer()
