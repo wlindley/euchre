@@ -58,5 +58,29 @@ class GameSerializerTest(testhelper.TestCase):
 		self.assertEqual(scoreTracker, self.game._scoreTracker)
 		self.assertEqual(sequence, self.game._curSequence)
 
+class ScoreTrackerSerializerTracker(testhelper.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.teams = [["1", "2"], ["3", "4"]]
+		self.scores = [3, 6]
+		self.scoreTracker = euchre.ScoreTracker.getInstance(self.players, self.teams)
+		self.scoreTracker._scores = self.scores
+		self.testObj = serializer.ScoreTrackerSerializer.getInstance()
+
+	def testCanSerializeScoreTracker(self):
+		self.assertTrue(self.testObj.canSerialize(self.scoreTracker))
+
+	def testSerializesScoreTrackerCorrectly(self):
+		data = self.testObj.serialize(self.scoreTracker)
+		self.assertEqual(self.teams, data["teams"])
+		self.assertEqual(self.scores, data["scores"])
+
+	def testDeserializesScoreTrackerCorrectly(self):
+		data = {"teams" : self.teams, "scores" : self.scores}
+		obj = self.testObj.deserialize(data, self.players)
+		self.assertEqual(obj._players, self.players)
+		self.assertEqual(obj._teams, self.teams)
+		self.assertEqual(obj._scores, self.scores)
+
 if __name__ == "__main__":
 	unittest.main()

@@ -11,11 +11,11 @@ class AbstractSerializer(object):
 		return False
 
 	@abstractmethod
-	def serialize(self, obj):
+	def serialize(self, obj, *args, **kwargs):
 		return {}
 
 	@abstractmethod
-	def deserialize(self, data):
+	def deserialize(self, data, *args, **kwargs):
 		return None
 
 class PlayerSerializer(AbstractSerializer):
@@ -64,7 +64,7 @@ class GameSerializer(AbstractSerializer):
 
 	def deserialize(self, data):
 		players = self._deserializePlayers(data["players"])
-		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"])
+		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"], players)
 		game = euchre.Game(players, scoreTracker, euchre.SequenceFactory.getInstance())
 		game._curSequence = self.sequenceSerializer.deserialize(data["curSequence"])
 		return game
@@ -82,6 +82,18 @@ class ScoreTrackerSerializer(AbstractSerializer):
 		if None != cls.instance:
 			return cls.instance
 		return ScoreTrackerSerializer()
+
+	def canSerialize(self, obj):
+		return isinstance(obj, euchre.ScoreTracker)
+
+	def serialize(self, obj):
+		return {"teams" : obj._teams,
+				"scores" : obj._scores}
+
+	def deserialize(self, data, players):
+		scoreTracker = euchre.ScoreTracker.getInstance(players, data["teams"])
+		scoreTracker._scores = data["scores"]
+		return scoreTracker
 
 class SequenceSerializer(AbstractSerializer):
 	instance = None
