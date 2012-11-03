@@ -7,10 +7,6 @@ class AbstractSerializer(object):
 	__metaclass__ = ABCMeta
 
 	@abstractmethod
-	def canSerialize(self, obj):
-		return False
-
-	@abstractmethod
 	def serialize(self, obj, *args, **kwargs):
 		return {}
 
@@ -25,9 +21,6 @@ class PlayerSerializer(AbstractSerializer):
 		if None != cls.instance:
 			return cls.instance
 		return PlayerSerializer()
-
-	def canSerialize(self, obj):
-		return isinstance(obj, game.Player)
 
 	def serialize(self, obj):
 		return {"playerId" : obj.playerId}
@@ -47,9 +40,6 @@ class GameSerializer(AbstractSerializer):
 		self.playerSerializer = playerSerializer
 		self.scoreTrackerSerializer = scoreTrackerSerializer
 		self.sequenceSerializer = sequenceSerializer
-
-	def canSerialize(self, obj):
-		return isinstance(obj, euchre.Game)
 
 	def serialize(self, obj):
 		return {"players" : self._serializePlayers(obj._players),
@@ -83,9 +73,6 @@ class ScoreTrackerSerializer(AbstractSerializer):
 			return cls.instance
 		return ScoreTrackerSerializer()
 
-	def canSerialize(self, obj):
-		return isinstance(obj, euchre.ScoreTracker)
-
 	def serialize(self, obj):
 		return {"teams" : obj._teams,
 				"scores" : obj._scores}
@@ -101,4 +88,33 @@ class SequenceSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return SequenceSerializer()
+		return SequenceSerializer(TrumpSelectorSerializer.getInstance(), RoundSerializer.getInstance())
+
+	def __init__(self, trumpSelectorSerializer, roundSerializer):
+		self.trumpSelectorSerializer = trumpSelectorSerializer
+		self.roundSerializer = roundSerializer
+
+	def serialize(self, obj):
+		return {"trumpSelector" : self.trumpSelectorSerializer.serialize(obj._trumpSelector),
+				"round" : self.roundSerializer.serialize(obj._round)}
+
+	def deserialize(self, data):
+		trumpSelector = self.trumpSelectorSerializer.deserialize(data["trumpSelector"])
+		round = self.roundSerializer.deserialize(data["round"])
+		return euchre.Sequence(trumpSelector, round)
+
+class TrumpSelectorSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TrumpSelectorSerializer()
+
+class RoundSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return RoundSerializer()

@@ -12,9 +12,6 @@ class PlayerSerializerTest(testhelper.TestCase):
 		self.testObj = serializer.PlayerSerializer.getInstance()
 		self.playerId = "123"
 
-	def testCanSerializePlayer(self):
-		self.assertTrue(self.testObj.canSerialize(game.Player(self.playerId)))
-
 	def testSerializesPlayerCorrectly(self):
 		player = game.Player(self.playerId)
 		data = self.testObj.serialize(player)
@@ -32,9 +29,6 @@ class GameSerializerTest(testhelper.TestCase):
 		self.sequenceSerializer = testhelper.createSingletonMock(serializer.SequenceSerializer)
 		self.game = euchre.Game.getInstance([game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")], [["1", "2"], ["3", "4"]])
 		self.testObj = serializer.GameSerializer.getInstance()
-
-	def testCanSerializeGame(self):
-		self.assertTrue(self.testObj.canSerialize(self.game))
 
 	def testSerializesGameCorrectly(self):
 		self.playerSerializer.serialize.side_effect = ["1", "2", "3", "4"]
@@ -58,7 +52,7 @@ class GameSerializerTest(testhelper.TestCase):
 		self.assertEqual(scoreTracker, self.game._scoreTracker)
 		self.assertEqual(sequence, self.game._curSequence)
 
-class ScoreTrackerSerializerTracker(testhelper.TestCase):
+class ScoreTrackerSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = [["1", "2"], ["3", "4"]]
@@ -66,9 +60,6 @@ class ScoreTrackerSerializerTracker(testhelper.TestCase):
 		self.scoreTracker = euchre.ScoreTracker.getInstance(self.players, self.teams)
 		self.scoreTracker._scores = self.scores
 		self.testObj = serializer.ScoreTrackerSerializer.getInstance()
-
-	def testCanSerializeScoreTracker(self):
-		self.assertTrue(self.testObj.canSerialize(self.scoreTracker))
 
 	def testSerializesScoreTrackerCorrectly(self):
 		data = self.testObj.serialize(self.scoreTracker)
@@ -81,6 +72,32 @@ class ScoreTrackerSerializerTracker(testhelper.TestCase):
 		self.assertEqual(obj._players, self.players)
 		self.assertEqual(obj._teams, self.teams)
 		self.assertEqual(obj._scores, self.scores)
+
+class SequenceSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.trumpSelector = testhelper.createMock(euchre.TrumpSelector)
+		self.round = testhelper.createMock(euchre.Round)
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round)
+		self.trumpSelectorSerializer = testhelper.createSingletonMock(serializer.TrumpSelectorSerializer)
+		self.roundSerializer = testhelper.createSingletonMock(serializer.RoundSerializer)
+		self.testObj = serializer.SequenceSerializer.getInstance()
+
+	def testSerializesSequenceCorrectly(self):
+		expectedTrumpSelector = "a trump selector"
+		expectedRound = "a round"
+		self.trumpSelectorSerializer.serialize.return_value = expectedTrumpSelector
+		self.roundSerializer.serialize.return_value = expectedRound
+		data = self.testObj.serialize(self.sequence)
+		self.assertEqual(expectedTrumpSelector, data["trumpSelector"])
+		self.assertEqual(expectedRound, data["round"])
+
+	def testDeserializesSequenceCorrectly(self):
+		data = {"trumpSelector" : "a trump selector", "round" : "a round"}
+		self.trumpSelectorSerializer.deserialize.return_value = self.trumpSelector
+		self.roundSerializer.deserialize.return_value = self.round
+		obj = self.testObj.deserialize(data)
+		self.assertEqual(self.trumpSelector, obj._trumpSelector)
+		self.assertEqual(self.round, obj._round)
 
 if __name__ == "__main__":
 	unittest.main()
