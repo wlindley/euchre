@@ -99,5 +99,40 @@ class SequenceSerializerTest(testhelper.TestCase):
 		self.assertEqual(self.trumpSelector, obj._trumpSelector)
 		self.assertEqual(self.round, obj._round)
 
+class TrumpSelectorSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.turnTracker = testhelper.createMock(game.TurnTracker)
+		self.availableTrump = euchre.SUIT_HEARTS
+		self.selectingPlayerId = "123456"
+		self.trumpSelector = euchre.TrumpSelector(self.turnTracker, self.availableTrump)
+		self.turnTrackerSerializer = testhelper.createSingletonMock(serializer.TurnTrackerSerializer)
+		self.testObj = serializer.TrumpSelectorSerializer.getInstance()
+
+	def testSerializesTrumpSelectorCorrectly(self):
+		expectedTurnTracker = "a turn tracker"
+		self.turnTrackerSerializer.serialize.return_value = expectedTurnTracker
+		self.trumpSelector._selectingPlayerId = self.selectingPlayerId
+		data = self.testObj.serialize(self.trumpSelector)
+		self.assertEqual(expectedTurnTracker, data["turnTracker"])
+		self.assertEqual(self.availableTrump, data["availableTrump"])
+		self.assertEqual(self.selectingPlayerId, data["selectingPlayerId"])
+
+	def testSerializeUsesCorrectValueWhenSelectingPlayerIdIsNone(self):
+		data = self.testObj.serialize(self.trumpSelector)
+		self.assertEqual("", data["selectingPlayerId"])
+
+	def testDeserializesTrumpSelectorCorrectly(self):
+		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectingPlayerId" : self.selectingPlayerId}
+		self.turnTrackerSerializer.deserialize.return_value = self.turnTracker
+		obj = self.testObj.deserialize(data)
+		self.assertEqual(self.turnTracker, obj._turnTracker)
+		self.assertEqual(self.availableTrump, obj._availableTrump)
+		self.assertEqual(self.selectingPlayerId, obj._selectingPlayerId)
+
+	def testDeserializeSetsCorrectValueForSelectingPlayerIdOfEmptyString(self):
+		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectingPlayerId" : ""}
+		obj = self.testObj.deserialize(data)
+		self.assertEqual(None, obj._selectingPlayerId)
+
 if __name__ == "__main__":
 	unittest.main()

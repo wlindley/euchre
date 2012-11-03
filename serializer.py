@@ -109,7 +109,27 @@ class TrumpSelectorSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return TrumpSelectorSerializer()
+		return TrumpSelectorSerializer(TurnTrackerSerializer.getInstance())
+
+	def __init__(self, turnTrackerSerializer):
+		self.turnTrackerSerializer = turnTrackerSerializer
+
+	def serialize(self, obj):
+		selectingPlayerId = obj._selectingPlayerId
+		if None == selectingPlayerId:
+			selectingPlayerId = ""
+		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
+				"availableTrump" : obj._availableTrump,
+				"selectingPlayerId" : selectingPlayerId}
+
+	def deserialize(self, data):
+		selectingPlayerId = data["selectingPlayerId"]
+		if "" == selectingPlayerId:
+			selectingPlayerId = None
+		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"])
+		trumpSelector = euchre.TrumpSelector(turnTracker, data["availableTrump"])
+		trumpSelector._selectingPlayerId = selectingPlayerId
+		return trumpSelector
 
 class RoundSerializer(AbstractSerializer):
 	instance = None
@@ -118,3 +138,11 @@ class RoundSerializer(AbstractSerializer):
 		if None != cls.instance:
 			return cls.instance
 		return RoundSerializer()
+
+class TurnTrackerSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TurnTrackerSerializer()
