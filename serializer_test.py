@@ -5,6 +5,7 @@ import mock
 import serializer
 import game
 import euchre
+import random
 
 class PlayerSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -162,6 +163,55 @@ class TurnTrackerSerializerTest(testhelper.TestCase):
 		self.assertEquals(self.allTurnCount, obj._allTurnCount)
 		for i in range(len(self.players)):
 			self.assertEquals(self.players[i], obj._players[i])
+
+class RoundSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.hands = {"1" : [self._randomCard(), self._randomCard()], "2" : [self._randomCard(), self._randomCard()]}
+		self.trickEvaluator = testhelper.createMock(euchre.TrickEvaluator)
+		self.trickEvaluatorSerializer = testhelper.createSingletonMock(serializer.TrickEvaluatorSerializer)
+		self.turnTracker = testhelper.createMock(game.TurnTracker)
+		self.turnTrackerSerializer = testhelper.createSingletonMock(serializer.TurnTrackerSerializer)
+		self.trickSerializer = testhelper.createSingletonMock(serializer.TrickSerializer)
+		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
+		self.testObj = serializer.RoundSerializer.getInstance()
+
+	def _randomCard(self):
+		suit = random.randrange(1, euchre.NUM_SUITS)
+		value = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
+		return euchre.Card(suit, value)
+
+	def testSerializesRoundCorrectly(self):
+		expectedHands = {"1" : ["card 1", "card 2"], "2" : ["card 3", "card 4"]}
+		cardSerializerResult = []
+		cardSerializerResult.extend(expectedHands["1"])
+		cardSerializerResult.extend(expectedHands["2"])
+		self.cardSerializer.serialize.side_effect = cardSerializerResult
+		expectedTurnTracker = "a turn tracker"
+		self.turnTrackerSerializer.serialize.return_value = expectedTurnTracker
+		expectedTrickEvaluator = "a trick evaluator"
+		self.trickEvaluatorSerializer.serialize.return_value = expectedTrickEvaluator
+		curTrick = testhelper.createMock(euchre.Trick)
+		self.round._curTrick = curTrick
+		prevTricks = [testhelper.createMock(euchre.Trick), testhelper.createMock(euchre.Trick)]
+		self.round._prevTricks = prevTricks
+		expectedTricks = {curTrick : "trick 1", prevTricks[0] : "trick 2", prevTricks[1] : "trick 3"}
+		self.trickSerializer.serialize.side_effect = lambda t : expectedTricks[t]
+		scores = {"1" : 0, "2" : 5}
+		self.round._scores = scores
+
+		data = self.testObj.serialize(self.round)
+
+		self.assertEqual(expectedTurnTracker, data["turnTracker"])
+		self.assertEqual(expectedTrickEvaluator, data["trickEvaluator"])
+		for playerId in expectedHands:
+			for i in range(len(expectedHands[playerId])):
+				self.assertEqual(expectedHands[playerId][i], data["hands"][playerId][i])
+		self.assertEqual(expectedTricks[curTrick], data["curTrick"])
+		for i in range(len(prevTricks)):
+			self.assertEqual(expectedTricks[prevTricks[i]], data["prevTricks"][i])
+		for playerId, score in scores.iteritems():
+			self.assertEqual(score, data["scores"][playerId])
 
 if __name__ == "__main__":
 	unittest.main()

@@ -137,7 +137,45 @@ class RoundSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return RoundSerializer()
+		return RoundSerializer(TrickEvaluatorSerializer.getInstance(), TurnTrackerSerializer.getInstance(), TrickSerializer.getInstance(), CardSerializer.getInstance())
+
+	def __init__(self, trickEvaluatorSerializer, turnTrackerSerializer, trickSerializer, cardSerializer):
+		self.trickEvaluatorSerializer = trickEvaluatorSerializer
+		self.turnTrackerSerializer = turnTrackerSerializer
+		self.trickSerializer = trickSerializer
+		self.cardSerializer = cardSerializer
+
+	def serialize(self, obj):
+		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
+				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
+				"hands" : self._serializeHands(obj.hands),
+				"curTrick" : self.trickSerializer.serialize(obj._curTrick),
+				"prevTricks" : self._serializeTricks(obj._prevTricks),
+				"scores" : self._serializeScores(obj._scores)}
+
+	def _serializeHands(self, hands):
+		serializedHands = {}
+		for playerId, hand in hands.iteritems():
+			serializedHands[playerId] = self._serializeHand(hand)
+		return serializedHands
+
+	def _serializeHand(self, hand):
+		serializedHand = []
+		for card in hand:
+			serializedHand.append(self.cardSerializer.serialize(card))
+		return serializedHand
+
+	def _serializeTricks(self, tricks):
+		serializedTricks = []
+		for trick in tricks:
+			serializedTricks.append(self.trickSerializer.serialize(trick))
+		return serializedTricks
+
+	def _serializeScores(self, scores):
+		return scores
+
+	def deserialize(self, data):
+		return None
 
 class TurnTrackerSerializer(AbstractSerializer):
 	instance = None
@@ -156,3 +194,27 @@ class TurnTrackerSerializer(AbstractSerializer):
 		turnTracker._currentIndex = data["currentIndex"]
 		turnTracker._allTurnCount = data["allTurnCount"]
 		return turnTracker
+
+class TrickEvaluatorSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TrickEvaluatorSerializer()
+
+class TrickSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TrickerSerializer()
+
+class CardSerializer(AbstractSerializer):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return CardSerializer()
