@@ -102,6 +102,7 @@ class SequenceSerializerTest(testhelper.TestCase):
 		self.assertEqual(self.trumpSelector, obj._trumpSelector)
 		self.assertEqual(self.round, obj._round)
 		self.trumpSelectorSerializer.deserialize.assert_called_with(data["trumpSelector"], players)
+		self.roundSerializer.deserialize.assert_called_with(data["round"], players)
 
 class TrumpSelectorSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -212,6 +213,48 @@ class RoundSerializerTest(testhelper.TestCase):
 			self.assertEqual(expectedTricks[prevTricks[i]], data["prevTricks"][i])
 		for playerId, score in scores.iteritems():
 			self.assertEqual(score, data["scores"][playerId])
+
+	def testDeserializesRoundCorrectly(self):
+		players = "some players"
+		serializedTurnTracker = "a turn tracker"
+		serializedTrickEvaluator = "a trick evaluator"
+		hands = {"1" : ["card 1", "card 2"], "2" : ["card 3", "card 4"]}
+		curTrick = "trick 1"
+		prevTricks = ["trick 2", "trick 3"]
+		scores = {"1" : 3, "2" : 2}
+		data = {"turnTracker" : serializedTurnTracker,
+				"trickEvaluator" : serializedTrickEvaluator,
+				"hands" : hands,
+				"curTrick" : curTrick,
+				"prevTricks" : prevTricks,
+				"scores" : scores}
+		self.turnTrackerSerializer.deserialize.return_value = self.turnTracker
+		self.trickEvaluatorSerializer.deserialize.return_value = self.trickEvaluator
+
+		expectedCards = {}
+		for playerId, hand in hands.iteritems():
+			for card in hand:
+				expectedCards[card] = self._randomCard()
+		self.cardSerializer.deserialize.side_effect = lambda c: expectedCards[c]
+
+		expectedTricks = {curTrick : testhelper.createMock(euchre.Trick)}
+		for trick in prevTricks:
+			expectedTricks[trick] = testhelper.createMock(euchre.Trick)
+		self.trickSerializer.deserialize.side_effect = lambda t: expectedTricks[t]
+
+		obj = self.testObj.deserialize(data, players)
+
+		self.assertEqual(self.turnTracker, obj._turnTracker)
+		self.turnTrackerSerializer.deserialize.assert_called_with(serializedTurnTracker, players)
+		self.assertEqual(self.trickEvaluator, obj._trickEvaluator)
+		for playerId, hand in hands.iteritems():
+			for i in range(len(hand)):
+				self.assertEqual(expectedCards[hand[i]], obj.hands[playerId][i])
+		self.assertEqual(expectedTricks[curTrick], obj.curTrick)
+		for i in range(len(prevTricks)):
+			self.assertEqual(expectedTricks[prevTricks[i]], obj.prevTricks[i])
+		for playerId, score in scores.iteritems():
+			self.assertEqual(score, obj._scores[playerId])
 
 if __name__ == "__main__":
 	unittest.main()
