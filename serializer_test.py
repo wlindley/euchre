@@ -178,7 +178,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		self.testObj = serializer.RoundSerializer.getInstance()
 
 	def _randomCard(self):
-		suit = random.randrange(1, euchre.NUM_SUITS)
+		suit = random.randint(1, euchre.NUM_SUITS)
 		value = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
 		return euchre.Card(suit, value)
 
@@ -255,6 +255,22 @@ class RoundSerializerTest(testhelper.TestCase):
 			self.assertEqual(expectedTricks[prevTricks[i]], obj.prevTricks[i])
 		for playerId, score in scores.iteritems():
 			self.assertEqual(score, obj._scores[playerId])
+
+class TrickEvaluatorSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.testObj = serializer.TrickEvaluatorSerializer.getInstance()
+
+	def testSerializesTrickEvaluatorCorrectly(self):
+		trumpSuit = random.randint(1, euchre.NUM_SUITS)
+		trickEvaluator = euchre.TrickEvaluator(trumpSuit)
+		data = self.testObj.serialize(trickEvaluator)
+		self.assertEqual(trumpSuit, data["trumpSuit"])
+
+	def testDeserializesTrickEvaluatorCorrectly(self):
+		expectedTrumpSuit = random.randint(1, euchre.NUM_SUITS)
+		data = {"trumpSuit" : expectedTrumpSuit}
+		obj = self.testObj.deserialize(data)
+		self.assertEqual(expectedTrumpSuit, obj._trumpSuit)
 
 if __name__ == "__main__":
 	unittest.main()

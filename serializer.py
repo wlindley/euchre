@@ -231,6 +231,12 @@ class TrickEvaluatorSerializer(AbstractSerializer):
 			return cls.instance
 		return TrickEvaluatorSerializer()
 
+	def serialize(self, obj):
+		return {"trumpSuit" : obj._trumpSuit}
+
+	def deserialize(self, data):
+		return euchre.TrickEvaluator.getInstance(data["trumpSuit"])
+
 class TrickSerializer(AbstractSerializer):
 	instance = None
 	@classmethod

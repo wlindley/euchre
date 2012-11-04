@@ -105,10 +105,10 @@ class TrickEvaluator(object):
 		return TrickEvaluator(trump)
 
 	def __init__(self, trump=SUIT_NONE):
-		self.trumpSuit = trump
+		self._trumpSuit = trump
 
 	def setTrump(self, trumpSuit):
-		self.trumpSuit = trumpSuit
+		self._trumpSuit = trumpSuit
 
 	def evaluateTrick(self, trick):
 		highestTrumpValue = -1
@@ -121,12 +121,12 @@ class TrickEvaluator(object):
 			cardSuit = card.suit
 			cardValue = card.value
 			if cardValue == VALUE_JACK:
-				if cardSuit == self.trumpSuit:
+				if cardSuit == self._trumpSuit:
 					cardValue = VALUE_RIGHT_BOWER
-				elif cardSuit % 2 == self.trumpSuit % 2:
-					cardSuit = self.trumpSuit
+				elif cardSuit % 2 == self._trumpSuit % 2:
+					cardSuit = self._trumpSuit
 					cardValue = VALUE_LEFT_BOWER
-			if cardSuit == self.trumpSuit and cardValue > highestTrumpValue:
+			if cardSuit == self._trumpSuit and cardValue > highestTrumpValue:
 				highestTrumpValue = cardValue
 				highestTrumpCard = card
 				highestTrumpId = playerId
