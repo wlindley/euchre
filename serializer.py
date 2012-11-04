@@ -56,7 +56,7 @@ class GameSerializer(AbstractSerializer):
 		players = self._deserializePlayers(data["players"])
 		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"], players)
 		game = euchre.Game(players, scoreTracker, euchre.SequenceFactory.getInstance())
-		game._curSequence = self.sequenceSerializer.deserialize(data["curSequence"])
+		game._curSequence = self.sequenceSerializer.deserialize(data["curSequence"], players)
 		return game
 
 	def _deserializePlayers(self, playersData):
@@ -98,8 +98,8 @@ class SequenceSerializer(AbstractSerializer):
 		return {"trumpSelector" : self.trumpSelectorSerializer.serialize(obj._trumpSelector),
 				"round" : self.roundSerializer.serialize(obj._round)}
 
-	def deserialize(self, data):
-		trumpSelector = self.trumpSelectorSerializer.deserialize(data["trumpSelector"])
+	def deserialize(self, data, players):
+		trumpSelector = self.trumpSelectorSerializer.deserialize(data["trumpSelector"], players)
 		round = self.roundSerializer.deserialize(data["round"])
 		return euchre.Sequence(trumpSelector, round)
 
@@ -122,11 +122,11 @@ class TrumpSelectorSerializer(AbstractSerializer):
 				"availableTrump" : obj._availableTrump,
 				"selectingPlayerId" : selectingPlayerId}
 
-	def deserialize(self, data):
+	def deserialize(self, data, players):
 		selectingPlayerId = data["selectingPlayerId"]
 		if "" == selectingPlayerId:
 			selectingPlayerId = None
-		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"])
+		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		trumpSelector = euchre.TrumpSelector(turnTracker, data["availableTrump"])
 		trumpSelector._selectingPlayerId = selectingPlayerId
 		return trumpSelector
@@ -146,3 +146,13 @@ class TurnTrackerSerializer(AbstractSerializer):
 		if None != cls.instance:
 			return cls.instance
 		return TurnTrackerSerializer()
+
+	def serialize(self, obj):
+		return {"currentIndex" : obj._currentIndex,
+				"allTurnCount" : obj._allTurnCount}
+
+	def deserialize(self, data, players):
+		turnTracker = game.TurnTracker.getInstance(players)
+		turnTracker._currentIndex = data["currentIndex"]
+		turnTracker._allTurnCount = data["allTurnCount"]
+		return turnTracker

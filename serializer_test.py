@@ -51,6 +51,7 @@ class GameSerializerTest(testhelper.TestCase):
 		self.assertEqual(players, self.game._players)
 		self.assertEqual(scoreTracker, self.game._scoreTracker)
 		self.assertEqual(sequence, self.game._curSequence)
+		self.sequenceSerializer.deserialize.assert_called_with(data["curSequence"], players)
 
 class ScoreTrackerSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -92,12 +93,14 @@ class SequenceSerializerTest(testhelper.TestCase):
 		self.assertEqual(expectedRound, data["round"])
 
 	def testDeserializesSequenceCorrectly(self):
+		players = "some players"
 		data = {"trumpSelector" : "a trump selector", "round" : "a round"}
 		self.trumpSelectorSerializer.deserialize.return_value = self.trumpSelector
 		self.roundSerializer.deserialize.return_value = self.round
-		obj = self.testObj.deserialize(data)
+		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.trumpSelector, obj._trumpSelector)
 		self.assertEqual(self.round, obj._round)
+		self.trumpSelectorSerializer.deserialize.assert_called_with(data["trumpSelector"], players)
 
 class TrumpSelectorSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -122,17 +125,43 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 		self.assertEqual("", data["selectingPlayerId"])
 
 	def testDeserializesTrumpSelectorCorrectly(self):
+		players = "some players"
 		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectingPlayerId" : self.selectingPlayerId}
 		self.turnTrackerSerializer.deserialize.return_value = self.turnTracker
-		obj = self.testObj.deserialize(data)
+		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.turnTracker, obj._turnTracker)
 		self.assertEqual(self.availableTrump, obj._availableTrump)
 		self.assertEqual(self.selectingPlayerId, obj._selectingPlayerId)
+		self.turnTrackerSerializer.deserialize.assert_called_with(data["turnTracker"], players)
 
 	def testDeserializeSetsCorrectValueForSelectingPlayerIdOfEmptyString(self):
+		players = "some players"
 		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectingPlayerId" : ""}
-		obj = self.testObj.deserialize(data)
+		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(None, obj._selectingPlayerId)
+
+class TurnTrackerSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.currentTurn = 2
+		self.allTurnCount = 0
+		self.turnTracker = game.TurnTracker.getInstance(self.players)
+		self.turnTracker._currentIndex = self.currentTurn
+		self.turnTracker._allTurnCount = self.allTurnCount
+		self.testObj = serializer.TurnTrackerSerializer.getInstance()
+
+	def testSerializesTurnTrackerCorrectly(self):
+		data = self.testObj.serialize(self.turnTracker)
+		self.assertEqual(self.currentTurn, data["currentIndex"])
+		self.assertEqual(self.allTurnCount, data["allTurnCount"])
+
+	def testDeserializesTurnTrackerCorrectly(self):
+		data = {"currentIndex" : self.currentTurn, "allTurnCount" : self.allTurnCount}
+		obj = self.testObj.deserialize(data, self.players)
+		self.assertEquals(self.currentTurn, obj._currentIndex)
+		self.assertEquals(self.allTurnCount, obj._allTurnCount)
+		for i in range(len(self.players)):
+			self.assertEquals(self.players[i], obj._players[i])
 
 if __name__ == "__main__":
 	unittest.main()
