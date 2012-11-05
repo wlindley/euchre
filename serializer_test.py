@@ -272,5 +272,45 @@ class TrickEvaluatorSerializerTest(testhelper.TestCase):
 		obj = self.testObj.deserialize(data)
 		self.assertEqual(expectedTrumpSuit, obj._trumpSuit)
 
+class TrickSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
+		self.testObj = serializer.TrickSerializer.getInstance()
+
+	def testSerializesTrickCorrectly(self):
+		expectedLedSuit = random.randint(1, euchre.NUM_SUITS)
+		playedCards = {"1" : self._randomCard(), "2" : self._randomCard()}
+		expectedCards = {playedCards["1"] : "card 1", playedCards["2"] : "card 2"}
+		self.cardSerializer.serialize.side_effect = lambda c: expectedCards[c]
+		trick = euchre.Trick()
+		trick.ledSuit = expectedLedSuit
+		trick.playedCards = playedCards
+
+		data = self.testObj.serialize(trick)
+
+		self.assertEqual(expectedLedSuit, data["ledSuit"])
+		for playerId, card in playedCards.iteritems():
+			self.assertEqual(expectedCards[card], data["playedCards"][playerId])
+
+	def testDeserializesTrickCorrectly(self):
+		expectedLedSuit = random.randint(1, euchre.NUM_SUITS)
+		expectedPlayedCards = {"1" : "card 1", "2" : "card 2"}
+		data = {"ledSuit" : expectedLedSuit, "playedCards" : expectedPlayedCards}
+		playedCards = {}
+		for playerId, card in expectedPlayedCards.iteritems():
+			playedCards[card] = self._randomCard()
+		self.cardSerializer.deserialize.side_effect = lambda c: playedCards[c]
+
+		obj = self.testObj.deserialize(data)
+
+		self.assertEqual(expectedLedSuit, obj.ledSuit)
+		for playerId, card in expectedPlayedCards.iteritems():
+			self.assertEqual(playedCards[card], obj.playedCards[playerId])
+
+	def _randomCard(self):
+		suit = random.randint(1, euchre.NUM_SUITS)
+		value = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
+		return euchre.Card(suit, value)
+
 if __name__ == "__main__":
 	unittest.main()

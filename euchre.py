@@ -84,10 +84,10 @@ class Trick(object):
 
 	def __init__(self):
 		self.playedCards = {}
-		self.ledSuit = None
+		self.ledSuit = SUIT_NONE
 
 	def add(self, player, card):
-		if None == self.ledSuit:
+		if SUIT_NONE == self.ledSuit:
 			self.ledSuit = card.suit
 		if player.playerId in self.playedCards:
 			raise game.GameRuleException("Player with id %s has already played a card in this trick" % player.playerId)

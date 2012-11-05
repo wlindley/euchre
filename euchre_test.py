@@ -91,7 +91,7 @@ class TrickTest(testhelper.TestCase):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
 	def testAddingFirstCardSetsLedSuit(self):
-		self.assertEqual(None, self.trick.ledSuit)
+		self.assertEqual(euchre.SUIT_NONE, self.trick.ledSuit)
 		self.trick.add(self.players[2], euchre.Card(euchre.SUIT_CLUBS, 5))
 		self.assertEqual(euchre.SUIT_CLUBS, self.trick.ledSuit)
 

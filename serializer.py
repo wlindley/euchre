@@ -243,7 +243,32 @@ class TrickSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return TrickerSerializer()
+		return TrickSerializer(CardSerializer.getInstance())
+
+	def __init__(self, cardSerializer):
+		self.cardSerializer = cardSerializer
+
+	def serialize(self, obj):
+		return {"ledSuit" : obj.ledSuit,
+				"playedCards" : self._serializePlayedCards(obj.playedCards)}
+
+	def _serializePlayedCards(self, cards):
+		serializedCards = {}
+		for playerId, card in cards.iteritems():
+			serializedCards[playerId] = self.cardSerializer.serialize(card)
+		return serializedCards
+
+	def deserialize(self, data):
+		trick = euchre.Trick.getInstance()
+		trick.ledSuit = data["ledSuit"]
+		trick.playedCards = self._deserializePlayedCards(data["playedCards"])
+		return trick
+
+	def _deserializePlayedCards(self, playedCards):
+		deserializedCards = {}
+		for playerId, card in playedCards.iteritems():
+			deserializedCards[playerId] = self.cardSerializer.deserialize(card)
+		return deserializedCards
 
 class CardSerializer(AbstractSerializer):
 	instance = None
