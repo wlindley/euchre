@@ -277,3 +277,10 @@ class CardSerializer(AbstractSerializer):
 		if None != cls.instance:
 			return cls.instance
 		return CardSerializer()
+
+	def serialize(self, obj):
+		return {"suit" : obj.suit,
+				"value" : obj.value}
+
+	def deserialize(self, data):
+		return euchre.Card.getInstance(data["suit"], data["value"])

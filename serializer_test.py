@@ -312,5 +312,25 @@ class TrickSerializerTest(testhelper.TestCase):
 		value = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
 		return euchre.Card(suit, value)
 
+class CardSerializerTest(testhelper.TestCase):
+	def setUp(self):
+		self.testObj = serializer.CardSerializer.getInstance()
+
+	def testSerializesCardCorrectly(self):
+		expectedSuit = random.randint(1, euchre.NUM_SUITS)
+		expectedValue = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
+		card = euchre.Card.getInstance(expectedSuit, expectedValue)
+		data = self.testObj.serialize(card)
+		self.assertEqual(expectedSuit, data["suit"])
+		self.assertEqual(expectedValue, data["value"])
+
+	def testDeserializesCardCorrectly(self):
+		expectedSuit = random.randint(1, euchre.NUM_SUITS)
+		expectedValue = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
+		data = {"suit" : expectedSuit, "value" : expectedValue}
+		obj = self.testObj.deserialize(data)
+		self.assertEqual(expectedSuit, obj.suit)
+		self.assertEqual(expectedValue, obj.value)
+
 if __name__ == "__main__":
 	unittest.main()
