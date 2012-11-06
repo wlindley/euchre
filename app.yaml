@@ -2,11 +2,13 @@ application: euchreblitz
 version: 1
 runtime: python27
 api_version: 1
-threadsafe: false
+threadsafe: true
 
 handlers:
+- url: /css
+  static_dir: css
 - url: /.*
-  script: euchre.app
+  script: index.app
 
 libraries:
 - name: jinja2
