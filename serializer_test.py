@@ -23,6 +23,10 @@ class PlayerSerializerTest(testhelper.TestCase):
 		player = self.testObj.deserialize(data)
 		self.assertEqual(self.playerId, player.playerId)
 
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None))
+
 class GameSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerSerializer = testhelper.createSingletonMock(serializer.PlayerSerializer)
@@ -54,6 +58,10 @@ class GameSerializerTest(testhelper.TestCase):
 		self.assertEqual(sequence, self.game._curSequence)
 		self.sequenceSerializer.deserialize.assert_called_with(data["curSequence"], players)
 
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None))
+
 class ScoreTrackerSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -74,6 +82,10 @@ class ScoreTrackerSerializerTest(testhelper.TestCase):
 		self.assertEqual(obj._players, self.players)
 		self.assertEqual(obj._teams, self.teams)
 		self.assertEqual(obj._scores, self.scores)
+
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, "some players"))
 
 class SequenceSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -103,6 +115,10 @@ class SequenceSerializerTest(testhelper.TestCase):
 		self.assertEqual(self.round, obj._round)
 		self.trumpSelectorSerializer.deserialize.assert_called_with(data["trumpSelector"], players)
 		self.roundSerializer.deserialize.assert_called_with(data["round"], players)
+
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, "some players"))
 
 class TrumpSelectorSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -142,6 +158,10 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(None, obj._selectingPlayerId)
 
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, "some players"))
+
 class TurnTrackerSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -164,6 +184,10 @@ class TurnTrackerSerializerTest(testhelper.TestCase):
 		self.assertEquals(self.allTurnCount, obj._allTurnCount)
 		for i in range(len(self.players)):
 			self.assertEquals(self.players[i], obj._players[i])
+
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, "some players"))
 
 class RoundSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -256,6 +280,10 @@ class RoundSerializerTest(testhelper.TestCase):
 		for playerId, score in scores.iteritems():
 			self.assertEqual(score, obj._scores[playerId])
 
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, "some players"))
+
 class TrickEvaluatorSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.testObj = serializer.TrickEvaluatorSerializer.getInstance()
@@ -271,6 +299,10 @@ class TrickEvaluatorSerializerTest(testhelper.TestCase):
 		data = {"trumpSuit" : expectedTrumpSuit}
 		obj = self.testObj.deserialize(data)
 		self.assertEqual(expectedTrumpSuit, obj._trumpSuit)
+
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None))
 
 class TrickSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -307,6 +339,10 @@ class TrickSerializerTest(testhelper.TestCase):
 		for playerId, card in expectedPlayedCards.iteritems():
 			self.assertEqual(playedCards[card], obj.playedCards[playerId])
 
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None))
+
 	def _randomCard(self):
 		suit = random.randint(1, euchre.NUM_SUITS)
 		value = random.randint(euchre.VALUE_MIN, euchre.VALUE_ACE)
@@ -331,6 +367,10 @@ class CardSerializerTest(testhelper.TestCase):
 		obj = self.testObj.deserialize(data)
 		self.assertEqual(expectedSuit, obj.suit)
 		self.assertEqual(expectedValue, obj.value)
+
+	def testHandlesNoneGracefully(self):
+		self.assertEqual(None, self.testObj.serialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None))
 
 if __name__ == "__main__":
 	unittest.main()

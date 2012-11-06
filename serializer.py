@@ -23,9 +23,13 @@ class PlayerSerializer(AbstractSerializer):
 		return PlayerSerializer()
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"playerId" : obj.playerId}
 
 	def deserialize(self, data):
+		if None == data:
+			return None
 		return game.Player(data["playerId"])
 
 class GameSerializer(AbstractSerializer):
@@ -42,6 +46,8 @@ class GameSerializer(AbstractSerializer):
 		self.sequenceSerializer = sequenceSerializer
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"players" : self._serializePlayers(obj._players),
 				"scoreTracker" : self.scoreTrackerSerializer.serialize(obj._scoreTracker),
 				"curSequence" : self.sequenceSerializer.serialize(obj._curSequence)}
@@ -53,6 +59,8 @@ class GameSerializer(AbstractSerializer):
 		return serializedPlayers
 
 	def deserialize(self, data):
+		if None == data:
+			return None
 		players = self._deserializePlayers(data["players"])
 		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"], players)
 		game = euchre.Game(players, scoreTracker, euchre.SequenceFactory.getInstance())
@@ -74,10 +82,14 @@ class ScoreTrackerSerializer(AbstractSerializer):
 		return ScoreTrackerSerializer()
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"teams" : obj._teams,
 				"scores" : obj._scores}
 
 	def deserialize(self, data, players):
+		if None == data:
+			return None
 		scoreTracker = euchre.ScoreTracker.getInstance(players, data["teams"])
 		scoreTracker._scores = data["scores"]
 		return scoreTracker
@@ -95,10 +107,14 @@ class SequenceSerializer(AbstractSerializer):
 		self.roundSerializer = roundSerializer
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"trumpSelector" : self.trumpSelectorSerializer.serialize(obj._trumpSelector),
 				"round" : self.roundSerializer.serialize(obj._round)}
 
 	def deserialize(self, data, players):
+		if None == data:
+			return None
 		trumpSelector = self.trumpSelectorSerializer.deserialize(data["trumpSelector"], players)
 		round = self.roundSerializer.deserialize(data["round"], players)
 		return euchre.Sequence(trumpSelector, round)
@@ -115,6 +131,8 @@ class TrumpSelectorSerializer(AbstractSerializer):
 		self.turnTrackerSerializer = turnTrackerSerializer
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		selectingPlayerId = obj._selectingPlayerId
 		if None == selectingPlayerId:
 			selectingPlayerId = ""
@@ -123,6 +141,8 @@ class TrumpSelectorSerializer(AbstractSerializer):
 				"selectingPlayerId" : selectingPlayerId}
 
 	def deserialize(self, data, players):
+		if None == data:
+			return None
 		selectingPlayerId = data["selectingPlayerId"]
 		if "" == selectingPlayerId:
 			selectingPlayerId = None
@@ -146,6 +166,8 @@ class RoundSerializer(AbstractSerializer):
 		self.cardSerializer = cardSerializer
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
 				"hands" : self._serializeHands(obj.hands),
@@ -175,6 +197,8 @@ class RoundSerializer(AbstractSerializer):
 		return scores
 
 	def deserialize(self, data, players):
+		if None == data:
+			return None
 		trickEvaluator = self.trickEvaluatorSerializer.deserialize(data["trickEvaluator"])
 		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		hands = self._deserializeHands(data["hands"])
@@ -214,10 +238,14 @@ class TurnTrackerSerializer(AbstractSerializer):
 		return TurnTrackerSerializer()
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"currentIndex" : obj._currentIndex,
 				"allTurnCount" : obj._allTurnCount}
 
 	def deserialize(self, data, players):
+		if None == data:
+			return None
 		turnTracker = game.TurnTracker.getInstance(players)
 		turnTracker._currentIndex = data["currentIndex"]
 		turnTracker._allTurnCount = data["allTurnCount"]
@@ -232,9 +260,13 @@ class TrickEvaluatorSerializer(AbstractSerializer):
 		return TrickEvaluatorSerializer()
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"trumpSuit" : obj._trumpSuit}
 
 	def deserialize(self, data):
+		if None == data:
+			return None
 		return euchre.TrickEvaluator.getInstance(data["trumpSuit"])
 
 class TrickSerializer(AbstractSerializer):
@@ -249,6 +281,8 @@ class TrickSerializer(AbstractSerializer):
 		self.cardSerializer = cardSerializer
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"ledSuit" : obj.ledSuit,
 				"playedCards" : self._serializePlayedCards(obj.playedCards)}
 
@@ -259,6 +293,8 @@ class TrickSerializer(AbstractSerializer):
 		return serializedCards
 
 	def deserialize(self, data):
+		if None == data:
+			return None
 		trick = euchre.Trick.getInstance()
 		trick.ledSuit = data["ledSuit"]
 		trick.playedCards = self._deserializePlayedCards(data["playedCards"])
@@ -279,8 +315,12 @@ class CardSerializer(AbstractSerializer):
 		return CardSerializer()
 
 	def serialize(self, obj):
+		if None == obj:
+			return None
 		return {"suit" : obj.suit,
 				"value" : obj.value}
 
 	def deserialize(self, data):
+		if None == data:
+			return None
 		return euchre.Card.getInstance(data["suit"], data["value"])
