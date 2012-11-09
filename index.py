@@ -6,6 +6,9 @@ import json
 from google.appengine.ext import db
 
 import model
+import game
+import euchre
+import serializer
 
 jinjaEnvironment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -27,8 +30,7 @@ class PlayerCreator(webapp2.RequestHandler):
 		player = model.PlayerModel(playerId=playerId)
 		player.put()
 
-		pids = [playerId]
-		dbResults = db.GqlQuery("SELECT * FROM PlayerModel WHERE playerId IN :1", pids)
+		dbResults = db.GqlQuery("SELECT * FROM PlayerModel WHERE playerId IN :1", [playerId])
 
 		result = {"numFound" : 0}
 		for dbResult in dbResults:
@@ -37,7 +39,37 @@ class PlayerCreator(webapp2.RequestHandler):
 
 		self.response.write(json.dumps(result))
 
+class GameCreator(webapp2.RequestHandler):
+	def get(self):
+		self._handle()
+
+	def post(self):
+		self._handle()
+
+	def _handle(self):
+		gameId = self.request.get("gameId")
+		playerIds = self.request.get("players").split(",")
+		players = [game.Player.getInstance(pid) for pid in playerIds]
+		team1 = self.request.get("team1").split(",")
+		team2 = self.request.get("team2").split(",")
+		teams = {0 : team1, 1 : team2}
+		gameObj = euchre.Game.getInstance(players, teams)
+		gameObj.startGame()
+		serializedGame = json.dumps(serializer.GameSerializer.getInstance().serialize(gameObj))
+
+		gameModel = model.GameModel(gameId=gameId, serializedGame=serializedGame)
+		gameModel.put()
+
+		dbResults = db.GqlQuery("SELECT * FROM GameModel WHERE gameId in :1", [gameId])
+		result = {"numFound" : 0}
+		for dbResult in dbResults:
+			result["numFound"] += 1
+			result["game"] = dbResult.serializedGame
+
+		self.response.write(json.dumps(result))
+
 app = webapp2.WSGIApplication([
 	('/createPlayer', PlayerCreator),
+	('/createGame', GameCreator),
 	('/', IndexPage)
 ], debug=True)
