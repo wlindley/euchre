@@ -392,4 +392,4 @@ class Game(object):
 		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
 		deck.shuffle()
 		hands = self._dealHands(deck)
-		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())
+		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop().suit)

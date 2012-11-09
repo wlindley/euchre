@@ -6,6 +6,7 @@ import serializer
 import game
 import euchre
 import random
+import json
 
 class PlayerSerializerTest(testhelper.TestCase):
 	def setUp(self):
@@ -68,7 +69,7 @@ class ScoreTrackerSerializerTest(testhelper.TestCase):
 		self.teams = [["1", "2"], ["3", "4"]]
 		self.scores = [3, 6]
 		self.scoreTracker = euchre.ScoreTracker.getInstance(self.players, self.teams)
-		self.scoreTracker._scores = self.scores
+		self.scoreTracker._teamScores = self.scores
 		self.testObj = serializer.ScoreTrackerSerializer.getInstance()
 
 	def testSerializesScoreTrackerCorrectly(self):
@@ -81,7 +82,7 @@ class ScoreTrackerSerializerTest(testhelper.TestCase):
 		obj = self.testObj.deserialize(data, self.players)
 		self.assertEqual(obj._players, self.players)
 		self.assertEqual(obj._teams, self.teams)
-		self.assertEqual(obj._scores, self.scores)
+		self.assertEqual(obj._teamScores, self.scores)
 
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
@@ -217,9 +218,9 @@ class RoundSerializerTest(testhelper.TestCase):
 		expectedTrickEvaluator = "a trick evaluator"
 		self.trickEvaluatorSerializer.serialize.return_value = expectedTrickEvaluator
 		curTrick = testhelper.createMock(euchre.Trick)
-		self.round._curTrick = curTrick
+		self.round.curTrick = curTrick
 		prevTricks = [testhelper.createMock(euchre.Trick), testhelper.createMock(euchre.Trick)]
-		self.round._prevTricks = prevTricks
+		self.round.prevTricks = prevTricks
 		expectedTricks = {curTrick : "trick 1", prevTricks[0] : "trick 2", prevTricks[1] : "trick 3"}
 		self.trickSerializer.serialize.side_effect = lambda t : expectedTricks[t]
 		scores = {"1" : 0, "2" : 5}
@@ -371,6 +372,18 @@ class CardSerializerTest(testhelper.TestCase):
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
 		self.assertEqual(None, self.testObj.deserialize(None))
+
+class SerializerAcceptanceTest(testhelper.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.teams = {0 : [self.players[0].playerId, self.players[1].playerId], 1 : [self.players[2].playerId, self.players[3].playerId]}
+		self.gameSerializer = serializer.GameSerializer.getInstance()
+
+	def testCanSerializeAndDeserializeGameWithoutError(self):
+		game = euchre.Game.getInstance(self.players, self.teams)
+		game.startGame()
+		serialized = self.gameSerializer.serialize(game)
+		deserialized = self.gameSerializer.deserialize(serialized)
 
 if __name__ == "__main__":
 	unittest.main()

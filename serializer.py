@@ -85,13 +85,13 @@ class ScoreTrackerSerializer(AbstractSerializer):
 		if None == obj:
 			return None
 		return {"teams" : obj._teams,
-				"scores" : obj._scores}
+				"scores" : obj._teamScores}
 
 	def deserialize(self, data, players):
 		if None == data:
 			return None
 		scoreTracker = euchre.ScoreTracker.getInstance(players, data["teams"])
-		scoreTracker._scores = data["scores"]
+		scoreTracker._teamScores = data["scores"]
 		return scoreTracker
 
 class SequenceSerializer(AbstractSerializer):
@@ -171,8 +171,8 @@ class RoundSerializer(AbstractSerializer):
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
 				"hands" : self._serializeHands(obj.hands),
-				"curTrick" : self.trickSerializer.serialize(obj._curTrick),
-				"prevTricks" : self._serializeTricks(obj._prevTricks),
+				"curTrick" : self.trickSerializer.serialize(obj.curTrick),
+				"prevTricks" : self._serializeTricks(obj.prevTricks),
 				"scores" : self._serializeScores(obj._scores)}
 
 	def _serializeHands(self, hands):

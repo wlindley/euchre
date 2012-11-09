@@ -548,10 +548,12 @@ class GameTest(testhelper.TestCase):
 		prevFactory = self.game._sequenceFactory
 		self.game._sequenceFactory = testhelper.createMock(euchre.SequenceFactory)
 		hands = {}
-		def verifyHandSize(players, hands, topCard):
+		def verifyHandSize(players, hands, topCardSuit):
 			for player in self.players:
 				self.assertEqual(euchre.HAND_SIZE, len(hands[player.playerId]))
-			return prevFactory.buildSequence(player, hands, topCard)
+			self.assertTrue(topCardSuit > euchre.SUIT_NONE)
+			self.assertTrue(topCardSuit <= euchre.NUM_SUITS)
+			return prevFactory.buildSequence(player, hands, topCardSuit)
 		self.game._sequenceFactory.buildSequence = verifyHandSize
 		self.game.startGame()
 
