@@ -4,6 +4,7 @@ import json
 import util
 import game
 import euchre
+import serializer
 
 class ExecutableFactory(object):
 	instance = None
@@ -40,12 +41,13 @@ class CreateGameExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), util.GameModelFactory.getInstance())
+		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), util.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory):
+	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory, gameSerializer):
 		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameIdTracker = gameIdTracker
 		self._gameModelFactory = gameModelFactory
+		self._gameSerializer = gameSerializer
 
 	def execute(self):
 		gameId = self._gameIdTracker.getGameId()
@@ -55,5 +57,6 @@ class CreateGameExecutable(AbstractExecutable):
 		gameObj = euchre.Game.getInstance(players, teams)
 		gameModel = self._gameModelFactory.create(gameId)
 		gameModel.playerId = playerIds
+		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"gameId" : gameId}))

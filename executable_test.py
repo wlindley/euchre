@@ -7,6 +7,7 @@ import util
 import model
 import euchre
 import game
+import serializer
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -32,6 +33,7 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.gameModel.gameId = self.gameId
 		self.gameModelFactory = testhelper.createSingletonMock(util.GameModelFactory)
 		self.gameModelFactory.create.side_effect = lambda k: self.gameModel if self.gameId == k else mock.DEFAULT
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteCreatesGameModelWithCorrectGameId(self):
@@ -57,3 +59,12 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.testObj.execute()
 
 		euchre.Game.getInstance.assert_called_with(players, teams)
+
+	def testExecuteStoresSerializedGameInGameModel(self):
+		gameObj = testhelper.createSingletonMock(euchre.Game)
+		serializedGame = "some serialized game"
+		self.gameSerializer.serialize.side_effect = lambda obj: serializedGame if gameObj == obj else "incorrect serialized game"
+
+		self.testObj.execute()
+
+		self.assertEqual(serializedGame, self.gameModel.serializedGame)
