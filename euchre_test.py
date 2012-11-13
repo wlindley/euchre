@@ -531,10 +531,10 @@ class GameTest(testhelper.TestCase):
 	def setUp(self):
 		super(GameTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.teams = {
-			0 : [self.players[0].playerId, self.players[2].playerId],
-			1 : [self.players[1].playerId, self.players[3].playerId]
-		}
+		self.teams = [
+			[self.players[0].playerId, self.players[2].playerId],
+			[self.players[1].playerId, self.players[3].playerId]
+		]
 		self.scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
 		self._buildTestObj()
 
