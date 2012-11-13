@@ -1,6 +1,7 @@
 from abc import ABCMeta
 from abc import abstractmethod
 import json
+import util
 
 class ExecutableFactory(object):
 	instance = None
@@ -24,8 +25,8 @@ class AbstractExecutable(object):
 	__metaclass__ = ABCMeta
 
 	def __init__(self, requestDataAccessor, responseWriter, *args, **kwargs):
-		self.requestDataAccessor = requestDataAccessor
-		self.responseWriter = responseWriter
+		self._requestDataAccessor = requestDataAccessor
+		self._responseWriter = responseWriter
 
 	@abstractmethod
 	def execute(self, *args, **kwargs):
@@ -37,7 +38,15 @@ class CreateGameExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter)
+		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), util.GameModelFactory.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory):
+		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameIdTracker = gameIdTracker
+		self._gameModelFactory = gameModelFactory
 
 	def execute(self):
-		return json.dumps({})
+		gameId = self._gameIdTracker.getGameId()
+		gameModel = self._gameModelFactory.create(gameId)
+		gameModel.put()
+		self._responseWriter.write(json.dumps({"gameId" : gameId}))

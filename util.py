@@ -1,3 +1,5 @@
+from google.appengine.ext import ndb
+
 class RequestDataAccessor(object):
 	instance = None
 	@classmethod
@@ -25,3 +27,33 @@ class ResponseWriter(object):
 
 	def write(self, data):
 		self._response.write(data)
+
+class GameIdTracker(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameIdTracker()
+
+	def _getGameIdKey(self):
+		return ndb.Key(model.GameIdModel, "gameIdSingleton")
+
+	@ndb.transactional
+	def getGameId(self):
+		entity = self._getGameIdKey().get()
+		gameId = entity.nextGameId
+		entity.nextGameId += 1
+		entity.put()
+		return gameId
+
+class GameModelFactory(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameModelFactory()
+
+	def create(self, gameId):
+		return None
