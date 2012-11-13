@@ -33,6 +33,7 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteCreatesGameWithCorrectGameId(self):
+		self.responseWriter.write.side_effect = lambda s: json.loads(s)["gameId"] == self.gameId
 		self.testObj.execute()
 		self.assertTrue(self.gameModel.put.called)
-		self.responseWriter.write.assert_called_with(json.dumps({"gameId" : self.gameId}))
+		self.assertTrue(self.responseWriter.write.called)
