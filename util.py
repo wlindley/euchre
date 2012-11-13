@@ -1,4 +1,5 @@
 from google.appengine.ext import ndb
+import model
 
 class RequestDataAccessor(object):
 	instance = None
@@ -56,4 +57,4 @@ class GameModelFactory(object):
 		return GameModelFactory()
 
 	def create(self, gameId):
-		return None
+		return model.GameModel(gameId=gameId)
