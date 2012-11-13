@@ -2,6 +2,8 @@ from abc import ABCMeta
 from abc import abstractmethod
 import json
 import util
+import game
+import euchre
 
 class ExecutableFactory(object):
 	instance = None
@@ -47,6 +49,11 @@ class CreateGameExecutable(AbstractExecutable):
 
 	def execute(self):
 		gameId = self._gameIdTracker.getGameId()
+		playerIds = self._requestDataAccessor.get("players")
+		players = [game.Player(pid) for pid in playerIds]
+		teams = self._requestDataAccessor.get("teams")
+		gameObj = euchre.Game.getInstance(players, teams)
 		gameModel = self._gameModelFactory.create(gameId)
+		gameModel.playerId = playerIds
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"gameId" : gameId}))

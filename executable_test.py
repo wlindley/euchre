@@ -5,6 +5,8 @@ import testhelper
 import executable
 import util
 import model
+import euchre
+import game
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -32,8 +34,26 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.gameModelFactory.create.side_effect = lambda k: self.gameModel if self.gameId == k else mock.DEFAULT
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
-	def testExecuteCreatesGameWithCorrectGameId(self):
+	def testExecuteCreatesGameModelWithCorrectGameId(self):
 		self.responseWriter.write.side_effect = lambda s: json.loads(s)["gameId"] == self.gameId
 		self.testObj.execute()
 		self.assertTrue(self.gameModel.put.called)
 		self.assertTrue(self.responseWriter.write.called)
+
+	def testExecuteCreatesGameModelWithSpecifiedPlayerIds(self):
+		playerIds = ["1", "2", "3", "4"]
+		self.requestDataAccessor.get.side_effect = lambda k: playerIds if "players" == k else mock.DEFAULT
+		self.testObj.execute()
+		self.assertEqual(playerIds, self.gameModel.playerId)
+
+	@mock.patch("euchre.Game.getInstance")
+	def testExecuteCreatesGameWithCorrectPlayersAndTeams(self, mockObject):
+		playerIds = ["1", "2", "3", "4"]
+		players = [game.Player(pid) for pid in playerIds]
+		teams = [[playerIds[0], playerIds[1]], [playerIds[2], playerIds[3]]]
+		requestData = {"players" : playerIds, "teams" : teams}
+		self.requestDataAccessor.get.side_effect = lambda k: requestData[k] if k in requestData else mock.DEFAULT
+		
+		self.testObj.execute()
+
+		euchre.Game.getInstance.assert_called_with(players, teams)
