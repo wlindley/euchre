@@ -4,6 +4,7 @@ import jinja2
 import os
 import json
 from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 import model
 import game
@@ -47,7 +48,7 @@ class GameCreator(webapp2.RequestHandler):
 		self._handle()
 
 	def _handle(self):
-		gameId = self.request.get("gameId")
+		gameId = int(self.request.get("gameId"))
 		playerIds = self.request.get("players").split(",")
 		players = [game.Player.getInstance(pid) for pid in playerIds]
 		team1 = self.request.get("team1").split(",")
@@ -57,10 +58,12 @@ class GameCreator(webapp2.RequestHandler):
 		gameObj.startGame()
 		serializedGame = json.dumps(serializer.GameSerializer.getInstance().serialize(gameObj))
 
-		gameModel = model.GameModel(gameId=gameId, serializedGame=serializedGame)
+		gameModel = model.GameModel(gameId=gameId, serializedGame=serializedGame, playerId=playerIds)
 		gameModel.put()
 
-		dbResults = db.GqlQuery("SELECT * FROM GameModel WHERE gameId in :1", [gameId])
+		#dbResults = ndb.GqlQuery("SELECT * FROM GameModel WHERE gameId in :1", [gameId])
+		query = model.GameModel.query(model.GameModel.gameId == gameId)
+		dbResults = query.fetch(1)
 		result = {"numFound" : 0}
 		for dbResult in dbResults:
 			result["numFound"] += 1
