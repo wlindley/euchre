@@ -17,12 +17,16 @@ class ExecutableFactory(object):
 	def __init__(self, requestDataAccessor, responseWriter):
 		self._requestDataAccessor = requestDataAccessor
 		self._responseWriter = responseWriter
+		self._executables = {
+			"createGame" : CreateGameExecutable,
+			"listGames" : ListGameExecutable
+		}
 
 	def createExecutable(self):
 		action = self._requestDataAccessor.get("action")
-		if "createGame" == action:
-			return CreateGameExecutable.getInstance(self._requestDataAccessor, self._responseWriter)
-		return None
+		if action in self._executables:
+			return self._executables[action].getInstance(self._requestDataAccessor, self._responseWriter)
+		return DefaultExecutable.getInstance(self._requestDataAccessor, self._responseWriter)
 
 class AbstractExecutable(object):
 	__metaclass__ = ABCMeta
@@ -60,3 +64,25 @@ class CreateGameExecutable(AbstractExecutable):
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"gameId" : gameId}))
+
+class ListGameExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return ListGameExecutable(requestDataAccessor, responseWriter)
+
+	def execute(self):
+		return None
+
+class DefaultExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return ListGameExecutable(requestDataAccessor, responseWriter)
+
+	def execute(self):
+		return None

@@ -15,12 +15,20 @@ class ExecutableFactoryTest(testhelper.TestCase):
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.testObj = executable.ExecutableFactory.getInstance(self.requestDataAccessor, self.responseWriter)
 
-	def testCallsCreateGameWhenActionIsCreateGame(self):
-		createGameExecutable = testhelper.createSingletonMock(executable.CreateGameExecutable)
-		action = "createGame"
+	def _runTestForAction(self, action, executableClassName):
+		executableObj = testhelper.createSingletonMock(executable.__dict__[executableClassName])
 		self.requestDataAccessor.get.side_effect = lambda k: action if "action" == k else mock.DEFAULT
 		result = self.testObj.createExecutable()
-		self.assertEqual(createGameExecutable, result)
+		self.assertEqual(executableObj, result)
+
+	def testCallsDefaultWhenActionIsMissing(self):
+		self._runTestForAction("", "DefaultExecutable")
+
+	def testCallsCreateGameWhenActionIsCreateGame(self):
+		self._runTestForAction("createGame", "CreateGameExecutable")
+
+	def testCallsListGamesWhenActionIsListGames(self):
+		self._runTestForAction("listGames", "ListGameExecutable")
 
 class CreateGameExecutable(testhelper.TestCase):
 	def setUp(self):
