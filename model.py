@@ -10,3 +10,25 @@ class GameModel(ndb.Model):
 
 class GameIdModel(ndb.Model):
 	nextGameId = ndb.IntegerProperty(default=0)
+
+class GameModelFinder(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameModelFinder()
+
+	def getGamesForPlayerId(self, playerId):
+		return None
+
+class GameModelFactory(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameModelFactory()
+
+	def create(self, gameId):
+		return GameModel(gameId=gameId)

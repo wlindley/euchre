@@ -28,7 +28,7 @@ class ExecutableFactoryTest(testhelper.TestCase):
 		self._runTestForAction("createGame", "CreateGameExecutable")
 
 	def testCallsListGamesWhenActionIsListGames(self):
-		self._runTestForAction("listGames", "ListGameExecutable")
+		self._runTestForAction("listGames", "ListGamesExecutable")
 
 class CreateGameExecutable(testhelper.TestCase):
 	def setUp(self):
@@ -39,7 +39,7 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.gameIdTracker.getGameId.return_value = self.gameId
 		self.gameModel = testhelper.createMock(model.GameModel)
 		self.gameModel.gameId = self.gameId
-		self.gameModelFactory = testhelper.createSingletonMock(util.GameModelFactory)
+		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
 		self.gameModelFactory.create.side_effect = lambda k: self.gameModel if self.gameId == k else mock.DEFAULT
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
@@ -76,3 +76,32 @@ class CreateGameExecutable(testhelper.TestCase):
 		self.testObj.execute()
 
 		self.assertEqual(serializedGame, self.gameModel.serializedGame)
+
+class ListGamesExecutableTest(testhelper.TestCase):
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def testExecuteReturnsCorrectGameIds(self):
+		playerId = "2854"
+		self.requestDataAccessor.get.side_effect = lambda k: playerId if "playerId" == k else mock.DEFAULT
+		gameModels = [testhelper.createMock(model.GameModel), testhelper.createMock(model.GameModel)]
+		gameModels[0].gameId = "1000"
+		gameModels[1].gameId = "4000"
+		self.gameModelFinder.getGamesForPlayerId.side_effect = lambda pid: gameModels if playerId == pid else mock.DEFAULT
+		
+		self.testObj.execute()
+
+		self.responseWriter.write.assert_called_with(json.dumps({"gameIds" : [gameModels[0].gameId, gameModels[1].gameId]}))
+
+class DefaultExecutableTest(testhelper.TestCase):
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		self.testObj = executable.DefaultExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def testExecuteReturnsEmptyObjectAsResponse(self):
+		self.testObj.execute()
+		self.responseWriter.write.assert_called_with(json.dumps({}))

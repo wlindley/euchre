@@ -5,6 +5,7 @@ import util
 import game
 import euchre
 import serializer
+import model
 
 class ExecutableFactory(object):
 	instance = None
@@ -19,7 +20,7 @@ class ExecutableFactory(object):
 		self._responseWriter = responseWriter
 		self._executables = {
 			"createGame" : CreateGameExecutable,
-			"listGames" : ListGameExecutable
+			"listGames" : ListGamesExecutable
 		}
 
 	def createExecutable(self):
@@ -45,7 +46,7 @@ class CreateGameExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), util.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
+		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), model.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
 
 	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory, gameSerializer):
 		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter)
@@ -65,16 +66,23 @@ class CreateGameExecutable(AbstractExecutable):
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"gameId" : gameId}))
 
-class ListGameExecutable(AbstractExecutable):
+class ListGamesExecutable(AbstractExecutable):
 	instance = None
 	@classmethod
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGameExecutable(requestDataAccessor, responseWriter)
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder):
+		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
 
 	def execute(self):
-		return None
+		playerId = self._requestDataAccessor.get("playerId")
+		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
+		gameIds = [model.gameId for model in gameModels]
+		self._responseWriter.write(json.dumps({"gameIds" : gameIds}))
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None
@@ -82,7 +90,7 @@ class DefaultExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGameExecutable(requestDataAccessor, responseWriter)
+		return DefaultExecutable(requestDataAccessor, responseWriter)
 
 	def execute(self):
-		return None
+		self._responseWriter.write(json.dumps({}))

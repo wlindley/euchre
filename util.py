@@ -47,14 +47,3 @@ class GameIdTracker(object):
 		entity.nextGameId += 1
 		entity.put()
 		return gameId
-
-class GameModelFactory(object):
-	instance = None
-	@classmethod
-	def getInstance(cls):
-		if None != cls.instance:
-			return cls.instance
-		return GameModelFactory()
-
-	def create(self, gameId):
-		return model.GameModel(gameId=gameId)

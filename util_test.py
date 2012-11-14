@@ -45,13 +45,3 @@ class GameIdTrackerTest(testhelper.TestCase):
 		self.assertEqual(expectedGameId, result)
 		self.assertEqual(expectedGameId + 1, self.model.nextGameId)
 		self.assertTrue(self.model.put.called)
-
-class GameModelFactoryTest(testhelper.TestCase):
-	def setUp(self):
-		self.testObj = util.GameModelFactory.getInstance()
-
-	def testCreateReturnsGameModelWithGivenId(self):
-		gameId = 5428
-		result = self.testObj.create(gameId)
-		self.assertTrue(isinstance(result, model.GameModel))
-		self.assertEqual(gameId, result.gameId)
