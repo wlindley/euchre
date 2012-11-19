@@ -11,17 +11,6 @@ class GameModel(ndb.Model):
 class GameIdModel(ndb.Model):
 	nextGameId = ndb.IntegerProperty(default=0)
 
-class GameModelFinder(object):
-	instance = None
-	@classmethod
-	def getInstance(cls):
-		if None != cls.instance:
-			return cls.instance
-		return GameModelFinder()
-
-	def getGamesForPlayerId(self, playerId):
-		return None
-
 class GameModelFactory(object):
 	instance = None
 	@classmethod
@@ -32,3 +21,28 @@ class GameModelFactory(object):
 
 	def create(self, gameId):
 		return GameModel(gameId=gameId)
+
+class GameModelFinder(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameModelFinder()
+
+	PAGE_SIZE = 10
+	MAX_PAGES = 5
+
+	def getGamesForPlayerId(self, playerId):
+		query = self._getQuery(playerId)
+		models = []
+		results = query.fetch(GameModelFinder.PAGE_SIZE)
+		numPages = 0
+		while 0 < len(results) and GameModelFinder.MAX_PAGES > numPages:
+			models.extend(results)
+			results = query.fetch(GameModelFinder.PAGE_SIZE)
+			numPages += 1;
+		return models
+
+	def _getQuery(self, playerId):
+		return GameModel.query(GameModel.playerId == playerId)
