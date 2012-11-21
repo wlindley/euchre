@@ -7,6 +7,8 @@ import euchre
 import serializer
 import model
 
+MAX_TEAM_SIZE = 2
+
 class ExecutableFactory(object):
 	instance = None
 	@classmethod
@@ -147,8 +149,11 @@ class AddPlayerExecutable(AbstractExecutable):
 		if None == gameModel or playerId in gameModel.playerId or 1 < team or 0 > team:
 			self._responseWriter.write(json.dumps({"success" : False}))
 			return
-		gameModel.playerId.append(playerId)
 		teamInfo = json.loads(gameModel.teams)
+		if MAX_TEAM_SIZE <= len(teamInfo[team]):
+			self._responseWriter.write(json.dumps({"success" : False}))
+			return
+		gameModel.playerId.append(playerId)
 		teamInfo[team].append(playerId)
 		gameModel.teams = json.dumps(teamInfo)
 		gameModel.put()

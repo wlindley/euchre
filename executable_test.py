@@ -226,14 +226,25 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self._assertGameModelUnchanged()
 		self._assertResponseResult(False)
 
-	def testExecuteDoesNothingIfInvalidTeam(self):
+	def testExecuteDoesNothingIfTeamTooLarge(self):
 		self._trainPlayerIdAndTeam("3", 2)
 		self.testObj.execute()
 		self._assertGameModelUnchanged()
 		self._assertResponseResult(False)
 
-	def testExecuteDoesNothingIfInvalidTeam2(self):
+	def testExecuteDoesNothingIfTeamTooSmall(self):
 		self._trainPlayerIdAndTeam("3", -1)
+		self.testObj.execute()
+		self._assertGameModelUnchanged()
+		self._assertResponseResult(False)
+
+	def testExecuteDoesNothingIfTeamIsFull(self):
+		team = 0
+		self.existingPlayerIds.append("3")
+		self.existingTeams[team].append("3")
+		self.gameModel.playerId = self.existingPlayerIds
+		self.gameModel.teams = json.dumps(self.existingTeams)
+		self._trainPlayerIdAndTeam("4", team)
 		self.testObj.execute()
 		self._assertGameModelUnchanged()
 		self._assertResponseResult(False)
