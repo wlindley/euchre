@@ -23,7 +23,6 @@ class ExecutableFactory(object):
 		self._executables = {
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
-			"startGame" : StartGameExecutable,
 			"addPlayer" : AddPlayerExecutable
 		}
 
@@ -90,34 +89,6 @@ class ListGamesExecutable(AbstractExecutable):
 		gameIds = [model.gameId for model in gameModels]
 		self._responseWriter.write(json.dumps({"gameIds" : gameIds}))
 
-class StartGameExecutable(AbstractExecutable):
-	instance = None
-	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
-		if None != cls.instance:
-			return cls.instance
-		return StartGameExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
-
-	REQUIRED_NUM_PLAYERS = 4 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
-		super(StartGameExecutable, self).__init__(requestDataAccessor, responseWriter)
-		self._gameModelFinder = gameModelFinder
-		self._gameSerializer = gameSerializer
-
-	def execute(self):
-		gameId = self._requestDataAccessor.get("gameId")
-		gameModel = self._gameModelFinder.getGameByGameId(gameId)
-		if None == gameModel or '' != gameModel.serializedGame or StartGameExecutable.REQUIRED_NUM_PLAYERS != len(gameModel.playerId):
-			self._responseWriter.write(json.dumps({"success" : False}))
-			return
-		playerIds = gameModel.playerId
-		teams = json.loads(gameModel.teams)
-		gameObj = euchre.Game.getInstance([game.Player(pid) for pid in playerIds], teams)
-		gameObj.startGame()
-		gameModel.serializedGame = json.dumps(self._gameSerializer.serialize(gameObj))
-		gameModel.put()
-		self._responseWriter.write(json.dumps({"success" : True}))
-
 class DefaultExecutable(AbstractExecutable):
 	instance = None
 	@classmethod
@@ -135,11 +106,12 @@ class AddPlayerExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return AddPlayerExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance())
+		return AddPlayerExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
 		super(AddPlayerExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
 
 	def execute(self):
 		gameId = self._requestDataAccessor.get("gameId")
@@ -156,5 +128,10 @@ class AddPlayerExecutable(AbstractExecutable):
 		gameModel.playerId.append(playerId)
 		teamInfo[team].append(playerId)
 		gameModel.teams = json.dumps(teamInfo)
+		if MAX_TEAM_SIZE == len(teamInfo[0]) and MAX_TEAM_SIZE == len(teamInfo[1]):
+			players = [game.Player(pid) for pid in gameModel.playerId]
+			gameObj = euchre.Game.getInstance(players, teamInfo)
+			gameObj.startGame()
+			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"success" : True}))
