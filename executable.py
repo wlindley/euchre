@@ -21,7 +21,8 @@ class ExecutableFactory(object):
 		self._executables = {
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
-			"startGame" : StartGameExecutable
+			"startGame" : StartGameExecutable,
+			"addPlayer" : AddPlayerExecutable
 		}
 
 	def createExecutable(self):
@@ -55,14 +56,19 @@ class CreateGameExecutable(AbstractExecutable):
 		self._gameModelFactory = gameModelFactory
 
 	def execute(self):
+		playerId = self._requestDataAccessor.get("playerId")
+		team = self._requestDataAccessor.get("team")
+		if 1 < team or 0 > team:
+			self._responseWriter.write(json.dumps({"success" : False}))
+			return
 		gameId = self._gameIdTracker.getGameId()
-		playerIds = [self._requestDataAccessor.get("playerId")]
-		players = [game.Player(pid) for pid in playerIds]
-		teams = self._requestDataAccessor.get("teams")
 		gameModel = self._gameModelFactory.create(gameId)
-		gameModel.playerId = playerIds
+		gameModel.playerId = [playerId]
+		teamInfo = [[], []]
+		teamInfo[team].append(playerId)
+		gameModel.teams = json.dumps(teamInfo)
 		gameModel.put()
-		self._responseWriter.write(json.dumps({"gameId" : gameId}))
+		self._responseWriter.write(json.dumps({"success" : True, "gameId" : gameId}))
 
 class ListGamesExecutable(AbstractExecutable):
 	instance = None
@@ -120,3 +126,30 @@ class DefaultExecutable(AbstractExecutable):
 
 	def execute(self):
 		self._responseWriter.write(json.dumps({}))
+
+class AddPlayerExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return AddPlayerExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder):
+		super(AddPlayerExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+
+	def execute(self):
+		gameId = self._requestDataAccessor.get("gameId")
+		playerId = self._requestDataAccessor.get("playerId")
+		team = self._requestDataAccessor.get("team")
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+		if None == gameModel or playerId in gameModel.playerId or 1 < team or 0 > team:
+			self._responseWriter.write(json.dumps({"success" : False}))
+			return
+		gameModel.playerId.append(playerId)
+		teamInfo = json.loads(gameModel.teams)
+		teamInfo[team].append(playerId)
+		gameModel.teams = json.dumps(teamInfo)
+		gameModel.put()
+		self._responseWriter.write(json.dumps({"success" : True}))
