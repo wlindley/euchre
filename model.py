@@ -45,8 +45,11 @@ class GameModelFinder(object):
 			numPages += 1;
 		return models
 
-	def getGameByGameId(self, gameId):
-		return None
-
 	def _getQuery(self, playerId):
 		return GameModel.query(GameModel.playerId == playerId)
+
+	def getGameByGameId(self, gameId):
+		return self._getGameIdQuery(gameId).get()
+
+	def _getGameIdQuery(self, gameId):
+		return GameModel.query(GameModel.gameId == gameId)

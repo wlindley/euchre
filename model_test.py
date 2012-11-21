@@ -18,7 +18,7 @@ class GameModelFinderTest(testhelper.TestCase):
 	def setUp(self):
 		self.testObj = model.GameModelFinder.getInstance()
 
-	def testReturnsGameModelsFromQuery(self):
+	def testGetGamesForPlayerIdReturnsGameModelsFromQuery(self):
 		playerId = "12345"
 		models = [testhelper.createMock(model.GameModel), testhelper.createMock(model.GameModel)]
 		query = testhelper.createMock(ndb.Query)
@@ -32,3 +32,12 @@ class GameModelFinderTest(testhelper.TestCase):
 		self.testObj._getQuery = lambda pid: query if playerId == pid else None
 		result = self.testObj.getGamesForPlayerId(playerId)
 		self.assertEqual(models, result)
+
+	def testGetGameByGameIdReturnsCorrectGameModel(self):
+		gameId = 864
+		gameModel = testhelper.createMock(model.GameModel)
+		query = testhelper.createMock(ndb.Query)
+		query.get.return_value = gameModel
+		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+		result = self.testObj.getGameByGameId(gameId)
+		self.assertEqual(gameModel, result)
