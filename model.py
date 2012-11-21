@@ -8,6 +8,7 @@ class GameModel(ndb.Model):
 	serializedGame = ndb.JsonProperty(default='')
 	playerId = ndb.StringProperty(repeated=True)
 	teams = ndb.JsonProperty()
+	version = ndb.IntegerProperty(default=1)
 
 class GameIdModel(ndb.Model):
 	nextGameId = ndb.IntegerProperty(default=0)

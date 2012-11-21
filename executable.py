@@ -47,23 +47,20 @@ class CreateGameExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), model.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
+		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), model.GameModelFactory.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory, gameSerializer):
+	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory):
 		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameIdTracker = gameIdTracker
 		self._gameModelFactory = gameModelFactory
-		self._gameSerializer = gameSerializer
 
 	def execute(self):
 		gameId = self._gameIdTracker.getGameId()
-		playerIds = self._requestDataAccessor.get("players")
+		playerIds = [self._requestDataAccessor.get("playerId")]
 		players = [game.Player(pid) for pid in playerIds]
 		teams = self._requestDataAccessor.get("teams")
-		gameObj = euchre.Game.getInstance(players, teams)
 		gameModel = self._gameModelFactory.create(gameId)
 		gameModel.playerId = playerIds
-		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"gameId" : gameId}))
 
@@ -101,16 +98,15 @@ class StartGameExecutable(AbstractExecutable):
 
 	def execute(self):
 		gameId = self._requestDataAccessor.get("gameId")
-		print gameId
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 		if None == gameModel or '' != gameModel.serializedGame or StartGameExecutable.REQUIRED_NUM_PLAYERS != len(gameModel.playerId):
 			self._responseWriter.write(json.dumps({"success" : False}))
 			return
 		playerIds = gameModel.playerId
 		teams = json.loads(gameModel.teams)
-		game = euchre.Game.getInstance(playerIds, teams)
-		game.startGame()
-		gameModel.serializedGame = json.dumps(self._gameSerializer.serialize(game))
+		gameObj = euchre.Game.getInstance([game.Player(pid) for pid in playerIds], teams)
+		gameObj.startGame()
+		gameModel.serializedGame = json.dumps(self._gameSerializer.serialize(gameObj))
 		gameModel.put()
 		self._responseWriter.write(json.dumps({"success" : True}))
 
