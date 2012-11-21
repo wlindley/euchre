@@ -30,6 +30,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsListGamesWhenActionIsListGames(self):
 		self._runTestForAction("listGames", "ListGamesExecutable")
 
+	def testCallsStartGameExecutableWhenActionIsStartGame(self):
+		self._runTestForAction("startGame", "StartGameExecutable")
+
 class CreateGameExecutable(testhelper.TestCase):
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
@@ -105,3 +108,60 @@ class DefaultExecutableTest(testhelper.TestCase):
 	def testExecuteReturnsEmptyObjectAsResponse(self):
 		self.testObj.execute()
 		self.responseWriter.write.assert_called_with(json.dumps({}))
+
+class StartGameExecutableTest(testhelper.TestCase):
+	def setUp(self):
+		self.playerIds = ["1", "2", "3", "4"]
+		self.teams = [["1", "2"], ["3", "4"]]
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		self.serializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.game = testhelper.createSingletonMock(euchre.Game)
+		self.gameId = 12589
+		self.requestDataAccessor.get.side_effect = lambda k: self.gameId if "gameId" == k else mock.DEFAULT
+		self.gameModel = testhelper.createMock(model.GameModel)
+		self.gameModel.serializedGame = ""
+		self.gameModel.playerId = self.playerIds
+		self.gameModel.teams = json.dumps(self.teams)
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameModelFinder.getGameByGameId.side_effect = lambda gid: self.gameModel if self.gameId == gid else None
+		self.serializedGame = "some serialized game"
+		self.serializer.serialize.side_effect = lambda g: self.serializedGame if self.game == g else "incorrect game"
+
+		self.testObj = executable.StartGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def testExecuteCreatesGameCallsStartAndSerializesIt(self):
+		self.testObj.execute()
+		self.assertTrue(self.game.startGame.called)
+		self.assertEqual(json.dumps(self.serializedGame), self.gameModel.serializedGame)
+		self.assertTrue(self.gameModel.put.called)
+		self.responseWriter.write.assert_called_with(json.dumps({"success" : True}))
+
+	def testExecuteDoesNotStartGameIfSerializedGameAlreadyPresentOnModel(self):
+		otherSerializedGame = "another serialized game"
+		self.gameModel.serializedGame = json.dumps(otherSerializedGame)
+		self.testObj.execute()
+		self.assertEqual(json.dumps(otherSerializedGame), self.gameModel.serializedGame)
+		self.assertFalse(self.gameModel.put.called)
+		self.assertFalse(self.game.startGame.called)
+		self.responseWriter.write.assert_called_with(json.dumps({"success" : False}))
+
+	def testExecuteDoesNotStartGameIfThereAreLessThan4Players(self):
+		self.gameModel.serializedGame = ""
+		self.playerIds = ["1", "2"]
+		self.teams = [["1"], ["2"]]
+		self.gameModel.playerId = self.playerIds
+		self.gameModel.teams = json.dumps(self.teams)
+		self.testObj.execute()
+		self.assertEqual("", self.gameModel.serializedGame)
+		self.assertFalse(self.gameModel.put.called)
+		self.assertFalse(self.game.startGame.called)
+		self.responseWriter.write.assert_called_with(json.dumps({"success" : False}))
+
+	def testExecuteDoesNothingIfGameIdDoesNotExist(self):
+		self.requestDataAccessor.get.side_effect = lambda k: self.gameId + 1 if "gameId" == k else mock.DEFAULT
+		self.testObj.execute()
+		self.assertEqual("", self.gameModel.serializedGame)
+		self.assertFalse(self.gameModel.put.called)
+		self.assertFalse(self.game.startGame.called)
+		self.responseWriter.write.assert_called_with(json.dumps({"success" : False}))

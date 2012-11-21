@@ -20,7 +20,8 @@ class ExecutableFactory(object):
 		self._responseWriter = responseWriter
 		self._executables = {
 			"createGame" : CreateGameExecutable,
-			"listGames" : ListGamesExecutable
+			"listGames" : ListGamesExecutable,
+			"startGame" : StartGameExecutable
 		}
 
 	def createExecutable(self):
@@ -83,6 +84,35 @@ class ListGamesExecutable(AbstractExecutable):
 		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
 		gameIds = [model.gameId for model in gameModels]
 		self._responseWriter.write(json.dumps({"gameIds" : gameIds}))
+
+class StartGameExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return StartGameExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
+
+	REQUIRED_NUM_PLAYERS = 4 
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
+		super(StartGameExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+
+	def execute(self):
+		gameId = self._requestDataAccessor.get("gameId")
+		print gameId
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+		if None == gameModel or '' != gameModel.serializedGame or StartGameExecutable.REQUIRED_NUM_PLAYERS != len(gameModel.playerId):
+			self._responseWriter.write(json.dumps({"success" : False}))
+			return
+		playerIds = gameModel.playerId
+		teams = json.loads(gameModel.teams)
+		game = euchre.Game.getInstance(playerIds, teams)
+		game.startGame()
+		gameModel.serializedGame = json.dumps(self._gameSerializer.serialize(game))
+		gameModel.put()
+		self._responseWriter.write(json.dumps({"success" : True}))
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None

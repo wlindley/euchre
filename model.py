@@ -5,8 +5,9 @@ class PlayerModel(ndb.Model):
 
 class GameModel(ndb.Model):
 	gameId = ndb.IntegerProperty(required=True)
-	serializedGame = ndb.JsonProperty()
+	serializedGame = ndb.JsonProperty(default='')
 	playerId = ndb.StringProperty(repeated=True)
+	teams = ndb.JsonProperty()
 
 class GameIdModel(ndb.Model):
 	nextGameId = ndb.IntegerProperty(default=0)
@@ -43,6 +44,9 @@ class GameModelFinder(object):
 			results = query.fetch(GameModelFinder.PAGE_SIZE)
 			numPages += 1;
 		return models
+
+	def getGameByGameId(self, gameId):
+		return None
 
 	def _getQuery(self, playerId):
 		return GameModel.query(GameModel.playerId == playerId)
