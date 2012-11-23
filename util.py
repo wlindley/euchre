@@ -80,7 +80,7 @@ class JsFileLoader(object):
 			return cls.instance
 		return JsFileLoader(FileReader.getInstance())
 
-	JS_LIST_FILENAME = "js/jsFileList.txt"
+	JS_LIST_FILENAME = "jsFileList.txt"
 
 	def __init__(self, fileReader):
 		super(JsFileLoader, self).__init__()
@@ -90,5 +90,5 @@ class JsFileLoader(object):
 		lines = self._fileReader.getFileLines(JsFileLoader.JS_LIST_FILENAME)
 		html = ""
 		for line in lines:
-			html += '\n<script src="%s" type="text/javascript"></script>' % ("js/" + line)
+			html += '\n<script src="%s" type="text/javascript"></script>' % (line.strip())
 		return html

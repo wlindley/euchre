@@ -48,8 +48,8 @@ class GameIdTrackerTest(testhelper.TestCase):
 
 class JsFileLoaderTest(testhelper.TestCase):
 	def setUp(self):
-		self.filename = "js/jsFileList.txt"
-		self.lines = ["foo.js", "bar.js"]
+		self.filename = "jsFileList.txt"
+		self.lines = ["js/foo.js\n", "js/bar.js\n"]
 		self.fileReader = testhelper.createSingletonMock(util.FileReader)
 		self.fileReader.getFileLines.side_effect = lambda fname: self.lines if self.filename == fname else []
 		self.testObj = util.JsFileLoader.getInstance()
