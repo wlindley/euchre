@@ -1,2 +1,3 @@
 #!/bin/bash
-java -jar JsTestDriver.jar --tests all &
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+java -jar $DIR/JsTestDriver.jar --tests all
