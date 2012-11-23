@@ -17,7 +17,10 @@ jinjaEnvironment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dir
 
 class IndexPage(webapp2.RequestHandler):
 	def get(self):
-		templateValues = {}
+		jsFileLoader = util.JsFileLoader.getInstance()
+		templateValues = {
+			"jsIncludes" : jsFileLoader.getJsHtml()
+		}
 		template = jinjaEnvironment.get_template('index.html')
 		self.response.out.write(template.render(templateValues))
 
@@ -50,6 +53,6 @@ class AjaxHandler(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
 	('/createPlayer', PlayerCreator),
-	('/createGame', GameCreator),
+	('/ajax', AjaxHandler),
 	('/', IndexPage)
 ], debug=True)
