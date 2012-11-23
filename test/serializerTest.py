@@ -2,11 +2,12 @@
 import testhelper
 import unittest
 import mock
-import serializer
-import game
-import euchre
 import random
 import json
+
+from src import serializer
+from src import game
+from src import euchre
 
 class PlayerSerializerTest(testhelper.TestCase):
 	def setUp(self):

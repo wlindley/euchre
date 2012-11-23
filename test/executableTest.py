@@ -1,13 +1,14 @@
 #!/usr/bin/env python
+import testhelper
 import json
 import mock
-import testhelper
-import executable
-import util
-import model
-import euchre
-import game
-import serializer
+
+from src import executable
+from src import util
+from src import model
+from src import euchre
+from src import game
+from src import serializer
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -141,7 +142,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.assertEqual(json.dumps(self.existingTeams), self.gameModel.teams)
 		self.assertFalse(self.gameModel.put.called)
 
-	@mock.patch("euchre.Game.getInstance")
+	@mock.patch("src.euchre.Game.getInstance")
 	def testExecuteAddsPlayerToTeamAndGame(self, mockObj):
 		expectedPlayerIds, expectedTeams = self._trainPlayerIdAndTeam("3", 0)
 		self.testObj.execute()
@@ -187,7 +188,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self._assertGameModelUnchanged()
 		self._assertResponseResult(False)
 
-	@mock.patch("euchre.Game.getInstance")
+	@mock.patch("src.euchre.Game.getInstance")
 	def testExecuteCreatesStartsAndSerializesGameIfAddingFourthPlayer(self, mockObj):
 		self.existingPlayerIds.append("3")
 		self.existingTeams[0].append("3")

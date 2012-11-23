@@ -2,6 +2,8 @@
 import testhelper
 import unittest
 import mock
+
+from src import game
 import game
 
 class PlayerTest(testhelper.TestCase):

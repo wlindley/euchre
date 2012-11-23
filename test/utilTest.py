@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from google.appengine.ext import ndb
-import mock
 import testhelper
-import util
-import model
+import mock
+
+from src import util
+from src import model
 
 class RequestDataAccessorTest(testhelper.TestCase):
 	def setUp(self):

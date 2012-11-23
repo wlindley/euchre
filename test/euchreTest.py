@@ -2,8 +2,8 @@
 import testhelper
 import unittest
 import mock
-import euchre
-import game
+from src import euchre
+from src import game
 
 class CardTest(testhelper.TestCase):
 	def setUp(self):

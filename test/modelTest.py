@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from google.appengine.ext import ndb
-import mock
 import testhelper
-import model
+import mock
+
+from src import model
 
 class GameModelFactoryTest(testhelper.TestCase):
 	def setUp(self):

@@ -6,6 +6,9 @@ import json
 from google.appengine.ext import db
 from google.appengine.ext import ndb
 
+import sys
+sys.path.insert(1, './src')
+
 import model
 import game
 import euchre
