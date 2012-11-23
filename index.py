@@ -10,6 +10,8 @@ import model
 import game
 import euchre
 import serializer
+import executable
+import util
 
 jinjaEnvironment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -40,36 +42,11 @@ class PlayerCreator(webapp2.RequestHandler):
 
 		self.response.write(json.dumps(result))
 
-class GameCreator(webapp2.RequestHandler):
-	def get(self):
-		self._handle()
-
+class AjaxHandler(webapp2.RequestHandler):
 	def post(self):
-		self._handle()
-
-	def _handle(self):
-		gameId = int(self.request.get("gameId"))
-		playerIds = self.request.get("players").split(",")
-		players = [game.Player.getInstance(pid) for pid in playerIds]
-		team1 = self.request.get("team1").split(",")
-		team2 = self.request.get("team2").split(",")
-		teams = {0 : team1, 1 : team2}
-		gameObj = euchre.Game.getInstance(players, teams)
-		gameObj.startGame()
-		serializedGame = json.dumps(serializer.GameSerializer.getInstance().serialize(gameObj))
-
-		gameModel = model.GameModel(gameId=gameId, serializedGame=serializedGame, playerId=playerIds)
-		gameModel.put()
-
-		#dbResults = ndb.GqlQuery("SELECT * FROM GameModel WHERE gameId in :1", [gameId])
-		query = model.GameModel.query(model.GameModel.gameId == gameId)
-		dbResults = query.fetch(1)
-		result = {"numFound" : 0}
-		for dbResult in dbResults:
-			result["numFound"] += 1
-			result["game"] = dbResult.serializedGame
-
-		self.response.write(json.dumps(result))
+		executableFactory = executable.ExecutableFactory.getInstance(util.RequestDataAccessor.getInstance(self.request), util.ResponseWriter.getInstance(self.response))
+		exe = executableFactory.createExecutable()
+		exe.execute()
 
 app = webapp2.WSGIApplication([
 	('/createPlayer', PlayerCreator),
