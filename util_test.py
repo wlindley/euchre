@@ -45,3 +45,31 @@ class GameIdTrackerTest(testhelper.TestCase):
 		self.assertEqual(expectedGameId, result)
 		self.assertEqual(expectedGameId + 1, self.model.nextGameId)
 		self.assertTrue(self.model.put.called)
+
+class JsFileLoaderTest(testhelper.TestCase):
+	def setUp(self):
+		self.filename = "js/jsFileList.txt"
+		self.lines = ["foo.js", "bar.js"]
+		self.fileReader = testhelper.createSingletonMock(util.FileReader)
+		self.fileReader.getFileLines.side_effect = lambda fname: self.lines if self.filename == fname else []
+		self.testObj = util.JsFileLoader.getInstance()
+
+	def testGetJsHtmlReturnsExpectedHtml(self):
+		result = self.testObj.getJsHtml()
+		self.assertEqual("""
+<script src="js/foo.js" type="text/javascript"></script>
+<script src="js/bar.js" type="text/javascript"></script>""", result)
+
+class FileReaderTest(testhelper.TestCase):
+	def setUp(self):
+		self.testObj = util.FileReader.getInstance()
+
+	def testGetFileLinesReturnsLinesOfFile(self):
+		filename = "fooFile.dat"
+		fileLines = ["one", "two", "three", "all of the lines"]
+		mockFile = testhelper.createMock(file)
+		mockFile.readlines.return_value = fileLines
+		self.testObj._getFile = lambda fname: mockFile if filename == fname else None
+		result = self.testObj.getFileLines(filename)
+		self.assertEqual(fileLines, result)
+		self.assertTrue(mockFile.close.called)
