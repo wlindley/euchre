@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import testhelper
 import unittest
-import mock
+from mockito import *
 from src import euchre
 from src import game
 
 class CardTest(testhelper.TestCase):
 	def setUp(self):
-		super(CardTest, self).setUp()
 		self.card1 = euchre.Card()
 		self.card2 = euchre.Card()
 
@@ -34,7 +33,6 @@ class CardTest(testhelper.TestCase):
 
 class DeckTest(testhelper.TestCase):
 	def setUp(self):
-		super(DeckTest, self).setUp()
 		self.deck = euchre.Deck()
 
 	def testDeckHas52CardsByDefault(self):
@@ -86,7 +84,6 @@ class DeckTest(testhelper.TestCase):
 
 class TrickTest(testhelper.TestCase):
 	def setUp(self):
-		super(TrickTest, self).setUp()
 		self.trick = euchre.Trick()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
@@ -114,7 +111,6 @@ class TrickTest(testhelper.TestCase):
 
 class TrickEvaluatorTest(testhelper.TestCase):
 	def setUp(self):
-		super(TrickEvaluatorTest, self).setUp()
 		self.evaluator = euchre.TrickEvaluator()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
@@ -180,7 +176,6 @@ class TrickEvaluatorTest(testhelper.TestCase):
 
 class RoundTest(testhelper.TestCase):
 	def setUp(self):
-		super(RoundTest, self).setUp()
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.deck = euchre.Deck(9)
@@ -224,7 +219,7 @@ class RoundTest(testhelper.TestCase):
 		self.round.curTrick = mockTrick
 		card = self.round.hands[self.players[0].playerId][2]
 		self.round.playCard(self.players[0], card)
-		mockTrick.add.assert_called_with(self.players[0], card)
+		verify(mockTrick).add(self.players[0], card)
 
 	def testPlayingLastCardInTrickStartsNewTrick(self):
 		self.round.startRound()
@@ -303,11 +298,10 @@ class RoundTest(testhelper.TestCase):
 		trump = euchre.SUIT_HEARTS
 		self._buildTestObj()
 		self.round.setTrump(trump)
-		trickEvaluator.setTrump.assert_called_with(trump)
+		verify(trickEvaluator).setTrump(trump)
 
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
-		super(TrumpSelectorTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.availableTrump = euchre.SUIT_SPADES
 		self.turnTracker = game.TurnTracker(self.players)
@@ -384,95 +378,86 @@ class SequenceTest(testhelper.TestCase):
 		self._createSequence()
 
 	def setUp(self):
-		super(SequenceTest, self).setUp()
 		self._createSequenceWithMocks()
 
+	def _train(self, availableTrump=None, selectedTrump=None, trumpSelectorComplete=None, roundComplete=None):
+		if None != availableTrump:
+			when(self.trumpSelector).getAvailableTrump().thenReturn(availableTrump)
+		if None != selectedTrump:
+			when(self.trumpSelector).getSelectedTrump().thenReturn(selectedTrump)
+		if None != trumpSelectorComplete:
+			when(self.trumpSelector).isComplete().thenReturn(trumpSelectorComplete)
+		if None != roundComplete:
+			when(self.round).isComplete().thenReturn(roundComplete)
+
 	def testDefaultsToTrumpSelection(self):
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.isComplete.return_value = False
-		self.round.isComplete.return_value = False
+		self._train(selectedTrump=euchre.SUIT_NONE, trumpSelectorComplete=False, roundComplete=False)
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION, self.sequence.getState())
 
 	def testStateIsTrumpSelection2IfNoTrumpIsSelectedInFirstProcess(self):
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.isComplete.return_value = False
-		self.round.isComplete.return_value = False
+		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, False, False)
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_2, self.sequence.getState())
 
 	def testAdvancesToRoundWhenTrumpSelectionIsSuccessfullyCompleted(self):
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_CLUBS
-		self.trumpSelector.isComplete.return_value = True
-		self.round.isComplete.return_value = False
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_DIAMONDS
+		self._train(selectedTrump=euchre.SUIT_DIAMONDS, trumpSelectorComplete=True, roundComplete=False)
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())
 
 	def testSelectTrumpCallsSelectTrumpOnTrumpSelector(self):
-		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_CLUBS
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.isComplete.return_value = False
+		self._train(euchre.SUIT_CLUBS, euchre.SUIT_NONE, False)
 		player = self.players[0]
 		trump = euchre.SUIT_CLUBS
 		self.sequence.selectTrump(player, trump)
-		self.trumpSelector.selectTrump.assert_called_with(player, trump)
+		verify(self.trumpSelector).selectTrump(player, trump)
 
 	def testSelectTrumpThrowsExceptionIfTrumpSelectionIsComplete(self):
-		self.trumpSelector.isComplete.return_value = True
+		self._train(roundComplete=True)
 		with self.assertRaises(game.GameStateException):
 			self.sequence.selectTrump(self.players[0], euchre.SUIT_SPADES)
 
 	def testPlayCardThrowsExceptionIfRoundIsComplete(self):
-		self.trumpSelector.isComplete.return_value = True
-		self.round.isComplete.return_value = True
+		self._train(trumpSelectorComplete=True, roundComplete=True)
 		with self.assertRaises(game.GameStateException):
 			self.sequence.playCard(self.players[0], self.hands[self.players[0].playerId][0])
 
 	def testPlayCardCallsPlayCardOnRound(self):
-		self.trumpSelector.isComplete.return_value = True
-		self.round.isComplete.return_value = False
+		self._train(trumpSelectorComplete=True, roundComplete=False)
 		player = self.players[0]
 		card = self.hands[player.playerId][0]
 		self.sequence.playCard(player, card)
-		self.round.playCard.assert_called_with(player, card)
+		verify(self.round).playCard(player, card)
 
 	def testAllPlayersPassingOnTrumpSelectionResetsTrumpSelector(self):
-		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_SPADES
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.isComplete.return_value = True
+		self._train(euchre.SUIT_SPADES, euchre.SUIT_NONE, True)
 		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_NONE)
-		self.trumpSelector.reset.assert_called_with()
+		verify(self.trumpSelector).reset()
 
 	def testTrumpSelectionNotResetIfTrumpSelected(self):
-		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_SPADES
-		self.trumpSelector.getSelectedTrump.side_effect = [euchre.SUIT_NONE, euchre.SUIT_SPADES]
-		self.trumpSelector.isComplete.return_value = True
+		self._train(availableTrump=euchre.SUIT_SPADES)
+		when(self.trumpSelector).getSelectedTrump().thenReturn(euchre.SUIT_NONE).thenReturn(euchre.SUIT_SPADES)
+		self._train(trumpSelectorComplete=True)
 		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_SPADES)
-		self.assertFalse(self.trumpSelector.reset.called)
+		verify(self.trumpSelector, never).reset()
 
 	def testFailingSecondTrumpSelectionMakesStateTrumpSelectionFailed(self):
-		self.trumpSelector.isComplete.return_value = True
-		self.trumpSelector.getSelectedTrump.return_value = euchre.SUIT_NONE
-		self.trumpSelector.getAvailableTrump.return_value = euchre.SUIT_NONE
+		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, True)
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_FAILED, self.sequence.getState())
 
 	def testCompletingTrumpSelectionSetsTrumpOnRound(self):
 		trump = euchre.SUIT_DIAMONDS
-		self.trumpSelector.isComplete.return_value = True
-		self.trumpSelector.getAvailableTrump.return_value = trump
-		self.trumpSelector.getSelectedTrump.side_effect = [euchre.SUIT_NONE, trump]
+		self._train(availableTrump=trump, trumpSelectorComplete=True)
+		when(self.trumpSelector).getSelectedTrump().thenReturn(euchre.SUIT_NONE).thenReturn(trump)
 		self.sequence.selectTrump(self.players[-1].playerId, trump)
-		self.round.setTrump.assert_called_with(trump)
+		verify(self.round).setTrump(trump)
 
 	def testScoreCurrentRoundCallsIntoScoreTracker(self):
 		callingPlayerId = "12345"
 		scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
-		self.trumpSelector.getSelectingPlayerId.return_value = callingPlayerId
+		when(self.trumpSelector).getSelectingPlayerId().thenReturn(callingPlayerId)
 		self.sequence.scoreCurrentRound(scoreTracker)
-		scoreTracker.recordRoundScore.assert_called_with(self.round, callingPlayerId)
+		verify(scoreTracker).recordRoundScore(self.round, callingPlayerId)
 
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
-		super(ScoreTrackerTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = {
 			0 : [self.players[0].playerId, self.players[2].playerId],
@@ -481,7 +466,7 @@ class ScoreTrackerTest(testhelper.TestCase):
 		self.callingPlayerId = self.players[0].playerId
 		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
 		self.round = testhelper.createSingletonMock(euchre.Round)
-		self.round.isComplete.return_value = True
+		when(self.round).isComplete().thenReturn(True)
 
 	def testRecordRoundScoreGrants1PointToMakersTeamIfTheyGetMajorityOfTricks(self):
 		scores = {
@@ -490,7 +475,8 @@ class ScoreTrackerTest(testhelper.TestCase):
 			self.players[2].playerId : 1,
 			self.players[3].playerId : 1
 		}
-		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		for key, val in scores.iteritems():
+			when(self.round).getScore(key).thenReturn(val)
 		self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 		self.assertEqual(1, self.scoreTracker.getTeamScore(0))
 		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
@@ -502,7 +488,8 @@ class ScoreTrackerTest(testhelper.TestCase):
 			self.players[2].playerId : 3,
 			self.players[3].playerId : 0
 		}
-		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		for key, val in scores.iteritems():
+			when(self.round).getScore(key).thenReturn(val)
 		self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 		self.assertEqual(2, self.scoreTracker.getTeamScore(0))
 		self.assertEqual(0, self.scoreTracker.getTeamScore(1))
@@ -514,13 +501,14 @@ class ScoreTrackerTest(testhelper.TestCase):
 			self.players[2].playerId : 0,
 			self.players[3].playerId : 0
 		}
-		self.round.getScore.side_effect = lambda playerId: scores[playerId]
+		for key, val in scores.iteritems():
+			when(self.round).getScore(key).thenReturn(val)
 		self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 		self.assertEqual(0, self.scoreTracker.getTeamScore(0))
 		self.assertEqual(2, self.scoreTracker.getTeamScore(1))
 
 	def testRecordRoundScoreThrowsExceptionIfIncompleteRoundIsPassedIn(self):
-		self.round.isComplete.return_value = False
+		when(self.round).isComplete().thenReturn(False)
 		with self.assertRaises(game.GameStateException):
 			self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 
@@ -529,7 +517,6 @@ class GameTest(testhelper.TestCase):
 		self.game = euchre.Game.getInstance(self.players, self.teams)
 
 	def setUp(self):
-		super(GameTest, self).setUp()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = [
 			[self.players[0].playerId, self.players[2].playerId],
@@ -539,16 +526,20 @@ class GameTest(testhelper.TestCase):
 		self._buildTestObj()
 
 	def testStartGameShufflesDeck(self):
+		actualDeck = euchre.Deck.getInstance()
 		deck = testhelper.createSingletonMock(euchre.Deck)
+		when(deck).deal(5).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5))
+		when(deck).peekTop().thenReturn(actualDeck.peekTop())
 		self._buildTestObj()
 		self.game.startGame()
-		self.assertTrue(deck.shuffle.called)
+		verify(deck).shuffle()
 
 	def testStartGameDealsCards(self):
 		prevFactory = self.game._sequenceFactory
 		self.game._sequenceFactory = testhelper.createMock(euchre.SequenceFactory)
 		hands = {}
 		def verifyHandSize(players, hands, topCardSuit):
+			print hands
 			for player in self.players:
 				self.assertEqual(euchre.HAND_SIZE, len(hands[player.playerId]))
 			self.assertTrue(topCardSuit > euchre.SUIT_NONE)
@@ -567,36 +558,39 @@ class GameTest(testhelper.TestCase):
 		player = self.players[0]
 		card = euchre.Card(euchre.SUIT_DIAMONDS, 10)
 		state = "foo"
-		sequence.getState.return_value = state
+		when(sequence).getState().thenReturn(state)
 		self.game.startGame()
 		self.game.selectTrump(player, trumpSuit)
 		self.game.playCard(player, card)
-		sequence.selectTrump.assert_called_with(player, trumpSuit)
-		sequence.playCard.assert_called_with(player, card)
+		verify(sequence).selectTrump(player, trumpSuit)
+		verify(sequence).playCard(player, card)
 		self.assertEqual(state, self.game.getSequenceState())
 
 	def testPlayCardCreatesANewSequenceAndShufflesDeckIfCurrentOneIsComplete(self):
-		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
-		sequenceFactory.buildSequence.side_effect = lambda a, b, c: mock.create_autospec(euchre.Sequence)
+		actualDeck = euchre.Deck.getInstance()
 		deck = testhelper.createSingletonMock(euchre.Deck)
+		when(deck).deal(5).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5))
+		when(deck).peekTop().thenReturn(actualDeck.peekTop())
+		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
+		when(sequenceFactory).buildSequence(any(), any(), any()).thenReturn(testhelper.createMock(euchre.Sequence)).thenReturn(testhelper.createMock(euchre.Sequence))
 		self._buildTestObj()
 		self.game.startGame()
 		sequence = self.game.getSequence()
-		sequence.getState.return_value = euchre.Sequence.STATE_COMPLETE
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_COMPLETE)
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 9))
 		self.assertNotEqual(sequence, self.game.getSequence())
-		self.assertTrue(deck.shuffle.called)
+		verify(deck, times=2).shuffle()
 
 	def testPlayCardScoresRoundWhenCurSequenceIsComplete(self):
 		callingPlayerId = self.players[1].playerId
 		sequence = testhelper.createSingletonMock(euchre.Sequence)
 		trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
-		sequence.getState.return_value = euchre.Sequence.STATE_COMPLETE
-		trumpSelector.getSelectingPlayerId.return_value = callingPlayerId
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_COMPLETE)
+		when(trumpSelector).getSelectingPlayerId().thenReturn(callingPlayerId)
 		self._buildTestObj()
 		self.game.startGame()
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_JACK))
-		sequence.scoreCurrentRound.assert_called_with(self.scoreTracker)
+		verify(sequence).scoreCurrentRound(self.scoreTracker)
 
 if __name__ == "__main__":
 	unittest.main()

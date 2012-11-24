@@ -1,15 +1,15 @@
 import unittest
-import mock
+from mockito import *
 
 classesToRemoveInstancesFrom = []
 
 def createMock(cls):
-	return mock.create_autospec(cls)
+	return mock(cls)
 
 def createSingletonMock(cls):
 	if None != cls.instance:
 		return cls.instance
-	cls.instance = mock.create_autospec(cls)
+	cls.instance = createMock(cls)
 	classesToRemoveInstancesFrom.append(cls)
 	return cls.instance
 
