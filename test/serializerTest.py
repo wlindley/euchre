@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import testhelper
 import unittest
-import mock
 import random
 import json
+from mockito import *
 
 from src import serializer
 from src import game
@@ -34,31 +34,38 @@ class GameSerializerTest(testhelper.TestCase):
 		self.playerSerializer = testhelper.createSingletonMock(serializer.PlayerSerializer)
 		self.scoreTrackerSerializer = testhelper.createSingletonMock(serializer.ScoreTrackerSerializer)
 		self.sequenceSerializer = testhelper.createSingletonMock(serializer.SequenceSerializer)
-		self.game = euchre.Game.getInstance([game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")], [["1", "2"], ["3", "4"]])
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
+		self.sequence = testhelper.createSingletonMock(euchre.Sequence)
+		self.game = euchre.Game.getInstance(self.players, [["1", "2"], ["3", "4"]])
 		self.testObj = serializer.GameSerializer.getInstance()
 
 	def testSerializesGameCorrectly(self):
-		self.playerSerializer.serialize.side_effect = ["1", "2", "3", "4"]
-		self.scoreTrackerSerializer.serialize.return_value = "serialized score tracker"
-		self.sequenceSerializer.serialize.return_value = "serialized sequence"
+		self.game.startGame()
+		for player in self.players:
+			when(self.playerSerializer).serialize(player).thenReturn(player.playerId)
+		serializedScoreTracker = "serialized score tracker"
+		when(self.scoreTrackerSerializer).serialize(self.scoreTracker).thenReturn(serializedScoreTracker)
+		serializedSequence = "serialized sequence"
+		when(self.sequenceSerializer).serialize(self.sequence).thenReturn(serializedSequence)
 		data = self.testObj.serialize(self.game)
 		self.assertEqual(["1", "2", "3", "4"], data["players"])
-		self.assertEqual("serialized score tracker", data["scoreTracker"])
-		self.assertEqual("serialized sequence", data["curSequence"])
+		self.assertEqual(serializedScoreTracker, data["scoreTracker"])
+		self.assertEqual(serializedSequence, data["curSequence"])
 
 	def testDeserializesGameCorrectly(self):
-		players = [game.Player("6"), game.Player("7"), game.Player("8"), game.Player("9")]
-		self.playerSerializer.deserialize.side_effect = players
-		scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
-		self.scoreTrackerSerializer.deserialize.return_value = scoreTracker
-		sequence = testhelper.createSingletonMock(euchre.Sequence)
-		self.sequenceSerializer.deserialize.return_value = sequence
-		data = {"players" : [1, 2, 3, 4], "scoreTracker" : None, "curSequence" : None}
+		for player in self.players:
+			when(self.playerSerializer).deserialize(player.playerId).thenReturn(player)
+		serializedScoreTracker = "a serialized score tracker"
+		when(self.scoreTrackerSerializer).deserialize(serializedScoreTracker, self.players).thenReturn(self.scoreTracker)
+		serializedSequence = "a serialized sequence"
+		when(self.sequenceSerializer).deserialize(serializedSequence, self.players).thenReturn(self.sequence)
+		data = {"players" : ["1", "2", "3", "4"], "scoreTracker" : serializedScoreTracker, "curSequence" : serializedSequence}
 		self.game = self.testObj.deserialize(data)
-		self.assertEqual(players, self.game._players)
-		self.assertEqual(scoreTracker, self.game._scoreTracker)
-		self.assertEqual(sequence, self.game._curSequence)
-		self.sequenceSerializer.deserialize.assert_called_with(data["curSequence"], players)
+		self.assertEqual(self.players, self.game._players)
+		self.assertEqual(self.scoreTracker, self.game._scoreTracker)
+		self.assertEqual(self.sequence, self.game._curSequence)
+		verify(self.sequenceSerializer).deserialize(data["curSequence"], self.players)
 
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
@@ -101,22 +108,24 @@ class SequenceSerializerTest(testhelper.TestCase):
 	def testSerializesSequenceCorrectly(self):
 		expectedTrumpSelector = "a trump selector"
 		expectedRound = "a round"
-		self.trumpSelectorSerializer.serialize.return_value = expectedTrumpSelector
-		self.roundSerializer.serialize.return_value = expectedRound
+		when(self.trumpSelectorSerializer).serialize(self.trumpSelector).thenReturn(expectedTrumpSelector)
+		when(self.roundSerializer).serialize(self.round).thenReturn(expectedRound)
 		data = self.testObj.serialize(self.sequence)
 		self.assertEqual(expectedTrumpSelector, data["trumpSelector"])
 		self.assertEqual(expectedRound, data["round"])
 
 	def testDeserializesSequenceCorrectly(self):
 		players = "some players"
-		data = {"trumpSelector" : "a trump selector", "round" : "a round"}
-		self.trumpSelectorSerializer.deserialize.return_value = self.trumpSelector
-		self.roundSerializer.deserialize.return_value = self.round
+		serializedTrumpSelector = "a trump selector"
+		serializedRound = "a round"
+		data = {"trumpSelector" : serializedTrumpSelector, "round" : serializedRound}
+		when(self.trumpSelectorSerializer).deserialize(serializedTrumpSelector, players).thenReturn(self.trumpSelector)
+		when(self.roundSerializer).deserialize(serializedRound, players).thenReturn(self.round)
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.trumpSelector, obj._trumpSelector)
 		self.assertEqual(self.round, obj._round)
-		self.trumpSelectorSerializer.deserialize.assert_called_with(data["trumpSelector"], players)
-		self.roundSerializer.deserialize.assert_called_with(data["round"], players)
+		verify(self.trumpSelectorSerializer).deserialize(data["trumpSelector"], players)
+		verify(self.roundSerializer).deserialize(data["round"], players)
 
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
@@ -133,7 +142,7 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 
 	def testSerializesTrumpSelectorCorrectly(self):
 		expectedTurnTracker = "a turn tracker"
-		self.turnTrackerSerializer.serialize.return_value = expectedTurnTracker
+		when(self.turnTrackerSerializer).serialize(self.turnTracker).thenReturn(expectedTurnTracker)
 		self.trumpSelector._selectingPlayerId = self.selectingPlayerId
 		data = self.testObj.serialize(self.trumpSelector)
 		self.assertEqual(expectedTurnTracker, data["turnTracker"])
@@ -146,13 +155,14 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 
 	def testDeserializesTrumpSelectorCorrectly(self):
 		players = "some players"
-		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectingPlayerId" : self.selectingPlayerId}
-		self.turnTrackerSerializer.deserialize.return_value = self.turnTracker
+		serializedTurnTracker = "a turnTracker"
+		data = {"turnTracker" : serializedTurnTracker, "availableTrump" : self.availableTrump, "selectingPlayerId" : self.selectingPlayerId}
+		when(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players).thenReturn(self.turnTracker)
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.turnTracker, obj._turnTracker)
 		self.assertEqual(self.availableTrump, obj._availableTrump)
 		self.assertEqual(self.selectingPlayerId, obj._selectingPlayerId)
-		self.turnTrackerSerializer.deserialize.assert_called_with(data["turnTracker"], players)
+		verify(self.turnTrackerSerializer).deserialize(data["turnTracker"], players)
 
 	def testDeserializeSetsCorrectValueForSelectingPlayerIdOfEmptyString(self):
 		players = "some players"
@@ -209,21 +219,27 @@ class RoundSerializerTest(testhelper.TestCase):
 		return euchre.Card(suit, value)
 
 	def testSerializesRoundCorrectly(self):
-		expectedHands = {"1" : ["card 1", "card 2"], "2" : ["card 3", "card 4"]}
-		cardSerializerResult = []
-		cardSerializerResult.extend(expectedHands["1"])
-		cardSerializerResult.extend(expectedHands["2"])
-		self.cardSerializer.serialize.side_effect = cardSerializerResult
+		expectedHands = {}
+		i = 0
+		for playerId, hand in self.hands.iteritems():
+			expectedHands[playerId] = []
+			for card in hand:
+				serializedCard = "card %d" % i
+				expectedHands[playerId].append(serializedCard)
+				when(self.cardSerializer).serialize(card).thenReturn(serializedCard)
+				i += 1
 		expectedTurnTracker = "a turn tracker"
-		self.turnTrackerSerializer.serialize.return_value = expectedTurnTracker
+		when(self.turnTrackerSerializer).serialize(self.turnTracker).thenReturn(expectedTurnTracker)
 		expectedTrickEvaluator = "a trick evaluator"
-		self.trickEvaluatorSerializer.serialize.return_value = expectedTrickEvaluator
+		when(self.trickEvaluatorSerializer).serialize(self.trickEvaluator).thenReturn(expectedTrickEvaluator)
 		curTrick = testhelper.createMock(euchre.Trick)
 		self.round.curTrick = curTrick
 		prevTricks = [testhelper.createMock(euchre.Trick), testhelper.createMock(euchre.Trick)]
 		self.round.prevTricks = prevTricks
 		expectedTricks = {curTrick : "trick 1", prevTricks[0] : "trick 2", prevTricks[1] : "trick 3"}
-		self.trickSerializer.serialize.side_effect = lambda t : expectedTricks[t]
+		when(self.trickSerializer).serialize(curTrick).thenReturn("trick 1")
+		when(self.trickSerializer).serialize(prevTricks[0]).thenReturn("trick 2")
+		when(self.trickSerializer).serialize(prevTricks[1]).thenReturn("trick 3")
 		scores = {"1" : 0, "2" : 5}
 		self.round._scores = scores
 
@@ -231,6 +247,7 @@ class RoundSerializerTest(testhelper.TestCase):
 
 		self.assertEqual(expectedTurnTracker, data["turnTracker"])
 		self.assertEqual(expectedTrickEvaluator, data["trickEvaluator"])
+		print data["hands"]
 		for playerId in expectedHands:
 			for i in range(len(expectedHands[playerId])):
 				self.assertEqual(expectedHands[playerId][i], data["hands"][playerId][i])
@@ -254,24 +271,27 @@ class RoundSerializerTest(testhelper.TestCase):
 				"curTrick" : curTrick,
 				"prevTricks" : prevTricks,
 				"scores" : scores}
-		self.turnTrackerSerializer.deserialize.return_value = self.turnTracker
-		self.trickEvaluatorSerializer.deserialize.return_value = self.trickEvaluator
+		when(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players).thenReturn(self.turnTracker)
+		when(self.trickEvaluatorSerializer).deserialize(serializedTrickEvaluator).thenReturn(self.trickEvaluator)
 
 		expectedCards = {}
 		for playerId, hand in hands.iteritems():
 			for card in hand:
-				expectedCards[card] = self._randomCard()
-		self.cardSerializer.deserialize.side_effect = lambda c: expectedCards[c]
+				deserializedCard = self._randomCard()
+				when(self.cardSerializer).deserialize(card).thenReturn(deserializedCard)
+				expectedCards[card] = deserializedCard
 
 		expectedTricks = {curTrick : testhelper.createMock(euchre.Trick)}
+		when(self.trickSerializer).deserialize(curTrick).thenReturn(expectedTricks[curTrick])
 		for trick in prevTricks:
-			expectedTricks[trick] = testhelper.createMock(euchre.Trick)
-		self.trickSerializer.deserialize.side_effect = lambda t: expectedTricks[t]
+			deserializedTrick = testhelper.createMock(euchre.Trick)
+			expectedTricks[trick] = deserializedTrick
+			when(self.trickSerializer).deserialize(trick).thenReturn(deserializedTrick)
 
 		obj = self.testObj.deserialize(data, players)
 
 		self.assertEqual(self.turnTracker, obj._turnTracker)
-		self.turnTrackerSerializer.deserialize.assert_called_with(serializedTurnTracker, players)
+		verify(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players)
 		self.assertEqual(self.trickEvaluator, obj._trickEvaluator)
 		for playerId, hand in hands.iteritems():
 			for i in range(len(hand)):
@@ -315,7 +335,8 @@ class TrickSerializerTest(testhelper.TestCase):
 		expectedLedSuit = random.randint(1, euchre.NUM_SUITS)
 		playedCards = {"1" : self._randomCard(), "2" : self._randomCard()}
 		expectedCards = {playedCards["1"] : "card 1", playedCards["2"] : "card 2"}
-		self.cardSerializer.serialize.side_effect = lambda c: expectedCards[c]
+		for key, val in expectedCards.iteritems():
+			when(self.cardSerializer).serialize(key).thenReturn(val)
 		trick = euchre.Trick()
 		trick.ledSuit = expectedLedSuit
 		trick.playedCards = playedCards
@@ -332,8 +353,9 @@ class TrickSerializerTest(testhelper.TestCase):
 		data = {"ledSuit" : expectedLedSuit, "playedCards" : expectedPlayedCards}
 		playedCards = {}
 		for playerId, card in expectedPlayedCards.iteritems():
-			playedCards[card] = self._randomCard()
-		self.cardSerializer.deserialize.side_effect = lambda c: playedCards[c]
+			deserializedCard = self._randomCard()
+			playedCards[card] = deserializedCard
+			when(self.cardSerializer).deserialize(card).thenReturn(deserializedCard)
 
 		obj = self.testObj.deserialize(data)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from google.appengine.ext import ndb
 import testhelper
-import mock
+from mockito import *
 
 from src import model
 
@@ -23,13 +23,7 @@ class GameModelFinderTest(testhelper.TestCase):
 		playerId = "12345"
 		models = [testhelper.createMock(model.GameModel), testhelper.createMock(model.GameModel)]
 		query = testhelper.createMock(ndb.Query)
-		self.numCalls = 0
-		def fetchSideEffect(size):
-			self.numCalls += 1;
-			if 1 >= self.numCalls:
-				return models
-			return []
-		query.fetch.side_effect = fetchSideEffect
+		when(query).fetch(any(int)).thenReturn(models).thenReturn([])
 		self.testObj._getQuery = lambda pid: query if playerId == pid else None
 		result = self.testObj.getGamesForPlayerId(playerId)
 		self.assertEqual(models, result)
@@ -38,7 +32,7 @@ class GameModelFinderTest(testhelper.TestCase):
 		gameId = 864
 		gameModel = testhelper.createMock(model.GameModel)
 		query = testhelper.createMock(ndb.Query)
-		query.get.return_value = gameModel
+		when(query).get().thenReturn(gameModel)
 		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
 		result = self.testObj.getGameByGameId(gameId)
 		self.assertEqual(gameModel, result)
