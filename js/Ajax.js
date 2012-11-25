@@ -1,7 +1,10 @@
 Ajax = function(jqueryWrapper) {
 	var self = this;
+
+	this.call = function(action, data, callback) {
+	};
 };
 
-Ajax.getInstance = function() {
-	return new Ajax();
+Ajax.getInstance = function(jqueryWrapper) {
+	return new Ajax(jqueryWrapper);
 };
