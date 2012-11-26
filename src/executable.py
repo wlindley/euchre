@@ -6,6 +6,7 @@ import game
 import euchre
 import serializer
 import model
+import logging
 
 MAX_TEAM_SIZE = 2
 
@@ -58,7 +59,7 @@ class CreateGameExecutable(AbstractExecutable):
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
-		team = self._requestDataAccessor.get("team")
+		team = int(self._requestDataAccessor.get("team"))
 		if 1 < team or 0 > team:
 			self._responseWriter.write(json.dumps({"success" : False}))
 			return

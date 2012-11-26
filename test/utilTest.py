@@ -50,6 +50,13 @@ class GameIdTrackerTest(testhelper.TestCase):
 		self.assertEqual(expectedGameId + 1, self.model.nextGameId)
 		verify(self.model).put()
 
+	def testGetCreatesModelIfItDoesNotExist(self):
+		when(self.key).get().thenReturn(None)
+		self.model.nextGameId = 0
+		self.testObj._getNewModel = lambda: self.model
+		self.assertEqual(0, self.testObj.getGameId())
+		self.assertEqual(1, self.testObj.getGameId())
+
 class JsFileLoaderTest(testhelper.TestCase):
 	def setUp(self):
 		self.filename = "jsFileList.txt"

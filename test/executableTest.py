@@ -41,7 +41,7 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		self.playerId = "1"
 		self.team = 0
 		self.gameId = 251
-		self.requestData = {"gameId" : self.gameId, "playerId" : self.playerId, "team" : self.team}
+		self.requestData = {"gameId" : self.gameId, "playerId" : self.playerId, "team" : str(self.team)}
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		for key, val in self.requestData.iteritems():
 			when(self.requestDataAccessor).get(key).thenReturn(val)
@@ -66,7 +66,7 @@ class CreateGameExecutableTest(testhelper.TestCase):
 
 	def testExecuteDoesNothingIfTeamIsTooLarge(self):
 		self.team = self.requestData["team"] = 2
-		when(self.requestDataAccessor).get("team").thenReturn(self.team)
+		when(self.requestDataAccessor).get("team").thenReturn(str(self.team))
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameIdTracker)
 		verifyZeroInteractions(self.gameModelFactory)
@@ -74,7 +74,7 @@ class CreateGameExecutableTest(testhelper.TestCase):
 
 	def testExecuteDoesNothingIfTeamIsTooSmall(self):
 		self.team = self.requestData["team"] = -1
-		when(self.requestDataAccessor).get("team").thenReturn(self.team)
+		when(self.requestDataAccessor).get("team").thenReturn(str(self.team))
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameIdTracker)
 		verifyZeroInteractions(self.gameModelFactory)

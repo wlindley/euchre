@@ -3,6 +3,7 @@ import webapp2
 import jinja2
 import os
 import json
+import logging
 from google.appengine.ext import db
 from google.appengine.ext import ndb
 
@@ -58,6 +59,7 @@ class AjaxHandler(webapp2.RequestHandler):
 		exe = executableFactory.createExecutable()
 		exe.execute()
 
+logging.getLogger().setLevel(logging.DEBUG)
 app = webapp2.WSGIApplication([
 	('/createPlayer', PlayerCreator),
 	('/ajax', AjaxHandler),

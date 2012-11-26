@@ -4,4 +4,5 @@ js/Ajax.js
 js/GameLister.js
 js/GameListView.js
 js/GameListHtmlBuilder.js
+js/GameCreator.js
 js/init.js

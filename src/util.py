@@ -41,12 +41,19 @@ class GameIdTracker(object):
 			return cls.instance
 		return GameIdTracker()
 
+	KEY_ID = "gameIdSingleton"
+
 	def _getGameIdKey(self):
-		return ndb.Key(model.GameIdModel, "gameIdSingleton")
+		return ndb.Key(model.GameIdModel, GameIdTracker.KEY_ID)
+
+	def _getNewModel(self):
+		return model.GameIdModel(nextGameId=0, id=GameIdTracker.KEY_ID)
 
 	@ndb.transactional
 	def getGameId(self):
 		entity = self._getGameIdKey().get()
+		if None == entity:
+			entity = self._getNewModel()
 		gameId = entity.nextGameId
 		entity.nextGameId += 1
 		entity.put()

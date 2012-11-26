@@ -1,15 +1,10 @@
 GameListViewTest = TestCase("GameListViewTest")
 
-DivObject = function() {
-	this.html = function() {};
-	this.show = function() {};
-};
-
 GameListViewTest.prototype.setUp = function() {
 	this.ajax = FakeAjax.getInstance();
 	this.gameLister = GameLister.getInstance("12345", this.ajax);
 	this.gameListHtmlBuilder = mock(GameListHtmlBuilder);
-	this.gameListDiv = mock(DivObject);
+	this.gameListDiv = mock(FakeJQueryElement);
 	this.testObj = new GameListView(this.gameLister, this.gameListHtmlBuilder, this.gameListDiv);
 };
 
