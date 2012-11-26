@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 import model
+import json
 
 class RequestDataAccessor(object):
 	instance = None
@@ -14,6 +15,9 @@ class RequestDataAccessor(object):
 
 	def get(self, key):
 		return self._request.get(key)
+
+	def getBaseUrl(self):
+		return self._request.application_url
 
 class ResponseWriter(object):
 	instance = None
@@ -92,3 +96,23 @@ class JsFileLoader(object):
 		for line in lines:
 			html += '\n<script src="%s" type="text/javascript"></script>' % (line.strip())
 		return html
+
+class PageDataBuilder(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor):
+		if None != cls.instance:
+			return cls.instance
+		return PageDataBuilder(requestDataAccessor)
+
+	AJAX_PATH = "/ajax"
+
+	def __init__(self, requestDataAccessor):
+		super(PageDataBuilder, self).__init__()
+		self._requestDataAccessor = requestDataAccessor
+
+	def buildData(self):
+		pageData = {}
+		pageData["playerId"] = self._requestDataAccessor.get("playerId")
+		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
+		return json.dumps(pageData)

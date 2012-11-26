@@ -1,2 +1,5 @@
 js/jquery.js
+js/JQueryWrapper.js
+js/Ajax.js
+js/GameLister.js
 js/init.js

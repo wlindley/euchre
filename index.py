@@ -20,9 +20,12 @@ jinjaEnvironment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dir
 
 class IndexPage(webapp2.RequestHandler):
 	def get(self):
+		requestDataAccessor = util.RequestDataAccessor.getInstance(self.request)
 		jsFileLoader = util.JsFileLoader.getInstance()
+		pageDataBuilder = util.PageDataBuilder.getInstance(requestDataAccessor)
 		templateValues = {
-			"jsIncludes" : jsFileLoader.getJsHtml()
+			"jsIncludes" : jsFileLoader.getJsHtml(),
+			"pageData" : pageDataBuilder.buildData()
 		}
 		template = jinjaEnvironment.get_template('index.html')
 		self.response.out.write(template.render(templateValues))

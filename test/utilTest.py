@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from google.appengine.ext import ndb
 import testhelper
+import json
 from mockito import *
 
 from src import util
@@ -8,15 +9,20 @@ from src import model
 
 class RequestDataAccessorTest(testhelper.TestCase):
 	def setUp(self):
+		self.applicationUrl = "http://sweetapp.com"
+		self.key = "some key"
+		self.expectedResult = "some data"
 		self.request = testhelper.createSimpleMock()
+		self.request.application_url = self.applicationUrl
+		when(self.request).get(self.key).thenReturn(self.expectedResult)
 		self.testObj = util.RequestDataAccessor.getInstance(self.request)
 
 	def testGetPassesThroughToRequest(self):
-		params = "some key"
-		expectedResult = "some data"
-		when(self.request).get(params).thenReturn(expectedResult)
-		result = self.testObj.get(params)
-		self.assertEqual(expectedResult, result)
+		result = self.testObj.get(self.key)
+		self.assertEqual(self.expectedResult, result)
+
+	def testGetBaseUrlReturnsApplicationUrl(self):
+		self.assertEqual(self.applicationUrl, self.testObj.getBaseUrl())
 
 class ResponseWriterTest(testhelper.TestCase):
 	def setUp(self):
@@ -71,3 +77,23 @@ class FileReaderTest(testhelper.TestCase):
 		result = self.testObj.getFileLines(filename)
 		self.assertEqual(fileLines, result)
 		verify(mockFile).close()
+
+class PageDataBuilderTest(testhelper.TestCase):
+	def setUp(self):
+		self.baseUrl = "http://awesomest.url.ever"
+		self.playerId = "123456"
+		self.expectedData = {
+			"ajaxUrl" : self.baseUrl + "/ajax",
+			"playerId" : self.playerId
+		}
+
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		when(self.requestDataAccessor).getBaseUrl().thenReturn(self.baseUrl)
+		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
+
+	def testBuildDataIncludesExpectedKeys(self):
+		result = json.loads(self.testObj.buildData())
+		for key, value in self.expectedData.iteritems():
+			self.assertIn(key, result)
+			self.assertEqual(value, result[key])
