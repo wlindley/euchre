@@ -1,11 +1,21 @@
 JQueryWrapperTest = TestCase("JQueryWrapperTest")
 
-JQueryWrapperTest.prototype.setUp = function() {
-	this.fbId = "12345";
-	this.ajax = mock(Ajax);
-	this.testObj = GameLister.getInstance(this.fbId, this.ajax);
+TestableJQuery = function() {
+	this.ajax = function(url, params) {};
 };
 
-JQueryWrapperTest.prototype.testListsGamesFromServer = function() {
-	assertTrue(true);
+JQueryWrapperTest.prototype.setUp = function() {
+	this.mockJQuery = mock(TestableJQuery);
+	this.testObj = JQueryWrapper.getInstance(this.mockJQuery);
+};
+
+JQueryWrapperTest.prototype.testAjaxPassesThrough = function() {
+	var url = "my favorite URL";
+	var params = {"foo" : "bar", "bin" : "baz"};
+	this.testObj.ajax(url, params);
+	var paramMatchers = [];
+	for (var key in params) {
+		paramMatchers.push(hasMember(key, equalTo(params[key])));
+	}
+	verify(this.mockJQuery).ajax(url, allOf(paramMatchers));
 };

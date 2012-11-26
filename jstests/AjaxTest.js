@@ -1,11 +1,21 @@
 AjaxTest = TestCase("AjaxTest")
 
 AjaxTest.prototype.setUp = function() {
-	this.fbId = "12345";
-	this.ajax = mock(Ajax);
-	this.testObj = GameLister.getInstance(this.fbId, this.ajax);
+	this.url = "http://localhost:8080/ajax"
+	this.jqueryWrapper = mock(JQueryWrapper);
+	this.testObj = Ajax.getInstance(this.jqueryWrapper, this.url);
 };
 
-AjaxTest.prototype.testListsGamesFromServer = function() {
-	assertTrue(true);
+AjaxTest.prototype.testCallCallsJQueryAjax = function() {
+	var action = "the best action";
+	var data = {"foo" : "bar"};
+	var callback = function(response) {};
+	this.testObj.call(action, data, callback);
+	var dataMatchers = [];
+	for (var key in data) {
+		dataMatchers.push(hasMember(key, data[key]));
+	}
+	dataMatchers.push(hasMember("action", action));
+	var paramMatchers = [hasMember("type", "POST"), hasMember("data", allOf(dataMatchers)), hasMember("success", callback)]
+	verify(this.jqueryWrapper).ajax(this.url, allOf(paramMatchers));
 };
