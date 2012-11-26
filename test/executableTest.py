@@ -97,7 +97,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		
 		self.testObj.execute()
 
-		verify(self.responseWriter).write(json.dumps({"gameIds" : [gameModels[0].gameId, gameModels[1].gameId]}))
+		verify(self.responseWriter).write(json.dumps({"games" : [{"gameId" : gameModels[0].gameId}, {"gameId" : gameModels[1].gameId}]}))
 
 class DefaultExecutableTest(testhelper.TestCase):
 	def setUp(self):

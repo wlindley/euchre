@@ -53,6 +53,7 @@ class PlayerCreator(webapp2.RequestHandler):
 
 class AjaxHandler(webapp2.RequestHandler):
 	def post(self):
+		self.response.headers.add_header('content-type', 'application/json', charset='utf-8')
 		executableFactory = executable.ExecutableFactory.getInstance(util.RequestDataAccessor.getInstance(self.request), util.ResponseWriter.getInstance(self.response))
 		exe = executableFactory.createExecutable()
 		exe.execute()

@@ -9,6 +9,7 @@ Ajax = function(jqueryWrapper, ajaxUrl) {
 		finalData["action"] = action;
 		var params = {
 			"type" : 'POST',
+			"dataType" : 'json',
 			"data" : finalData,
 			"success" : callback
 		};

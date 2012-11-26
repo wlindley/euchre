@@ -16,6 +16,6 @@ AjaxTest.prototype.testCallCallsJQueryAjax = function() {
 		dataMatchers.push(hasMember(key, data[key]));
 	}
 	dataMatchers.push(hasMember("action", action));
-	var paramMatchers = [hasMember("type", "POST"), hasMember("data", allOf(dataMatchers)), hasMember("success", callback)]
+	var paramMatchers = [hasMember("type", "POST"), hasMember("data", allOf(dataMatchers)), hasMember("success", callback), hasMember("dataType", "json")]
 	verify(this.jqueryWrapper).ajax(this.url, allOf(paramMatchers));
 };

@@ -5,3 +5,8 @@
 .titleLoaded {
 	color: green;
 }
+
+.gameListEntry {
+	background-color: blue;
+	font-weight: bold;
+}

@@ -86,8 +86,8 @@ class ListGamesExecutable(AbstractExecutable):
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
 		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
-		gameIds = [model.gameId for model in gameModels]
-		self._responseWriter.write(json.dumps({"gameIds" : gameIds}))
+		gameDatas = [{"gameId" : model.gameId} for model in gameModels]
+		self._responseWriter.write(json.dumps({"games" : gameDatas}))
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None

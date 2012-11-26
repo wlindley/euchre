@@ -10,12 +10,12 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameLister = GameLister.getInstance("12345", this.ajax);
 	this.gameListHtmlBuilder = mock(GameListHtmlBuilder);
 	this.gameListDiv = mock(DivObject);
-	this.testObj = GameListView.getInstance(this.gameLister, this.gameListHtmlBuilder, this.gameListDiv);
+	this.testObj = new GameListView(this.gameLister, this.gameListHtmlBuilder, this.gameListDiv);
 };
 
 GameListViewTest.prototype.testShowDisplayCorrectHtml = function() {
 	var expectedGameList = "a list of games";
-	this.ajax.callbackResponse = expectedGameList;
+	this.ajax.callbackResponse = {"games" : expectedGameList};
 	var gameListHtml = "game list HTML";
 	when(this.gameListHtmlBuilder).buildHtml(expectedGameList).thenReturn(gameListHtml);
 

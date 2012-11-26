@@ -6,11 +6,11 @@ GameListView = function(gameLister, gameListHtmlBuilder, gameListDiv) {
 	};
 
 	function handleGameListResponse(response) {
-		gameListDiv.html(gameListHtmlBuilder.buildHtml(response));
+		gameListDiv.html(gameListHtmlBuilder.buildHtml(response.games));
 		gameListDiv.show();
 	}
 };
 
-GameListView.getInstance = function(gameLister, gameListHtmlBuilder, gameListDiv) {
-	return new GameListView(gameLister, gameListHtmlBuilder, gameListDiv);
+GameListView.getInstance = function(gameLister, gameListDiv) {
+	return new GameListView(gameLister, GameListHtmlBuilder.getInstance(), gameListDiv);
 };
