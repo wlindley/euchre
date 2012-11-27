@@ -2,6 +2,8 @@
 from google.appengine.ext import ndb
 import testhelper
 import json
+import os.path
+import glob
 from mockito import *
 
 from src import util
@@ -85,18 +87,40 @@ class FileReaderTest(testhelper.TestCase):
 		self.assertEqual(fileLines, result)
 		verify(mockFile).close()
 
+	def testGetFileContentsReturnsContentsOfFile(self):
+		filename = "bar_file.info"
+		fileContents = "the best file ever\nis not at this location"
+		mockFile = testhelper.createMock(file)
+		when(mockFile).read().thenReturn(fileContents)
+		self.testObj._getFile = lambda fname: mockFile if filename == fname else None
+		result = self.testObj.getFileContents(filename)
+		self.assertEqual(fileContents, result)
+		verify(mockFile).close()
+
 class PageDataBuilderTest(testhelper.TestCase):
 	def setUp(self):
 		self.baseUrl = "http://awesomest.url.ever"
 		self.playerId = "123456"
+		self.templateFiles = "some filenames"
+		self.templates = "the best templates ever"
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
-			"playerId" : self.playerId
+			"playerId" : self.playerId,
+			"templates" : self.templates
 		}
+		self.expectedTemplates = None
 
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		when(self.requestDataAccessor).getBaseUrl().thenReturn(self.baseUrl)
 		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+		when(util.glob).glob("templates/*.template").thenReturn(self.templateFiles)
+		self.templateManager = testhelper.createSingletonMock(util.TemplateManager)
+		def replaceLoadTemplates(filenames):
+			if self.templateFiles == filenames:
+				self.expectedTemplates = self.templates
+		self.templateManager.loadTemplates = replaceLoadTemplates
+		self.templateManager.getTemplates = lambda: self.expectedTemplates
+
 		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
 
 	def testBuildDataIncludesExpectedKeys(self):
@@ -104,3 +128,20 @@ class PageDataBuilderTest(testhelper.TestCase):
 		for key, value in self.expectedData.iteritems():
 			self.assertIn(key, result)
 			self.assertEqual(value, result[key])
+
+class TemplateManagerTest(testhelper.TestCase):
+	def setUp(self):
+		self.filenames = ["temp/foo.template", "bar.template", "bin/div.template"]
+		self.contents = [["<html></html>"], ["<h1>sweeeeeet text</h1>"], ["<div class=\"foobar\"></div>"]]
+		self.fileReader = testhelper.createSingletonMock(util.FileReader)
+		for i in range(len(self.filenames)):
+			when(self.fileReader).getFileContents(self.filenames[i]).thenReturn(self.contents[i])
+		self.testObj = util.TemplateManager.getInstance()
+
+	def testGetTemplatesReturnsLoadedTemplates(self):
+		self.testObj.loadTemplates(self.filenames)
+		result = self.testObj.getTemplates()
+		for i in range(len(self.filenames)):
+			templateId = os.path.basename(self.filenames[i]).replace(".template", "")
+			self.assertIn(templateId, result)
+			self.assertEqual(self.contents[i], result[templateId])

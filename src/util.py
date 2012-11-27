@@ -1,6 +1,8 @@
 from google.appengine.ext import ndb
 import model
 import json
+import os.path
+import glob
 
 class RequestDataAccessor(object):
 	instance = None
@@ -75,6 +77,14 @@ class FileReader(object):
 		fileHandle.close()
 		return lines
 
+	def getFileContents(self, filename):
+		fileHandle = self._getFile(filename)
+		if None == fileHandle:
+			return ""
+		contents = fileHandle.read()
+		fileHandle.close()
+		return contents
+
 	def _getFile(self, filename):
 		try:
 			fileHandle = open(filename)
@@ -110,16 +120,41 @@ class PageDataBuilder(object):
 	def getInstance(cls, requestDataAccessor):
 		if None != cls.instance:
 			return cls.instance
-		return PageDataBuilder(requestDataAccessor)
+		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance())
 
 	AJAX_PATH = "/ajax"
+	TEMPLATE_PATTERN  = "templates/*.template"
 
-	def __init__(self, requestDataAccessor):
+	def __init__(self, requestDataAccessor, templateManager):
 		super(PageDataBuilder, self).__init__()
 		self._requestDataAccessor = requestDataAccessor
+		self._templateManager = templateManager
 
 	def buildData(self):
 		pageData = {}
 		pageData["playerId"] = self._requestDataAccessor.get("playerId")
 		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
+		self._templateManager.loadTemplates(glob.glob(PageDataBuilder.TEMPLATE_PATTERN))
+		pageData["templates"] = self._templateManager.getTemplates()
 		return json.dumps(pageData)
+
+class TemplateManager(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TemplateManager(FileReader.getInstance())
+
+	def __init__(self, fileReader):
+		super(TemplateManager, self).__init__()
+		self._fileReader = fileReader
+		self._templates = {}
+
+	def loadTemplates(self, filenames):
+		for filename in filenames:
+			templateId = os.path.basename(filename).replace(".template", "")
+			self._templates[templateId] = self._fileReader.getFileContents(filename)
+
+	def getTemplates(self):
+		return self._templates
