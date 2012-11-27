@@ -1,4 +1,4 @@
-GameListView = function(gameLister, gameListHtmlBuilder, gameListDiv) {
+GameListView = function(gameLister, templateRenderer, gameListDiv) {
 	var self = this;
 
 	this.show = function() {
@@ -6,11 +6,15 @@ GameListView = function(gameLister, gameListHtmlBuilder, gameListDiv) {
 	};
 
 	function handleGameListResponse(response) {
-		gameListDiv.html(gameListHtmlBuilder.buildHtml(response.games));
+		var html = "";
+		for (var i = 0; i < response.games.length; i++) {
+			html += templateRenderer.renderTemplate("gameListEntry", response.games[i]);
+		}
+		gameListDiv.html(html);
 		gameListDiv.show();
 	}
 };
 
-GameListView.getInstance = function(gameLister, gameListDiv) {
-	return new GameListView(gameLister, GameListHtmlBuilder.getInstance(), gameListDiv);
+GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv) {
+	return new GameListView(gameLister, templateRenderer, gameListDiv);
 };
