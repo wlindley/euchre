@@ -32,18 +32,11 @@ class GameModelFinder(object):
 			return cls.instance
 		return GameModelFinder()
 
-	PAGE_SIZE = 10
-	MAX_PAGES = 5
+	FETCH_SIZE = 50
 
 	def getGamesForPlayerId(self, playerId):
 		query = self._getQuery(playerId)
-		models = []
-		results = query.fetch(GameModelFinder.PAGE_SIZE)
-		numPages = 0
-		while 0 < len(results) and GameModelFinder.MAX_PAGES > numPages:
-			models.extend(results)
-			results = query.fetch(GameModelFinder.PAGE_SIZE)
-			numPages += 1;
+		models = query.fetch(GameModelFinder.FETCH_SIZE)
 		return models
 
 	def _getQuery(self, playerId):
