@@ -1,4 +1,8 @@
-JQueryWrapper = function(jquery) {
+if (AVOCADO == undefined) {
+	var AVOCADO = {};
+}
+
+AVOCADO.JQueryWrapper = function(jquery) {
 	var self = this;
 
 	this.ajax = function(url, params) {
@@ -6,6 +10,6 @@ JQueryWrapper = function(jquery) {
 	};
 };
 
-JQueryWrapper.getInstance = function(jquery) {
-	return new JQueryWrapper(jquery);
+AVOCADO.JQueryWrapper.getInstance = function(jquery) {
+	return new AVOCADO.JQueryWrapper(jquery);
 };

@@ -1,4 +1,8 @@
-GameCreator = function(fbId, ajax, createGameButton) {
+if (AVOCADO == undefined) {
+	var AVOCADO = {};
+}
+
+AVOCADO.GameCreator = function(fbId, ajax, createGameButton) {
 	var self = this;
 
 	this.init = function() {
@@ -18,6 +22,6 @@ GameCreator = function(fbId, ajax, createGameButton) {
 	}
 };
 
-GameCreator.getInstance = function(fbId, ajax, createGameButton) {
-	return new GameCreator(fbId, ajax, createGameButton);
+AVOCADO.GameCreator.getInstance = function(fbId, ajax, createGameButton) {
+	return new AVOCADO.GameCreator(fbId, ajax, createGameButton);
 };

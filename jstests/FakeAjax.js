@@ -1,4 +1,8 @@
-FakeAjax = function() {
+if (TEST == undefined) {
+	var TEST = {};
+}
+
+TEST.FakeAjax = function() {
 	var self = this;
 
 	this.callbackResponse = null;
@@ -8,6 +12,6 @@ FakeAjax = function() {
 	};
 };  
 
-FakeAjax.getInstance = function() {
-	return new FakeAjax();
+TEST.FakeAjax.getInstance = function() {
+	return new TEST.FakeAjax();
 };

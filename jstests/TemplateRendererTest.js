@@ -5,7 +5,7 @@ TemplateRendererTest.prototype.setUp = function() {
 	this.template = "my name is %name%";
 	this.templates = {};
 	this.templates[this.templateId] = this.template;
-	this.testObj = new TemplateRenderer(this.templates);
+	this.testObj = new AVOCADO.TemplateRenderer(this.templates);
 };
 
 TemplateRendererTest.prototype.testRenderTemplateReplacesDataAndReturns = function() {

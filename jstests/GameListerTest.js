@@ -2,7 +2,7 @@ GameListerTest = TestCase("GameListerTest")
 
 GameListerTest.prototype.setUp = function() {
 	this.fbId = "12345";
-	this.ajax = new FakeAjax();
+	this.ajax = new TEST.FakeAjax();
 	this.buildTestObj();
 };
 
@@ -20,7 +20,7 @@ GameListerTest.prototype.testListsGamesFromServer = function() {
 };
 
 GameListerTest.prototype.testCallsAjaxCorrectly = function() {
-	this.ajax = mock(Ajax);
+	this.ajax = mock(AVOCADO.Ajax);
 	this.buildTestObj();
 	var callback = function(data) {};
 	this.testObj.getGameList(callback);
@@ -28,5 +28,5 @@ GameListerTest.prototype.testCallsAjaxCorrectly = function() {
 };
 
 GameListerTest.prototype.buildTestObj = function() {
-	this.testObj = GameLister.getInstance(this.fbId, this.ajax);
+	this.testObj = AVOCADO.GameLister.getInstance(this.fbId, this.ajax);
 };

@@ -1,4 +1,8 @@
-TemplateRenderer = function(templates) {
+if (AVOCADO == undefined) {
+	var AVOCADO = {};
+}
+
+AVOCADO.TemplateRenderer = function(templates) {
 	var self = this;
 
 	this.renderTemplate = function(templateId, values) {
@@ -13,6 +17,6 @@ TemplateRenderer = function(templates) {
 	};
 };
 
-TemplateRenderer.getInstance = function(templates) {
-	return new TemplateRenderer(templates);
+AVOCADO.TemplateRenderer.getInstance = function(templates) {
+	return new AVOCADO.TemplateRenderer(templates);
 };

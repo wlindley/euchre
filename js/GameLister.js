@@ -1,4 +1,8 @@
-GameLister = function(fbId, ajax) {
+if (AVOCADO == undefined) {
+	var AVOCADO = {};
+}
+
+AVOCADO.GameLister = function(fbId, ajax) {
 	var self = this;
 
 	this.getGameList = function(callback) {
@@ -6,6 +10,6 @@ GameLister = function(fbId, ajax) {
 	};
 };
 
-GameLister.getInstance = function(fbId, ajax) {
-	return new GameLister(fbId, ajax);
+AVOCADO.GameLister.getInstance = function(fbId, ajax) {
+	return new AVOCADO.GameLister(fbId, ajax);
 };

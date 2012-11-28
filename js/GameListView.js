@@ -1,4 +1,8 @@
-GameListView = function(gameLister, templateRenderer, gameListDiv) {
+if (AVOCADO == undefined) {
+	var AVOCADO = {};
+}
+
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv) {
 	var self = this;
 
 	this.show = function() {
@@ -15,6 +19,6 @@ GameListView = function(gameLister, templateRenderer, gameListDiv) {
 	}
 };
 
-GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv) {
-	return new GameListView(gameLister, templateRenderer, gameListDiv);
+AVOCADO.GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv) {
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv);
 };

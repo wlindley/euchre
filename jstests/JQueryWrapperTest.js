@@ -6,7 +6,7 @@ TestableJQuery = function() {
 
 JQueryWrapperTest.prototype.setUp = function() {
 	this.mockJQuery = mock(TestableJQuery);
-	this.testObj = JQueryWrapper.getInstance(this.mockJQuery);
+	this.testObj = AVOCADO.JQueryWrapper.getInstance(this.mockJQuery);
 };
 
 JQueryWrapperTest.prototype.testAjaxPassesThrough = function() {

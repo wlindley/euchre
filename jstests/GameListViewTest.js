@@ -1,11 +1,11 @@
 GameListViewTest = TestCase("GameListViewTest")
 
 GameListViewTest.prototype.setUp = function() {
-	this.ajax = FakeAjax.getInstance();
-	this.gameLister = GameLister.getInstance("12345", this.ajax);
-	this.templateRenderer = mock(TemplateRenderer);
-	this.gameListDiv = mock(FakeJQueryElement);
-	this.testObj = new GameListView(this.gameLister, this.templateRenderer, this.gameListDiv);
+	this.ajax = TEST.FakeAjax.getInstance();
+	this.gameLister = AVOCADO.GameLister.getInstance("12345", this.ajax);
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.gameListDiv = mock(TEST.FakeJQueryElement);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv);
 };
 
 GameListViewTest.prototype.testShowDisplayCorrectHtml = function() {

@@ -2,8 +2,8 @@ GameCreatorTest = TestCase("GameCreatorTest")
 
 GameCreatorTest.prototype.setUp = function() {
 	this.fbId = "12345";
-	this.ajax = mock(Ajax);
-	this.button = mock(FakeJQueryElement);
+	this.ajax = mock(AVOCADO.Ajax);
+	this.button = mock(TEST.FakeJQueryElement);
 	this.buildTestObj();
 };
 
@@ -23,5 +23,5 @@ GameCreatorTest.prototype.testInitBindsButtonClickHandler = function() {
 };
 
 GameCreatorTest.prototype.buildTestObj = function() {
-	this.testObj = GameCreator.getInstance(this.fbId, this.ajax, this.button);
+	this.testObj = AVOCADO.GameCreator.getInstance(this.fbId, this.ajax, this.button);
 };

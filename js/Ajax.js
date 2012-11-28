@@ -1,4 +1,8 @@
-Ajax = function(jqueryWrapper, ajaxUrl) {
+if (AVOCADO == undefined) { 
+	var AVOCADO = {};
+}
+
+AVOCADO.Ajax = function(jqueryWrapper, ajaxUrl) {
 	var self = this;
 
 	this.call = function(action, data, callback) {
@@ -17,6 +21,6 @@ Ajax = function(jqueryWrapper, ajaxUrl) {
 	};
 };
 
-Ajax.getInstance = function(jqueryWrapper, ajaxUrl) {
-	return new Ajax(jqueryWrapper, ajaxUrl);
+AVOCADO.Ajax.getInstance = function(jqueryWrapper, ajaxUrl) {
+	return new AVOCADO.Ajax(jqueryWrapper, ajaxUrl);
 };
