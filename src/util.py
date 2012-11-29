@@ -158,3 +158,23 @@ class TemplateManager(object):
 
 	def getTemplates(self):
 		return self._templates
+
+class HandRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return HandRetriever()
+
+	def __init__(self):
+		super(HandRetriever, self).__init__()
+
+	def getHand(self, playerId, gameObj):
+		sequenceObj = gameObj.getSequence()
+		if None == sequenceObj:
+			return []
+		roundObj = sequenceObj.getRound()
+		if playerId not in roundObj.hands:
+			return []
+		return roundObj.hands[playerId]

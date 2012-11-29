@@ -8,6 +8,8 @@ from mockito import *
 
 from src import util
 from src import model
+from src import game
+from src import euchre
 
 class RequestDataAccessorTest(testhelper.TestCase):
 	def setUp(self):
@@ -145,3 +147,28 @@ class TemplateManagerTest(testhelper.TestCase):
 			templateId = os.path.basename(self.filenames[i]).replace(".template", "")
 			self.assertIn(templateId, result)
 			self.assertEqual(self.contents[i], result[templateId])
+
+class HandRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.teams = [["1", "2"], ["3", "4"]]
+		self.game = euchre.Game.getInstance(self.players, self.teams)
+		self.testObj = util.HandRetriever.getInstance()
+
+	def testGetHandReturnsCorrectData(self):
+		playerId = "2"
+		self.game.startGame()
+		expectedHand = self.game._curSequence._round.hands[playerId]
+		result = self.testObj.getHand(playerId, self.game)
+		self.assertEqual(expectedHand, result)
+
+	def testGetHandReturnsEmptyListWhenGameNotStarted(self):
+		playerId = "1"
+		result = self.testObj.getHand(playerId, self.game)
+		self.assertEqual([], result)
+
+	def testGetHandReturnsEmptyListWhenPlayerIdNotInGame(self):
+		playerId = "8"
+		self.game.startGame()
+		result = self.testObj.getHand(playerId, self.game)
+		self.assertEqual([], result)

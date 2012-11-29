@@ -300,6 +300,9 @@ class Sequence(object):
 	def scoreCurrentRound(self, scoreTracker):
 		scoreTracker.recordRoundScore(self._round, self._trumpSelector.getSelectingPlayerId())
 
+	def getRound(self):
+		return self._round
+
 class SequenceFactory(object):
 	instance = None
 	@classmethod

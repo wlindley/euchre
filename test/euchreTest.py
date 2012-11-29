@@ -456,6 +456,9 @@ class SequenceTest(testhelper.TestCase):
 		self.sequence.scoreCurrentRound(scoreTracker)
 		verify(scoreTracker).recordRoundScore(self.round, callingPlayerId)
 
+	def testGetRoundReturnsCurrentRound(self):
+		self.assertEqual(self.round, self.sequence.getRound())
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
