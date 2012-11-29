@@ -116,8 +116,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.existingTeams = [["1"], ["2"]]
 		self.requestData = {"gameId" : self.gameId}
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		for key, val in self.requestData.iteritems():
-			when(self.requestDataAccessor).get(key).thenReturn(val)
+		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameModel = testhelper.createMock(model.GameModel)
@@ -151,12 +150,22 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 	def testExecuteAddsPlayerToTeamAndGame(self):
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
 		expectedPlayerIds, expectedTeams = self._trainPlayerIdAndTeam("3", 0)
+		when(self.requestDataAccessor).get("team").thenReturn("0")
 		self.testObj.execute()
 		self.assertEqual(expectedPlayerIds, self.gameModel.playerId)
 		self.assertEqual(json.dumps(expectedTeams), self.gameModel.teams)
 		verify(self.gameModel).put()
 		verifyZeroInteractions(src.euchre.Game)
 		self._assertResponseResult(True)
+
+	def textExecuteDoesNotBlowUpIfBadIntegerIsPassed(self):
+		self.requestDataAccessor = testhelper.createMock(util.RequestDataAccessor)
+		when(self.requestDataAccessor).get("gameId").thenReturn("1.283")
+		when(self.requestDataAccessor).get("team").thenReturn(".5")
+		when(self.requestDataAccessor).get("playerId").thenReturn("12345")
+		self.testObj = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testExecuteDoesNothingIfPlayerAlreadyInGame(self):
 		self._trainPlayerIdAndTeam("1", 1)

@@ -5,4 +5,5 @@ js/GameLister.js
 js/GameListView.js
 js/GameCreator.js
 js/TemplateRenderer.js
+js/GameJoiner.js
 js/init.js

@@ -115,15 +115,22 @@ class AddPlayerExecutable(AbstractExecutable):
 		self._gameSerializer = gameSerializer
 
 	def execute(self):
-		gameId = self._requestDataAccessor.get("gameId")
+		try:
+			gameId = int(self._requestDataAccessor.get("gameId"))
+			team = int(self._requestDataAccessor.get("team"))
+		except ValueError:
+			logging.info("Non-integer gameId (%s) or team (%s) specified" % (self._requestDataAccessor.get("gameId"), self._requestDataAccessor.get("team")))
+			self._responseWriter.write(json.dumps({"success" : False}))
+			return
 		playerId = self._requestDataAccessor.get("playerId")
-		team = self._requestDataAccessor.get("team")
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 		if None == gameModel or playerId in gameModel.playerId or 1 < team or 0 > team:
+			logging.info("No game found for gameId %s or player %s is already in game or invalid team of %s specified" % (gameId, playerId, team))
 			self._responseWriter.write(json.dumps({"success" : False}))
 			return
 		teamInfo = json.loads(gameModel.teams)
 		if MAX_TEAM_SIZE <= len(teamInfo[team]):
+			logging.info("Player %s cannot join game %s because it is already full" % (playerId, gameId))
 			self._responseWriter.write(json.dumps({"success" : False}))
 			return
 		gameModel.playerId.append(playerId)
