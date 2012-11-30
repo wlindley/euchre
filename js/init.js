@@ -5,8 +5,8 @@ $(function() {
 		window.templateRenderer = AVOCADO.TemplateRenderer.getInstance(EUCHRE.templates);
 		window.gameLister = AVOCADO.GameLister.getInstance(EUCHRE.playerId, window.ajax);
 		window.gameListView = AVOCADO.GameListView.getInstance(window.gameLister, window.templateRenderer, $('#gameList'));
-		window.gameCreator = AVOCADO.GameCreator.getInstance(EUCHRE.playerId, window.ajax, $('#btnCreateGame'));
-		window.gameJoiner = AVOCADO.GameJoiner.getInstance(EUCHRE.playerId, window.ajax, $("#txtGameId"), $("#txtTeam"), $("#btnJoinGame"));
+		window.gameCreator = AVOCADO.GameCreator.getInstance(EUCHRE.playerId, window.ajax, $('#btnCreateGame'), window.gameListView);
+		window.gameJoiner = AVOCADO.GameJoiner.getInstance(EUCHRE.playerId, window.ajax, $("#txtGameId"), $("#txtTeam"), $("#btnJoinGame"), window.gameListView);
 	}
 
 	function initObjects() {

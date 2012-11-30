@@ -6,6 +6,7 @@ GameJoinerTest.prototype.setUp = function() {
 	this.txtGameId = mock(TEST.FakeJQueryElement);
 	this.txtTeamId = mock(TEST.FakeJQueryElement);
 	this.btnJoinGame = mock(TEST.FakeJQueryElement);
+	this.gameListView = mock(AVOCADO.GameListView);
 	this.buildTestObj();
 };
 
@@ -26,6 +27,26 @@ GameJoinerTest.prototype.testInitBindsJoinGameButton = function() {
 	verify(this.btnJoinGame).click(this.testObj.joinGameFromTextFields);
 };
 
+GameJoinerTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.ajax.callbackResponse = {"success" : true};
+	this.buildTestObj();
+
+	this.testObj.joinGameFromTextFields();
+
+	verify(this.gameListView).show();
+};
+
+GameJoinerTest.prototype.testUnsuccessfulJoinGameResponseDoesNotRefreshesGameListView = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.ajax.callbackResponse = {"success" : false};
+	this.buildTestObj();
+
+	this.testObj.joinGameFromTextFields();
+
+	verify(this.gameListView, never()).show();
+};
+
 GameJoinerTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameJoiner(this.fbId, this.ajax, this.txtGameId, this.txtTeamId, this.btnJoinGame);
+	this.testObj = new AVOCADO.GameJoiner(this.fbId, this.ajax, this.txtGameId, this.txtTeamId, this.btnJoinGame, this.gameListView);
 };
