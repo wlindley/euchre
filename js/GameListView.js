@@ -12,10 +12,21 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv) {
 	function handleGameListResponse(response) {
 		var html = "";
 		for (var i = 0; i < response.games.length; i++) {
-			html += templateRenderer.renderTemplate("gameListEntry", response.games[i]);
+			html += templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i]));
 		}
 		gameListDiv.html(html);
 		gameListDiv.show();
+	}
+
+	function buildTemplateValues(gameData) {
+		var values = {
+			"gameId" : gameData.gameId,
+			"hand" : ""
+		};
+		for (var i = 0; i < gameData.hand.length; i++) {
+			values.hand += templateRenderer.renderTemplate("card", gameData.hand[i]);
+		}
+		return values;
 	}
 };
 

@@ -1,3 +1,5 @@
 <div class="gameListEntry">
-	<p>Game id: %gameId%</p>
+	<div>Game id: %gameId%</div>
+	<div>Hand:</div>
+	<div>%hand%</div>
 </div>

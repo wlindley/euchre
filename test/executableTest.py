@@ -85,19 +85,43 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.handRetriever = testhelper.createSingletonMock(util.HandRetriever)
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
-	def testExecuteReturnsCorrectGameIds(self):
+	def testExecuteReturnsCorrectGameData(self):
 		playerId = "2854"
 		when(self.requestDataAccessor).get("playerId").thenReturn(playerId)
+
+		serializedGames = ["serialized game 1", "serialized game 2"]
+		gameIds = ["1000", "4000"]
 		gameModels = [testhelper.createMock(model.GameModel), testhelper.createMock(model.GameModel)]
-		gameModels[0].gameId = "1000"
-		gameModels[1].gameId = "4000"
+		for i in range(len(gameModels)):
+			gameModels[i].gameId = gameIds[i]
+			gameModels[i].serializedGame = serializedGames[i]
 		when(self.gameModelFinder).getGamesForPlayerId(playerId).thenReturn(gameModels)
+
+		games = [testhelper.createMock(euchre.Game), testhelper.createMock(euchre.Game)]
+		hands = [[euchre.Card(suit=euchre.SUIT_HEARTS, value=9), euchre.Card(suit=euchre.SUIT_CLUBS, value=10)], [euchre.Card(suit=euchre.SUIT_SPADES, value=11), euchre.Card(suit=euchre.SUIT_DIAMONDS, value=8)]]
+		for i in range(len(games)):
+			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
+			when(self.handRetriever).getHand(playerId, games[i]).thenReturn(hands[i])
 		
 		self.testObj.execute()
 
-		verify(self.responseWriter).write(json.dumps({"games" : [{"gameId" : gameModels[0].gameId}, {"gameId" : gameModels[1].gameId}]}))
+		expectedResponse = {
+			"success" : True,
+			"games" : []
+		}
+
+		for i in range(len(gameModels)):
+			hand = [{"suit" : c.suit, "value" : c.value} for c in hands[i]]
+			expectedResponse["games"].append({
+				"gameId" : gameModels[i].gameId,
+				"hand" : hand
+			})
+
+		verify(self.responseWriter).write(json.dumps(expectedResponse))
 
 class DefaultExecutableTest(testhelper.TestCase):
 	def setUp(self):

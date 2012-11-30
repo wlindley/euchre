@@ -78,17 +78,29 @@ class ListGamesExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.HandRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, handRetriever):
 		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+		self._handRetriever = handRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
 		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
-		gameDatas = [{"gameId" : model.gameId} for model in gameModels]
-		self._responseWriter.write(json.dumps({"games" : gameDatas}))
+		gameDatas = [self._buildGameData(playerId, gameModel) for gameModel in gameModels]
+		self._responseWriter.write(json.dumps({"games" : gameDatas, "success" : True}))
+
+	def _buildGameData(self, playerId, gameModel):
+		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+		return {
+			"gameId" : gameModel.gameId,
+			"hand" : self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		}
+
+	def _convertHand(self, hand):
+		return [{"suit" : card.suit, "value" : card.value} for card in hand]
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None
