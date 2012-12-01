@@ -90,25 +90,46 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.handRetriever = testhelper.createSingletonMock(util.HandRetriever)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
 		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteReturnsCorrectGameData(self):
+		NUM_GAMES = 4
 		playerId = "2854"
 		when(self.requestDataAccessor).get("playerId").thenReturn(playerId)
+		participatingPlayerIds = [playerId, "54321", "8976", "12345"]
 
-		serializedGames = ["serialized game 1", "serialized game 2"]
-		gameIds = ["1000", "4000"]
-		gameModels = [testhelper.createMock(model.GameModel), testhelper.createMock(model.GameModel)]
-		for i in range(len(gameModels)):
-			gameModels[i].gameId = gameIds[i]
-			gameModels[i].serializedGame = serializedGames[i]
+		serializedGames = []
+		gameIds = []
+		gameModels = []
+		games = []
+		hands = []
+		sequences = []
+		currentTurns = []
+		for i in range(NUM_GAMES):
+			serializedGames.append("serialized game %s" % i)
+			gameIds.append(str(i * 1000))
+			gameModels.append(testhelper.createMock(model.GameModel))
+			games.append(testhelper.createMock(euchre.Game))
+			hands.append([euchre.Card(suit=1+i, value=9+i)])
+			sequences.append(testhelper.createMock(euchre.Sequence))
+			currentTurns = participatingPlayerIds[i % len(participatingPlayerIds)]
+		sequenceStates = [euchre.Sequence.STATE_TRUMP_SELECTION, euchre.Sequence.STATE_PLAYING_ROUND, euchre.Sequence.STATE_TRUMP_SELECTION_2, euchre.Sequence.STATE_TRUMP_SELECTION]
+		statuses = ["trump_selection", "round_in_progress", "trump_selection_2", "waiting_for_more_players"]
+
 		when(self.gameModelFinder).getGamesForPlayerId(playerId).thenReturn(gameModels)
 
-		games = [testhelper.createMock(euchre.Game), testhelper.createMock(euchre.Game)]
-		hands = [[euchre.Card(suit=euchre.SUIT_HEARTS, value=9), euchre.Card(suit=euchre.SUIT_CLUBS, value=10)], [euchre.Card(suit=euchre.SUIT_SPADES, value=11), euchre.Card(suit=euchre.SUIT_DIAMONDS, value=8)]]
-		for i in range(len(games)):
+		for i in range(NUM_GAMES):
+			gameModels[i].playerId = participatingPlayerIds
+			gameModels[i].gameId = gameIds[i]
+			gameModels[i].serializedGame = serializedGames[i]
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
 			when(self.handRetriever).getHand(playerId, games[i]).thenReturn(hands[i])
+			when(games[i]).getSequence().thenReturn(sequences[i])
+			when(sequences[i]).getState().thenReturn(sequenceStates[i])
+			when(self.turnRetriever).retrieveTurn(games[i]).thenReturn(currentTurns[i])
+		gameModels[3].playerId = gameModels[3].playerId[:2]
+		gameModels[3].serializedGame = ""
 		
 		self.testObj.execute()
 
@@ -117,12 +138,20 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			"games" : []
 		}
 
-		for i in range(len(gameModels)):
+		for i in range(NUM_GAMES - 1):
 			hand = [{"suit" : c.suit, "value" : c.value} for c in hands[i]]
 			expectedResponse["games"].append({
 				"gameId" : gameModels[i].gameId,
-				"hand" : hand
+				"hand" : hand,
+				"status" : statuses[i],
+				"currentPlayerId" : currentTurns[i],
+				"playerIds" : participatingPlayerIds
 			})
+		expectedResponse["games"].append({
+			"gameId" : gameModels[3].gameId,
+			"playerIds" : gameModels[3].playerId,
+			"status" : statuses[3]
+		})
 
 		verify(self.responseWriter).write(json.dumps(expectedResponse))
 

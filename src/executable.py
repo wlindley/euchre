@@ -82,13 +82,14 @@ class ListGamesExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.HandRetriever.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.HandRetriever.getInstance(), util.TurnRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, handRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, handRetriever, turnRetriever):
 		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._handRetriever = handRetriever
+		self._turnRetriever = turnRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -97,14 +98,31 @@ class ListGamesExecutable(AbstractExecutable):
 		self._writeResponse({"games" : gameDatas, "success" : True})
 
 	def _buildGameData(self, playerId, gameModel):
-		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
-		return {
+		gameData = {
 			"gameId" : gameModel.gameId,
-			"hand" : self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+			"playerIds" : gameModel.playerId
 		}
+		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
+			gameData["status"] = "waiting_for_more_players"
+		else:
+			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+			gameData["status"] = self._getStatusFromGame(gameObj)
+			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+			gameData["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		return gameData
 
 	def _convertHand(self, hand):
 		return [{"suit" : card.suit, "value" : card.value} for card in hand]
+
+	def _getStatusFromGame(self, gameObj):
+		sequence = gameObj.getSequence()
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
+			return "trump_selection"
+		elif euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
+			return "trump_selection_2"
+		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
+			return "round_in_progress"
+		return ""
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None
