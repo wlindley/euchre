@@ -24,7 +24,8 @@ class ExecutableFactory(object):
 		self._executables = {
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
-			"addPlayer" : AddPlayerExecutable
+			"addPlayer" : AddPlayerExecutable,
+			"getGameData" : GetGameDataExecutable
 		}
 
 	def createExecutable(self):
@@ -44,6 +45,9 @@ class AbstractExecutable(object):
 	def execute(self, *args, **kwargs):
 		return None
 
+	def _writeResponse(self, response):
+		self._responseWriter.write(json.dumps(response))
+
 class CreateGameExecutable(AbstractExecutable):
 	instance = None
 	@classmethod
@@ -61,7 +65,7 @@ class CreateGameExecutable(AbstractExecutable):
 		playerId = self._requestDataAccessor.get("playerId")
 		team = int(self._requestDataAccessor.get("team"))
 		if 1 < team or 0 > team:
-			self._responseWriter.write(json.dumps({"success" : False}))
+			self._writeResponse({"success" : False})
 			return
 		gameId = self._gameIdTracker.getGameId()
 		gameModel = self._gameModelFactory.create(gameId)
@@ -70,7 +74,7 @@ class CreateGameExecutable(AbstractExecutable):
 		teamInfo[team].append(playerId)
 		gameModel.teams = json.dumps(teamInfo)
 		gameModel.put()
-		self._responseWriter.write(json.dumps({"success" : True, "gameId" : gameId}))
+		self._writeResponse({"success" : True, "gameId" : gameId})
 
 class ListGamesExecutable(AbstractExecutable):
 	instance = None
@@ -90,7 +94,7 @@ class ListGamesExecutable(AbstractExecutable):
 		playerId = self._requestDataAccessor.get("playerId")
 		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
 		gameDatas = [self._buildGameData(playerId, gameModel) for gameModel in gameModels]
-		self._responseWriter.write(json.dumps({"games" : gameDatas, "success" : True}))
+		self._writeResponse({"games" : gameDatas, "success" : True})
 
 	def _buildGameData(self, playerId, gameModel):
 		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
@@ -111,7 +115,7 @@ class DefaultExecutable(AbstractExecutable):
 		return DefaultExecutable(requestDataAccessor, responseWriter)
 
 	def execute(self):
-		self._responseWriter.write(json.dumps({}))
+		self._writeResponse({})
 
 class AddPlayerExecutable(AbstractExecutable):
 	instance = None
@@ -132,18 +136,18 @@ class AddPlayerExecutable(AbstractExecutable):
 			team = int(self._requestDataAccessor.get("team"))
 		except ValueError:
 			logging.info("Non-integer gameId (%s) or team (%s) specified" % (self._requestDataAccessor.get("gameId"), self._requestDataAccessor.get("team")))
-			self._responseWriter.write(json.dumps({"success" : False}))
+			self._writeResponse({"success" : False})
 			return
 		playerId = self._requestDataAccessor.get("playerId")
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 		if None == gameModel or playerId in gameModel.playerId or 1 < team or 0 > team:
 			logging.info("No game found for gameId %s or player %s is already in game or invalid team of %s specified" % (gameId, playerId, team))
-			self._responseWriter.write(json.dumps({"success" : False}))
+			self._writeResponse({"success" : False})
 			return
 		teamInfo = json.loads(gameModel.teams)
 		if MAX_TEAM_SIZE <= len(teamInfo[team]):
 			logging.info("Player %s cannot join game %s because it is already full" % (playerId, gameId))
-			self._responseWriter.write(json.dumps({"success" : False}))
+			self._writeResponse({"success" : False})
 			return
 		gameModel.playerId.append(playerId)
 		teamInfo[team].append(playerId)
@@ -154,4 +158,63 @@ class AddPlayerExecutable(AbstractExecutable):
 			gameObj.startGame()
 			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
-		self._responseWriter.write(json.dumps({"success" : True}))
+		self._writeResponse({"success" : True})
+
+class GetGameDataExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever):
+		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+		self._turnRetriever = turnRetriever
+
+	def execute(self):
+		playerId = self._requestDataAccessor.get("playerId")
+		try:
+			gameId = int(self._requestDataAccessor.get("gameId"))
+		except ValueError:
+			self._writeResponse({"success" : False})
+			return
+
+		if "" == playerId:
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+
+		if None == gameModel:
+			self._writeResponse({"success" : False})
+			return
+
+		response = {
+			"success" : True
+		}
+
+		if 4 > len(gameModel.playerId):
+			response["status"] = "waiting_for_players"
+			response["playerIds"] = gameModel.playerId
+			self._writeResponse(response)
+			return
+		else:
+			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+			response["status"] = self._translateStatusFromGame(gameObj)
+			response["playerIds"] = gameModel.playerId
+			response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+			self._writeResponse(response)
+			return
+
+	def _translateStatusFromGame(self, gameObj):
+		sequence = gameObj.getSequence()
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
+			return "trump_selection"
+		if euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
+			return "trump_selection_2"
+		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
+			return "round_in_progress"
+		return ""

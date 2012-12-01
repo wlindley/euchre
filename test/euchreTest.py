@@ -187,7 +187,6 @@ class RoundTest(testhelper.TestCase):
 
 	def _buildTestObj(self):
 		self.round = euchre.Round.getInstance(self.players, self.hands, self.trump)
-		#self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
 
 	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
 		self.round.startRound()
@@ -300,6 +299,11 @@ class RoundTest(testhelper.TestCase):
 		self.round.setTrump(trump)
 		verify(trickEvaluator).setTrump(trump)
 
+	def testGetTurnTrackerReturnsTheTurnTracker(self):
+		turnTracker = testhelper.createSingletonMock(game.TurnTracker)
+		self._buildTestObj()
+		self.assertEqual(turnTracker, self.round.getTurnTracker())
+
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -351,6 +355,9 @@ class TrumpSelectorTest(testhelper.TestCase):
 		self.assertEqual(None, self.trumpSelector.getSelectingPlayerId())
 		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
 		self.assertEqual(self.players[0].playerId, self.trumpSelector.getSelectingPlayerId())
+
+	def testGetTurnTrackerReturnsTheTurnTracker(self):
+		self.assertEqual(self.turnTracker, self.trumpSelector.getTurnTracker())
 
 class SequenceTest(testhelper.TestCase):
 	def _createPlayersAndHands(self):
@@ -458,6 +465,9 @@ class SequenceTest(testhelper.TestCase):
 
 	def testGetRoundReturnsCurrentRound(self):
 		self.assertEqual(self.round, self.sequence.getRound())
+
+	def testGetTrumpSelectorReturnsCurrentTrumpSelector(self):
+		self.assertEqual(self.trumpSelector, self.sequence.getTrumpSelector())
 
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):

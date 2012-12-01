@@ -172,3 +172,55 @@ class HandRetrieverTest(testhelper.TestCase):
 		self.game.startGame()
 		result = self.testObj.getHand(playerId, self.game)
 		self.assertEqual([], result)
+
+class TurnRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
+		self.teams = [["1", "2"], ["3", "4"]]
+		self.sequence = testhelper.createSingletonMock(euchre.Sequence)
+		self.trumpTurnTracker = testhelper.createMock(game.TurnTracker)
+		self.roundTurnTracker = testhelper.createMock(game.TurnTracker)
+		self.round = testhelper.createSingletonMock(euchre.Round)
+		self.trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
+		when(self.sequence).getRound().thenReturn(self.round)
+		when(self.sequence).getTrumpSelector().thenReturn(self.trumpSelector)
+		when(self.round).getTurnTracker().thenReturn(self.roundTurnTracker)
+		when(self.trumpSelector).getTurnTracker().thenReturn(self.trumpTurnTracker)
+		self.game = euchre.Game.getInstance(self.players, self.teams)
+		self.testObj = util.TurnRetriever.getInstance()
+
+	def testReturnsCorrectDataDuringTrumpSelection(self):
+		currentPlayer = "3"
+		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
+		self.game.startGame()
+		result = self.testObj.retrieveTurn(self.game)
+		self.assertEqual(currentPlayer, result)
+
+	def testReturnsCorrectDataDuringTrumpSelection2(self):
+		currentPlayer = "2"
+		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
+		self.game.startGame()
+		result = self.testObj.retrieveTurn(self.game)
+		self.assertEqual(currentPlayer, result)
+
+	def testReturnsCorrectDataDuringGamePlay(self):
+		currentPlayer = "4"
+		when(self.roundTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
+		self.game.startGame()
+		result = self.testObj.retrieveTurn(self.game)
+		self.assertEqual(currentPlayer, result)
+
+	def testReturnsNoneIfGameNotStarted(self):
+		result = self.testObj.retrieveTurn(self.game)
+		self.assertEqual(None, result)
+
+	def testReturnsNoneIfSequenceIsInAnotherState(self):
+		self.game.startGame()
+		when(self.roundTurnTracker).getCurrentPlayerId().thenReturn("1")
+		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn("2")
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_INVALID)
+		result = self.testObj.retrieveTurn(self.game)
+		self.assertEqual(None, result)

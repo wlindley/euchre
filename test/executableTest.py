@@ -36,6 +36,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsAddPlayerExecutableWhenActionIsAddPlayer(self):
 		self._runTestForAction("addPlayer", "AddPlayerExecutable")
 
+	def testCallsGetGameDataExecutableWhenActionIsGetGameData(self):
+		self._runTestForAction("getGameData", "GetGameDataExecutable")
+
 class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerId = "1"
@@ -247,3 +250,105 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.assertEqual(serializedGame, self.gameModel.serializedGame)
 		verify(self.gameModel).put()
 		self._assertResponseResult(True)
+
+class GetGameDataExecutableTest(testhelper.TestCase):
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameId = 12345
+		self.gameModel = testhelper.createMock(model.GameModel)
+		self.gameModel.gameId = self.gameId
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+		self.playerId = "09876"
+		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
+		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
+		self.gameObj = testhelper.createMock(euchre.Game)
+		self.serializedGame = "a serialized game"
+		self.gameModel.serializedGame = self.serializedGame
+		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.gameObj)
+		self.sequence = testhelper.createMock(euchre.Sequence)
+		when(self.gameObj).getSequence().thenReturn(self.sequence)
+
+		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def testReturnsWaitingForMorePlayersIfNotEnoughPeopleHaveJoined(self):
+		playerIds = [self.playerId, "2"]
+		self.gameModel.playerId = playerIds
+
+		self.testObj.execute()
+
+		expectedResponse = {
+			"success" : True,
+			"status" : "waiting_for_players",
+			"playerIds" : playerIds
+		}
+		verify(self.responseWriter).write(json.dumps(expectedResponse))
+
+	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenTrumpSelectionInProgress(self):
+		playerIds = [self.playerId, "2", "3", "4"]
+		self.gameModel.playerId = playerIds
+		currentPlayerId = playerIds[2]
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
+
+		self.testObj.execute()
+
+		expectedResponse = {
+			"success" : True,
+			"status" : "trump_selection",
+			"playerIds" : playerIds,
+			"currentPlayerId" : currentPlayerId
+		}
+		verify(self.responseWriter).write(json.dumps(expectedResponse))
+
+	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenSecondTrumpSelectionInProgress(self):
+		playerIds = [self.playerId, "2", "3", "4"]
+		self.gameModel.playerId = playerIds
+		currentPlayerId = playerIds[2]
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
+
+		self.testObj.execute()
+
+		expectedResponse = {
+			"success" : True,
+			"status" : "trump_selection_2",
+			"playerIds" : playerIds,
+			"currentPlayerId" : currentPlayerId
+		}
+		verify(self.responseWriter).write(json.dumps(expectedResponse))
+
+	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenRoundInProgress(self):
+		playerIds = [self.playerId, "2", "3", "4"]
+		self.gameModel.playerId = playerIds
+		currentPlayerId = playerIds[2]
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
+
+		self.testObj.execute()
+
+		expectedResponse = {
+			"success" : True,
+			"status" : "round_in_progress",
+			"playerIds" : playerIds,
+			"currentPlayerId" : currentPlayerId
+		}
+		verify(self.responseWriter).write(json.dumps(expectedResponse))
+
+	def testReturnsFailureWhenPlayerIdIsInvalid(self):
+		when(self.requestDataAccessor).get("playerId").thenReturn("")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testReturnsFailureWhenGameIdIsInvalid(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn("foo")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testReturnsFailureWhenGameNotFound(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId + 1)
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))

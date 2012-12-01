@@ -186,6 +186,9 @@ class Round(object):
 	def setTrump(self, trumpSuit):
 		self._trickEvaluator.setTrump(trumpSuit)
 
+	def getTurnTracker(self):
+		return self._turnTracker
+
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
 		self._incrementScore(winner)
@@ -227,6 +230,9 @@ class TrumpSelector(object):
 
 	def getSelectingPlayerId(self):
 		return self._selectingPlayerId
+
+	def getTurnTracker(self):
+		return self._turnTracker
 
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
@@ -302,6 +308,9 @@ class Sequence(object):
 
 	def getRound(self):
 		return self._round
+
+	def getTrumpSelector(self):
+		return self._trumpSelector
 
 class SequenceFactory(object):
 	instance = None

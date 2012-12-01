@@ -4,6 +4,8 @@ import json
 import os.path
 import glob
 
+from src import euchre
+
 class RequestDataAccessor(object):
 	instance = None
 	@classmethod
@@ -178,3 +180,23 @@ class HandRetriever(object):
 		if playerId not in roundObj.hands:
 			return []
 		return roundObj.hands[playerId]
+
+class TurnRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TurnRetriever()
+
+	def retrieveTurn(self, gameObj):
+		sequence = gameObj.getSequence()
+		if None == sequence:
+			return None
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState() or euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
+			turnTracker = sequence.getTrumpSelector().getTurnTracker()
+		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
+			turnTracker = sequence.getRound().getTurnTracker()
+		else:
+			return None
+		return turnTracker.getCurrentPlayerId()
