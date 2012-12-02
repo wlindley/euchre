@@ -10,3 +10,7 @@
 	background-color: blue;
 	font-weight: bold;
 }
+
+.gameListEntrySpacer {
+	height: 5px;
+}

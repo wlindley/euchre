@@ -3,3 +3,4 @@
 	<div>Status: %status%</div>
 	<div>Player IDs: %playerIds%</div>
 </div>
+<div class="gameListEntrySpacer"></div>
