@@ -23,6 +23,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv) {
 			"gameId" : gameData.gameId,
 			"status" : gameData.status,
 			"playerIds" : gameData.playerIds,
+			"currentPlayer" : gameData.currentPlayerId,
 		};
 		return values;
 	}
