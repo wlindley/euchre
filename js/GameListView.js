@@ -21,11 +21,9 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv) {
 	function buildTemplateValues(gameData) {
 		var values = {
 			"gameId" : gameData.gameId,
-			"hand" : ""
+			"status" : gameData.status,
+			"playerIds" : gameData.playerIds,
 		};
-		for (var i = 0; i < gameData.hand.length; i++) {
-			values.hand += templateRenderer.renderTemplate("card", gameData.hand[i]);
-		}
 		return values;
 	}
 };

@@ -1,5 +1,5 @@
 <div class="gameListEntry">
 	<div>Game id: %gameId%</div>
-	<div>Hand:</div>
-	<div>%hand%</div>
+	<div>Status: %status%</div>
+	<div>Player IDs: %playerIds%</div>
 </div>
