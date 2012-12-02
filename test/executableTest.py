@@ -88,7 +88,6 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
-		self.handRetriever = testhelper.createSingletonMock(util.HandRetriever)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
 		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
@@ -103,7 +102,6 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		gameIds = []
 		gameModels = []
 		games = []
-		hands = []
 		sequences = []
 		currentTurns = []
 		for i in range(NUM_GAMES):
@@ -111,11 +109,11 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			gameIds.append(str(i * 1000))
 			gameModels.append(testhelper.createMock(model.GameModel))
 			games.append(testhelper.createMock(euchre.Game))
-			hands.append([euchre.Card(suit=1+i, value=9+i)])
 			sequences.append(testhelper.createMock(euchre.Sequence))
-			currentTurns = participatingPlayerIds[i % len(participatingPlayerIds)]
+			currentTurns.append(participatingPlayerIds[i % len(participatingPlayerIds)])
 		sequenceStates = [euchre.Sequence.STATE_TRUMP_SELECTION, euchre.Sequence.STATE_PLAYING_ROUND, euchre.Sequence.STATE_TRUMP_SELECTION_2, euchre.Sequence.STATE_TRUMP_SELECTION]
 		statuses = ["trump_selection", "round_in_progress", "trump_selection_2", "waiting_for_more_players"]
+		currentTurns[3] = None
 
 		when(self.gameModelFinder).getGamesForPlayerId(playerId).thenReturn(gameModels)
 
@@ -124,7 +122,6 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			gameModels[i].gameId = gameIds[i]
 			gameModels[i].serializedGame = serializedGames[i]
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
-			when(self.handRetriever).getHand(playerId, games[i]).thenReturn(hands[i])
 			when(games[i]).getSequence().thenReturn(sequences[i])
 			when(sequences[i]).getState().thenReturn(sequenceStates[i])
 			when(self.turnRetriever).retrieveTurn(games[i]).thenReturn(currentTurns[i])
@@ -138,20 +135,14 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			"games" : []
 		}
 
-		for i in range(NUM_GAMES - 1):
-			hand = [{"suit" : c.suit, "value" : c.value} for c in hands[i]]
+		for i in range(NUM_GAMES):
 			expectedResponse["games"].append({
 				"gameId" : gameModels[i].gameId,
-				"hand" : hand,
 				"status" : statuses[i],
 				"currentPlayerId" : currentTurns[i],
 				"playerIds" : participatingPlayerIds
 			})
-		expectedResponse["games"].append({
-			"gameId" : gameModels[3].gameId,
-			"playerIds" : gameModels[3].playerId,
-			"status" : statuses[3]
-		})
+		expectedResponse["games"][3]["playerIds"] = participatingPlayerIds[:2]
 
 		verify(self.responseWriter).write(json.dumps(expectedResponse))
 
@@ -319,6 +310,11 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"playerIds" : playerIds,
 			"currentPlayerId" : self.playerId
 		}))
+
+	def testReturnsFailureWhenGameNotStartedYet(self):
+		self.gameModel.serializedGame = ""
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testReturnsFailureWhenPlayerIdIsInvalid(self):
 		when(self.requestDataAccessor).get("playerId").thenReturn("")

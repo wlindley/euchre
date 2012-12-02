@@ -82,13 +82,12 @@ class ListGamesExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.HandRetriever.getInstance(), util.TurnRetriever.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, handRetriever, turnRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever):
 		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
-		self._handRetriever = handRetriever
 		self._turnRetriever = turnRetriever
 
 	def execute(self):
@@ -104,15 +103,12 @@ class ListGamesExecutable(AbstractExecutable):
 		}
 		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
 			gameData["status"] = "waiting_for_more_players"
+			gameData["currentPlayerId"] = None
 		else:
 			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
 			gameData["status"] = self._getStatusFromGame(gameObj)
 			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
-			gameData["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
 		return gameData
-
-	def _convertHand(self, hand):
-		return [{"suit" : card.suit, "value" : card.value} for card in hand]
 
 	def _getStatusFromGame(self, gameObj):
 		sequence = gameObj.getSequence()
@@ -207,7 +203,7 @@ class GetGameDataExecutable(AbstractExecutable):
 
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 
-		if None == gameModel:
+		if None == gameModel or None == gameModel.serializedGame or "" == gameModel.serializedGame:
 			self._writeResponse({"success" : False})
 			return
 
