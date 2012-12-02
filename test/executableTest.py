@@ -294,6 +294,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
+		self.handRetriever = testhelper.createSingletonMock(util.HandRetriever)
 		self.gameObj = testhelper.createMock(euchre.Game)
 		self.serializedGame = "a serialized game"
 		self.gameModel.serializedGame = self.serializedGame
@@ -303,69 +304,21 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 
 		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
-	def testReturnsWaitingForMorePlayersIfNotEnoughPeopleHaveJoined(self):
-		playerIds = [self.playerId, "2"]
-		self.gameModel.playerId = playerIds
-
-		self.testObj.execute()
-
-		expectedResponse = {
-			"success" : True,
-			"status" : "waiting_for_players",
-			"playerIds" : playerIds
-		}
-		verify(self.responseWriter).write(json.dumps(expectedResponse))
-
-	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenTrumpSelectionInProgress(self):
+	def testReturnsCorrectDataWhenCalledWithValidData(self):
 		playerIds = [self.playerId, "2", "3", "4"]
 		self.gameModel.playerId = playerIds
-		currentPlayerId = playerIds[2]
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
-		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
+		hand = [euchre.Card(suit=euchre.SUIT_DIAMONDS, value=10), euchre.Card(suit=euchre.SUIT_CLUBS, value=8)]
+		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(hand)
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
 
 		self.testObj.execute()
 
-		expectedResponse = {
+		verify(self.responseWriter).write(json.dumps({
 			"success" : True,
-			"status" : "trump_selection",
+			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"playerIds" : playerIds,
-			"currentPlayerId" : currentPlayerId
-		}
-		verify(self.responseWriter).write(json.dumps(expectedResponse))
-
-	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenSecondTrumpSelectionInProgress(self):
-		playerIds = [self.playerId, "2", "3", "4"]
-		self.gameModel.playerId = playerIds
-		currentPlayerId = playerIds[2]
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
-		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
-
-		self.testObj.execute()
-
-		expectedResponse = {
-			"success" : True,
-			"status" : "trump_selection_2",
-			"playerIds" : playerIds,
-			"currentPlayerId" : currentPlayerId
-		}
-		verify(self.responseWriter).write(json.dumps(expectedResponse))
-
-	def testReturnsPlayersTurnAndTrumpSelectionStatusWhenRoundInProgress(self):
-		playerIds = [self.playerId, "2", "3", "4"]
-		self.gameModel.playerId = playerIds
-		currentPlayerId = playerIds[2]
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(currentPlayerId)
-		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
-
-		self.testObj.execute()
-
-		expectedResponse = {
-			"success" : True,
-			"status" : "round_in_progress",
-			"playerIds" : playerIds,
-			"currentPlayerId" : currentPlayerId
-		}
-		verify(self.responseWriter).write(json.dumps(expectedResponse))
+			"currentPlayerId" : self.playerId
+		}))
 
 	def testReturnsFailureWhenPlayerIdIsInvalid(self):
 		when(self.requestDataAccessor).get("playerId").thenReturn("")

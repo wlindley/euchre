@@ -184,13 +184,14 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance(), util.HandRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
+		self._handRetriever = handRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -214,25 +215,11 @@ class GetGameDataExecutable(AbstractExecutable):
 			"success" : True
 		}
 
-		if 4 > len(gameModel.playerId):
-			response["status"] = "waiting_for_players"
-			response["playerIds"] = gameModel.playerId
-			self._writeResponse(response)
-			return
-		else:
-			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
-			response["status"] = self._translateStatusFromGame(gameObj)
-			response["playerIds"] = gameModel.playerId
-			response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
-			self._writeResponse(response)
-			return
+		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+		response["playerIds"] = gameModel.playerId
+		response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+		response["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		self._writeResponse(response)
 
-	def _translateStatusFromGame(self, gameObj):
-		sequence = gameObj.getSequence()
-		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
-			return "trump_selection"
-		if euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
-			return "trump_selection_2"
-		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
-			return "round_in_progress"
-		return ""
+	def _convertHand(self, hand):
+		return [{"suit" : card.suit, "value" : card.value} for card in hand]
