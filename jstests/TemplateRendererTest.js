@@ -2,7 +2,7 @@ TemplateRendererTest = TestCase("TemplateRendererTest")
 
 TemplateRendererTest.prototype.setUp = function() {
 	this.templateId = "foo";
-	this.template = "my name is %name%";
+	this.template = "my name is %name% %name%";
 	this.templates = {};
 	this.templates[this.templateId] = this.template;
 	this.testObj = new AVOCADO.TemplateRenderer(this.templates);
@@ -14,5 +14,5 @@ TemplateRendererTest.prototype.testRenderTemplateReplacesDataAndReturns = functi
 
 	var result = this.testObj.renderTemplate(this.templateId, values);
 
-	assertEquals(this.template.replace("%name%", name), result);
+	assertEquals(this.template.replace(/%name%/g, name), result);
 };

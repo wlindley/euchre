@@ -308,7 +308,8 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"success" : True,
 			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"playerIds" : playerIds,
-			"currentPlayerId" : self.playerId
+			"currentPlayerId" : self.playerId,
+			"gameId" : self.gameId
 		}))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):

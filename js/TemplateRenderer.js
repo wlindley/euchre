@@ -11,7 +11,7 @@ AVOCADO.TemplateRenderer = function(templates) {
 			template = "" + templates[templateId];
 		}
 		for (var key in values) {
-			template = template.replace("%" + key + "%", values[key]);
+			template = template.replace(new RegExp("%" + key + "%", "g"), values[key]);
 		}
 		return template;
 	};

@@ -6,7 +6,7 @@ TestableJQuery = function() {
 
 JQueryWrapperTest.prototype.setUp = function() {
 	this.mockJQuery = mock(TestableJQuery);
-	this.testObj = AVOCADO.JQueryWrapper.getInstance(this.mockJQuery);
+	this.buildTestObj();
 };
 
 JQueryWrapperTest.prototype.testAjaxPassesThrough = function() {
@@ -18,4 +18,20 @@ JQueryWrapperTest.prototype.testAjaxPassesThrough = function() {
 		paramMatchers.push(hasMember(key, equalTo(params[key])));
 	}
 	verify(this.mockJQuery).ajax(url, allOf(paramMatchers));
+};
+
+JQueryWrapperTest.prototype.testGetElementPassesThrough = function() {
+	var params = null;
+	this.mockJQuery = function(elementOrSelector) {
+		params = elementOrSelector;
+	};
+	this.buildTestObj();
+
+	var selector = "#foo";
+	this.testObj.getElement(selector);
+	assertEquals(selector, params);
+};
+
+JQueryWrapperTest.prototype.buildTestObj = function() {
+	this.testObj = AVOCADO.JQueryWrapper.getInstance(this.mockJQuery);
 };

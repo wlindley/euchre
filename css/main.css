@@ -14,3 +14,12 @@
 .gameListEntrySpacer {
 	height: 5px;
 }
+
+.game {
+	font-weight: bold;
+	background-color: DDDDDD;
+}
+
+.hand {
+	font-weight: normal;
+}

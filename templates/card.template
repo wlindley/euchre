@@ -1,1 +1,1 @@
-<div>Card, suit=%suit%, value=%value%</div>
+<div class="card">Card, suit=%suit%, value=%value%</div>

@@ -1,20 +1,24 @@
 GameListViewTest = TestCase("GameListViewTest")
 
 GameListViewTest.prototype.setUp = function() {
+	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.ajax = TEST.FakeAjax.getInstance();
 	this.gameLister = AVOCADO.GameLister.getInstance("12345", this.ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv);
+	this.gamePlayView = mock(AVOCADO.GamePlayView);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.gamePlayView);
 };
 
-GameListViewTest.prototype.testShowDisplayCorrectHtml = function() {
+GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	var gameEntryBase = "game ";
 	var gameIds = [1, 2, 3];
 	var statuses = ["round_in_progress", "waiting_for_more_players", "trump_selection"];
 	var playerIdLists = [["1", "2", "3", "4"], ["1", "2"], ["3", "4", "5", "6"]];
 	var currentPlayers = ["3", null, "6"];
 	var gameList = [];
+	var elements = [];
+	var linkElements = [];
 	for (var i = 0; i < gameIds.length; i++) {
 		gameList.push({
 			"gameId" : gameIds[i],
@@ -22,9 +26,10 @@ GameListViewTest.prototype.testShowDisplayCorrectHtml = function() {
 			"playerIds" : playerIdLists[i],
 			"currentPlayerId" : currentPlayers[i]
 		});
+		elements.push(mock(TEST.FakeJQueryElement));
+		linkElements.push(mock(TEST.FakeJQueryElement));
 	}
 	this.ajax.callbackResponse = {"games" : gameList, "success" : true};
-	var expectedHtml = "";
 	for (var i = 0; i < gameList.length; i++) {
 		var expectedValues = allOf(
 			hasMember("gameId", equalTo(gameList[i].gameId)),
@@ -34,12 +39,30 @@ GameListViewTest.prototype.testShowDisplayCorrectHtml = function() {
 		);
 		var gameHtml = gameEntryBase + gameList[i].gameId;
 		when(this.templateRenderer).renderTemplate("gameListEntry", expectedValues).thenReturn(gameHtml);
-
-		expectedHtml += gameHtml;
+		when(this.jqueryWrapper).getElement(gameHtml).thenReturn(elements[i]);
+		when(elements[i]).find(".viewGameData").thenReturn(linkElements[i]);
 	}
 
 	this.testObj.show();
 
-	verify(this.gameListDiv).html(expectedHtml);
+	for (var i = 0; i < gameList.length; i++) {
+		verify(elements[i]).appendTo(this.gameListDiv);
+		verify(linkElements[i]).click(this.testObj.showGameData);
+	}
+
 	verify(this.gameListDiv).show();
+};
+
+GameListViewTest.prototype.testShowGameDataHidesSelfAndCallsGamePlayView = function() {
+	var gameId = "984632";
+	var jqElement = mock(TEST.FakeJQueryElement);
+	var htmlElement = "some html element";
+	when(this.jqueryWrapper).getElement(htmlElement).thenReturn(jqElement);
+	when(jqElement).attr("id").thenReturn("gameId_" + gameId);
+	var event = {"currentTarget" : htmlElement};
+
+	this.testObj.showGameData(event);
+
+	verify(this.gameListDiv).hide();
+	verify(this.gamePlayView).show(gameId);
 };

@@ -215,6 +215,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		response["playerIds"] = gameModel.playerId
 		response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
 		response["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		response["gameId"] = gameId
 		self._writeResponse(response)
 
 	def _convertHand(self, hand):

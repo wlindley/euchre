@@ -1,7 +1,9 @@
 <div class="gameListEntry">
+	<a class="viewGameData" id="gameId_%gameId%">
 	<div>Game id: %gameId%</div>
 	<div>Status: %status%</div>
 	<div>Player IDs: %playerIds%</div>
 	<div>Current Player: %currentPlayer%</div>
+	</a>
 </div>
 <div class="gameListEntrySpacer"></div>
