@@ -6,6 +6,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gamePlayDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
+	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%"};
 	this.buildTestObj();
 };
 
@@ -23,7 +24,7 @@ GamePlayViewTest.prototype.testShowCallsAjaxCorrectly = function() {
 GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var gameId = "34827";
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
-	var response = {"gameId" : gameId, "hand" : hand};
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.playerId};
 	
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = response;
@@ -42,7 +43,7 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", completeCardHtml)).thenReturn(handHtml);
 
 	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml))).thenReturn(gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn))).thenReturn(gameHtml);
 
 	var viewGameListElement = mock(TEST.FakeJQueryElement);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
@@ -52,6 +53,25 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	verify(this.gamePlayDiv).html(gameHtml);
 	verify(viewGameListElement).click(this.testObj.handleViewGameListClick);
 	verify(this.gamePlayDiv).show();
+};
+
+GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
+	var gameId = "34827";
+	var otherPlayerId = "4320987";
+	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId};
+
+	this.ajax = new TEST.FakeAjax();
+	this.ajax.callbackResponse = response;
+	this.buildTestObj();
+
+	var viewGameListElement = mock(TEST.FakeJQueryElement);
+	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+
+	this.testObj.show({"gameId" : gameId});
+
+	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
+	verify(this.templateRenderer).renderTemplate("game", hasMember("turn", expectedTurn));
 };
 
 GamePlayViewTest.prototype.testHideHidesDiv = function() {
@@ -65,5 +85,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings);
 };

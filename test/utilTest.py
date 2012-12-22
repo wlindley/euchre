@@ -105,10 +105,12 @@ class PageDataBuilderTest(testhelper.TestCase):
 		self.playerId = "123456"
 		self.templateFiles = "some filenames"
 		self.templates = "the best templates ever"
+		self.locStrings = {"foo" : "all of the localized strings"}
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
 			"playerId" : self.playerId,
-			"templates" : self.templates
+			"templates" : self.templates,
+			"locStrings" : self.locStrings
 		}
 		self.expectedTemplates = None
 
@@ -122,6 +124,9 @@ class PageDataBuilderTest(testhelper.TestCase):
 				self.expectedTemplates = self.templates
 		self.templateManager.loadTemplates = replaceLoadTemplates
 		self.templateManager.getTemplates = lambda: self.expectedTemplates
+
+		self.fileLoader = testhelper.createSingletonMock(util.FileReader)
+		when(self.fileLoader).getFileContents("data/locStrings.json").thenReturn(json.dumps(self.locStrings))
 
 		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
 

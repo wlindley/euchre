@@ -122,15 +122,16 @@ class PageDataBuilder(object):
 	def getInstance(cls, requestDataAccessor):
 		if None != cls.instance:
 			return cls.instance
-		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance())
+		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance(), FileReader.getInstance())
 
 	AJAX_PATH = "/ajax"
 	TEMPLATE_PATTERN  = "templates/*.template"
 
-	def __init__(self, requestDataAccessor, templateManager):
+	def __init__(self, requestDataAccessor, templateManager, fileReader):
 		super(PageDataBuilder, self).__init__()
 		self._requestDataAccessor = requestDataAccessor
 		self._templateManager = templateManager
+		self._fileReader = fileReader
 
 	def buildData(self):
 		pageData = {}
@@ -138,6 +139,7 @@ class PageDataBuilder(object):
 		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
 		self._templateManager.loadTemplates(glob.glob(PageDataBuilder.TEMPLATE_PATTERN))
 		pageData["templates"] = self._templateManager.getTemplates()
+		pageData["locStrings"] = json.loads(self._fileReader.getFileContents("data/locStrings.json"))
 		return json.dumps(pageData)
 
 class TemplateManager(object):

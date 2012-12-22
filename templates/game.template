@@ -1,3 +1,7 @@
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>
-<div class="game">Game %gameId%: %hand%</div>
+<div class="game">
+	Game %gameId%:
+	%turn%
+	%hand%
+</div>
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>

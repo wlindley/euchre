@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager) {
+AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings) {
 	var self = this;
 
 	this.init = function() {
@@ -24,7 +24,11 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 			cardsHtml += templateRenderer.renderTemplate("card", {"suit" : card.suit, "value" : card.value});
 		}
 		var handHtml = templateRenderer.renderTemplate("hand", {"hand" : cardsHtml});
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml});
+		var turn = locStrings.yourTurn;
+		if (fbId != response.currentPlayerId) {
+			turn = locStrings.otherTurn.replace("%playerId%", response.currentPlayerId);
+		}
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
 		gamePlayDiv.html(gameHtml);
 		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
 		gamePlayDiv.show();
@@ -35,6 +39,6 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 	}
 };
 
-AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager) {
-	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager);
+AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings) {
+	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings);
 };
