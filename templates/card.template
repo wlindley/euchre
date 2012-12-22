@@ -1,1 +1,1 @@
-<div class="card">Card, suit=%suit%, value=%value%</div>
+<img src="/images/cards/%suit%_%value%.png"></img>

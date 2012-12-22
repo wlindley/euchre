@@ -5,6 +5,8 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /images
+  static_dir: images
 - url: /css
   static_dir: css
 - url: /js
