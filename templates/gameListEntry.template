@@ -1,4 +1,4 @@
-<div class="gameListEntry">
+<div class="gameListEntry gameListEntryClickable">
 	<a class="viewGameData" id="gameId_%gameId%">
 	<div>Game id: %gameId%</div>
 	<div>Status: %status%</div>

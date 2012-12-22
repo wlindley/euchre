@@ -5,12 +5,18 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gamePlayDiv = mock(TEST.FakeJQueryElement);
+	this.viewManager = mock(AVOCADO.ViewManager);
 	this.buildTestObj();
+};
+
+GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
+	this.testObj.init();
+	verify(this.viewManager).registerView("gamePlay", this.testObj);
 };
 
 GamePlayViewTest.prototype.testShowCallsAjaxCorrectly = function() {
 	var gameId = "5678";
-	this.testObj.show(gameId);
+	this.testObj.show({"gameId" : gameId});
 	verify(this.ajax).call("getGameData", allOf(hasMember("playerId", equalTo(this.playerId)), hasMember("gameId", equalTo(gameId))), func());
 };
 
@@ -38,12 +44,26 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var gameHtml = "the whole game";
 	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml))).thenReturn(gameHtml);
 
-	this.testObj.show(gameId);
+	var viewGameListElement = mock(TEST.FakeJQueryElement);
+	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+
+	this.testObj.show({"gameId" : gameId});
 
 	verify(this.gamePlayDiv).html(gameHtml);
+	verify(viewGameListElement).click(this.testObj.handleViewGameListClick);
 	verify(this.gamePlayDiv).show();
 };
 
+GamePlayViewTest.prototype.testHideHidesDiv = function() {
+	this.testObj.hide();
+	verify(this.gamePlayDiv).hide();
+};
+
+GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
+	this.testObj.handleViewGameListClick();
+	verify(this.viewManager).showView("gameList");
+};
+
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager);
 };

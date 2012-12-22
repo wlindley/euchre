@@ -6,8 +6,13 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameLister = AVOCADO.GameLister.getInstance("12345", this.ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
-	this.gamePlayView = mock(AVOCADO.GamePlayView);
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.gamePlayView);
+	this.viewManager = mock(AVOCADO.ViewManager);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager);
+};
+
+GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
+	this.testObj.init();
+	verify(this.viewManager).registerView("gameList", this.testObj);
 };
 
 GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
@@ -45,9 +50,15 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 
 	this.testObj.show();
 
+	verify(this.gameListDiv).empty();
 	for (var i = 0; i < gameList.length; i++) {
 		verify(elements[i]).appendTo(this.gameListDiv);
-		verify(linkElements[i]).click(this.testObj.showGameData);
+		if (gameList[i].status != "waiting_for_more_players") {
+			verify(linkElements[i]).click(this.testObj.showGameData);
+		} else {
+			verify(linkElements[i], never()).click(this.testObj.showGameData);
+			verify(elements[i]).removeClass("gameListEntryClickable");
+		}
 	}
 
 	verify(this.gameListDiv).show();
@@ -64,5 +75,10 @@ GameListViewTest.prototype.testShowGameDataHidesSelfAndCallsGamePlayView = funct
 	this.testObj.showGameData(event);
 
 	verify(this.gameListDiv).hide();
-	verify(this.gamePlayView).show(gameId);
+	verify(this.viewManager).showView("gamePlay", hasMember("gameId", gameId));
+};
+
+GameListViewTest.prototype.testHideHidesDiv = function() {
+	this.testObj.hide();
+	verify(this.gameListDiv).hide();
 };

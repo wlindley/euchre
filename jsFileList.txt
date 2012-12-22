@@ -7,4 +7,5 @@ js/GameCreator.js
 js/TemplateRenderer.js
 js/GameJoiner.js
 js/GamePlayView.js
+js/ViewManager.js
 js/init.js

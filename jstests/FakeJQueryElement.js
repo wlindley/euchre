@@ -11,4 +11,6 @@ TEST.FakeJQueryElement = function() {
 	this.find = function() {};
 	this.appendTo = function() {};
 	this.attr = function() {};
+	this.empty = function() {};
+	this.removeClass = function() {};
 };

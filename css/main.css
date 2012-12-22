@@ -7,8 +7,14 @@
 }
 
 .gameListEntry {
-	background-color: blue;
+	background-color: AAAAFF;
 	font-weight: bold;
+}
+
+.gameListEntryClickable {
+	background-color: 5555FF;
+	cursor: hand;
+	cursor: pointer;
 }
 
 .gameListEntrySpacer {
