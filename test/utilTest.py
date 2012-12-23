@@ -229,3 +229,31 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_INVALID)
 		result = self.testObj.retrieveTurn(self.game)
 		self.assertEqual(None, result)
+
+class UpCardRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.testObj = util.UpCardRetriever.getInstance()
+
+	def testRetrieveUpCardReturnsCorrectData(self):
+		expectedCard = euchre.Card(euchre.SUIT_SPADES, 10)
+
+		gameObj = testhelper.createMock(euchre.Game)
+		sequence = testhelper.createMock(euchre.Sequence)
+		when(gameObj).getSequence().thenReturn(sequence)
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
+		when(sequence).getUpCard().thenReturn(expectedCard)
+
+		result = self.testObj.retrieveUpCard(gameObj)
+		self.assertEqual(expectedCard, result)
+
+	def testRetrieveUpCardReturnsNoneIfSequenceNotInCorrectState(self):
+		expectedCard = euchre.Card(euchre.SUIT_SPADES, 10)
+
+		gameObj = testhelper.createMock(euchre.Game)
+		sequence = testhelper.createMock(euchre.Sequence)
+		when(gameObj).getSequence().thenReturn(sequence)
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
+		when(sequence).getUpCard().thenReturn(expectedCard)
+
+		result = self.testObj.retrieveUpCard(gameObj)
+		self.assertEqual(None, result)

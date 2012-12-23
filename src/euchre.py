@@ -265,14 +265,18 @@ class Sequence(object):
 
 	instance = None
 	@classmethod
-	def getInstance(cls, players, hands, availableTrump=SUIT_NONE):
+	def getInstance(cls, players, hands, upCard=None):
 		if None != cls.instance:
 			return cls.instance
-		return Sequence(TrumpSelector.getInstance(players, availableTrump), Round.getInstance(players, hands))
+		suit = SUIT_NONE
+		if None != upCard:
+			suit = upCard.suit
+		return Sequence(TrumpSelector.getInstance(players, suit), Round.getInstance(players, hands), upCard)
 
-	def __init__(self, trumpSelector, round):
+	def __init__(self, trumpSelector, round, upCard):
 		self._trumpSelector = trumpSelector
 		self._round = round
+		self._upCard = upCard
 
 	def getState(self):
 		if SUIT_NONE == self._trumpSelector.getSelectedTrump():
@@ -312,6 +316,11 @@ class Sequence(object):
 	def getTrumpSelector(self):
 		return self._trumpSelector
 
+	def getUpCard(self):
+		if Sequence.STATE_TRUMP_SELECTION == self.getState():
+			return self._upCard
+		return None
+
 class SequenceFactory(object):
 	instance = None
 	@classmethod
@@ -320,8 +329,8 @@ class SequenceFactory(object):
 			return cls.instance
 		return SequenceFactory()
 
-	def buildSequence(self, players, hands, availableSuit=SUIT_NONE):
-		return Sequence.getInstance(players, hands, availableSuit)
+	def buildSequence(self, players, hands, upCard=None):
+		return Sequence.getInstance(players, hands, upCard)
 
 class ScoreTracker(object):
 	instance = None
@@ -404,4 +413,4 @@ class Game(object):
 		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
 		deck.shuffle()
 		hands = self._dealHands(deck)
-		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop().suit)
+		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())

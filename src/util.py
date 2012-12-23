@@ -202,3 +202,17 @@ class TurnRetriever(object):
 		else:
 			return None
 		return turnTracker.getCurrentPlayerId()
+
+class UpCardRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return UpCardRetriever()
+
+	def retrieveUpCard(self, gameObj):
+		sequence = gameObj.getSequence()
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
+			return sequence.getUpCard()
+		return None

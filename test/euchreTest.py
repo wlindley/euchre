@@ -366,9 +366,10 @@ class SequenceTest(testhelper.TestCase):
 		self.hands = {}
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(euchre.HAND_SIZE)
+		self.upCard = self.deck.peekTop()
 
 	def _createSequence(self):
-		self.sequence = euchre.Sequence.getInstance(self.players, self.hands)
+		self.sequence = euchre.Sequence.getInstance(self.players, self.hands, self.upCard)
 
 	def _createSequenceWithRealObjects(self):
 		self._createPlayersAndHands()
@@ -469,6 +470,14 @@ class SequenceTest(testhelper.TestCase):
 	def testGetTrumpSelectorReturnsCurrentTrumpSelector(self):
 		self.assertEqual(self.trumpSelector, self.sequence.getTrumpSelector())
 
+	def testGetUpCardReturnsUpCard(self):
+		self._train(selectedTrump=euchre.SUIT_NONE, trumpSelectorComplete=False, roundComplete=False)
+		self.assertEqual(self.upCard, self.sequence.getUpCard())
+
+	def testGetUpCardReturnsNoneIfNotInCorrectState(self):
+		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, False, False)
+		self.assertEqual(None, self.sequence.getUpCard())
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -551,13 +560,12 @@ class GameTest(testhelper.TestCase):
 		prevFactory = self.game._sequenceFactory
 		self.game._sequenceFactory = testhelper.createMock(euchre.SequenceFactory)
 		hands = {}
-		def verifyHandSize(players, hands, topCardSuit):
-			print hands
+		def verifyHandSize(players, hands, topCard):
 			for player in self.players:
 				self.assertEqual(euchre.HAND_SIZE, len(hands[player.playerId]))
-			self.assertTrue(topCardSuit > euchre.SUIT_NONE)
-			self.assertTrue(topCardSuit <= euchre.NUM_SUITS)
-			return prevFactory.buildSequence(player, hands, topCardSuit)
+			self.assertTrue(topCard.suit > euchre.SUIT_NONE)
+			self.assertTrue(topCard.suit <= euchre.NUM_SUITS)
+			return prevFactory.buildSequence(player, hands, topCard)
 		self.game._sequenceFactory.buildSequence = verifyHandSize
 		self.game.startGame()
 
@@ -585,7 +593,7 @@ class GameTest(testhelper.TestCase):
 		when(deck).deal(5).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5))
 		when(deck).peekTop().thenReturn(actualDeck.peekTop())
 		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
-		when(sequenceFactory).buildSequence(any(), any(), any()).thenReturn(testhelper.createMock(euchre.Sequence)).thenReturn(testhelper.createMock(euchre.Sequence))
+		when(sequenceFactory).buildSequence(any(), any(), actualDeck.peekTop()).thenReturn(testhelper.createMock(euchre.Sequence)).thenReturn(testhelper.createMock(euchre.Sequence))
 		self._buildTestObj()
 		self.game.startGame()
 		sequence = self.game.getSequence()

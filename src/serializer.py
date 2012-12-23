@@ -100,24 +100,27 @@ class SequenceSerializer(AbstractSerializer):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return SequenceSerializer(TrumpSelectorSerializer.getInstance(), RoundSerializer.getInstance())
+		return SequenceSerializer(TrumpSelectorSerializer.getInstance(), RoundSerializer.getInstance(), CardSerializer.getInstance())
 
-	def __init__(self, trumpSelectorSerializer, roundSerializer):
+	def __init__(self, trumpSelectorSerializer, roundSerializer, cardSerializer):
 		self.trumpSelectorSerializer = trumpSelectorSerializer
 		self.roundSerializer = roundSerializer
+		self.cardSerializer = cardSerializer
 
 	def serialize(self, obj):
 		if None == obj:
 			return None
 		return {"trumpSelector" : self.trumpSelectorSerializer.serialize(obj._trumpSelector),
-				"round" : self.roundSerializer.serialize(obj._round)}
+				"round" : self.roundSerializer.serialize(obj._round),
+				"upCard" : self.cardSerializer.serialize(obj._upCard)}
 
 	def deserialize(self, data, players):
 		if None == data:
 			return None
 		trumpSelector = self.trumpSelectorSerializer.deserialize(data["trumpSelector"], players)
 		round = self.roundSerializer.deserialize(data["round"], players)
-		return euchre.Sequence(trumpSelector, round)
+		upCard = self.cardSerializer.deserialize(data["upCard"])
+		return euchre.Sequence(trumpSelector, round, upCard)
 
 class TrumpSelectorSerializer(AbstractSerializer):
 	instance = None

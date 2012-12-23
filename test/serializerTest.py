@@ -100,30 +100,38 @@ class SequenceSerializerTest(testhelper.TestCase):
 	def setUp(self):
 		self.trumpSelector = testhelper.createMock(euchre.TrumpSelector)
 		self.round = testhelper.createMock(euchre.Round)
-		self.sequence = euchre.Sequence(self.trumpSelector, self.round)
+		self.upCard = euchre.Card(euchre.SUIT_DIAMONDS, euchre.VALUE_KING)
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.upCard)
 		self.trumpSelectorSerializer = testhelper.createSingletonMock(serializer.TrumpSelectorSerializer)
 		self.roundSerializer = testhelper.createSingletonMock(serializer.RoundSerializer)
+		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
 		self.testObj = serializer.SequenceSerializer.getInstance()
 
 	def testSerializesSequenceCorrectly(self):
 		expectedTrumpSelector = "a trump selector"
 		expectedRound = "a round"
+		expectedCard = "a card"
 		when(self.trumpSelectorSerializer).serialize(self.trumpSelector).thenReturn(expectedTrumpSelector)
 		when(self.roundSerializer).serialize(self.round).thenReturn(expectedRound)
+		when(self.cardSerializer).serialize(self.upCard).thenReturn(expectedCard)
 		data = self.testObj.serialize(self.sequence)
 		self.assertEqual(expectedTrumpSelector, data["trumpSelector"])
 		self.assertEqual(expectedRound, data["round"])
+		self.assertEqual(expectedCard, data["upCard"])
 
 	def testDeserializesSequenceCorrectly(self):
 		players = "some players"
 		serializedTrumpSelector = "a trump selector"
 		serializedRound = "a round"
-		data = {"trumpSelector" : serializedTrumpSelector, "round" : serializedRound}
+		serializedCard = "a card"
+		data = {"trumpSelector" : serializedTrumpSelector, "round" : serializedRound, "upCard" : serializedCard}
 		when(self.trumpSelectorSerializer).deserialize(serializedTrumpSelector, players).thenReturn(self.trumpSelector)
 		when(self.roundSerializer).deserialize(serializedRound, players).thenReturn(self.round)
+		when(self.cardSerializer).deserialize(serializedCard).thenReturn(self.upCard)
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.trumpSelector, obj._trumpSelector)
 		self.assertEqual(self.round, obj._round)
+		self.assertEqual(self.upCard, obj._upCard)
 		verify(self.trumpSelectorSerializer).deserialize(data["trumpSelector"], players)
 		verify(self.roundSerializer).deserialize(data["round"], players)
 

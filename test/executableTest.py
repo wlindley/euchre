@@ -293,6 +293,10 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.sequence = testhelper.createMock(euchre.Sequence)
 		when(self.gameObj).getSequence().thenReturn(self.sequence)
 
+		self.upCard = euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_ACE)
+		self.upCardRetriever = testhelper.createSingletonMock(util.UpCardRetriever)
+		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
+
 		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
@@ -309,7 +313,8 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"playerIds" : playerIds,
 			"currentPlayerId" : self.playerId,
-			"gameId" : self.gameId
+			"gameId" : self.gameId,
+			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value}
 		}))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):
