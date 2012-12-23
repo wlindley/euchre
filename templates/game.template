@@ -3,5 +3,6 @@
 	Game %gameId%:
 	%turn%
 	%hand%
+	%upCard%
 </div>
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>

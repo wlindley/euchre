@@ -24,7 +24,8 @@ GamePlayViewTest.prototype.testShowCallsAjaxCorrectly = function() {
 GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var gameId = "34827";
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.playerId};
+	var upCard = {"suit" : 4, "value" : 12};
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.playerId, "upCard" : upCard};
 	
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = response;
@@ -42,11 +43,17 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var handHtml = "the whole hand";
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", completeCardHtml)).thenReturn(handHtml);
 
-	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn))).thenReturn(gameHtml);
-
 	var viewGameListElement = mock(TEST.FakeJQueryElement);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+
+	var upCardHtml = "up card html";
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value))).thenReturn(upCardHtml);
+
+	var upCardAreaHtml = "up card section";
+	when(this.templateRenderer).renderTemplate("upCard", hasMember("card", upCardHtml)).thenReturn(upCardAreaHtml);
+
+	var gameHtml = "the whole game";
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn), hasMember("upCard", upCardAreaHtml))).thenReturn(gameHtml);
 
 	this.testObj.show({"gameId" : gameId});
 
@@ -59,7 +66,8 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 	var gameId = "34827";
 	var otherPlayerId = "4320987";
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId};
+	var upCard = {"suit" : 4, "value" : 12};
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId, "upCard" : upCard};
 
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = response;
@@ -72,6 +80,27 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 
 	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 	verify(this.templateRenderer).renderTemplate("game", hasMember("turn", expectedTurn));
+};
+
+GamePlayViewTest.prototype.testHandlesNullUpCard = function() {
+	var gameId = "34827";
+	var otherPlayerId = "4320987";
+	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
+	var upCard = null;
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId, "upCard" : upCard};
+
+	this.ajax = new TEST.FakeAjax();
+	this.ajax.callbackResponse = response;
+	this.buildTestObj();
+
+	var viewGameListElement = mock(TEST.FakeJQueryElement);
+	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+
+	this.testObj.show({"gameId" : gameId});
+
+	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
+	verify(this.templateRenderer).renderTemplate("game", hasMember("turn", expectedTurn));
+	verify(this.templateRenderer, never()).renderTemplate("upCard", anything());
 };
 
 GamePlayViewTest.prototype.testHideHidesDiv = function() {

@@ -28,7 +28,12 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		if (fbId != response.currentPlayerId) {
 			turn = locStrings.otherTurn.replace("%playerId%", response.currentPlayerId);
 		}
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
+		var upCardAreaHtml = "";
+		if (null != response.upCard) {
+			var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : response.upCard.suit, "value" : response.upCard.value});
+			upCardAreaHtml = templateRenderer.renderTemplate("upCard", {"card" : upCardHtml});
+		}
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "upCard" : upCardAreaHtml});
 		gamePlayDiv.html(gameHtml);
 		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
 		gamePlayDiv.show();
