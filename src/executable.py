@@ -7,6 +7,7 @@ import euchre
 import serializer
 import model
 import logging
+import retriever
 
 MAX_TEAM_SIZE = 2
 
@@ -180,15 +181,16 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance(), util.HandRetriever.getInstance(), util.UpCardRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance(), util.HandRetriever.getInstance(), util.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
 		self._handRetriever = handRetriever
 		self._upCardRetriever = upCardRetriever
+		self._dealerRetriever = dealerRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -213,12 +215,13 @@ class GetGameDataExecutable(AbstractExecutable):
 		}
 
 		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
-		card = self._upCardRetriever.retrieveUpCard(gameObj)
+		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
 		response["playerIds"] = gameModel.playerId
 		response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
 		response["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
 		response["gameId"] = gameId
-		response["upCard"] = {"suit" : card.suit, "value" : card.value}
+		response["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
+		response["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		self._writeResponse(response)
 
 	def _convertHand(self, hand):

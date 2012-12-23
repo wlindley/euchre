@@ -41,7 +41,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 
 	this.handleViewGameListClick = function(event) {
 		viewManager.showView("gameList");
-	}
+	};
 };
 
 AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings) {

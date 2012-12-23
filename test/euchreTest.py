@@ -613,5 +613,8 @@ class GameTest(testhelper.TestCase):
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_JACK))
 		verify(sequence).scoreCurrentRound(self.scoreTracker)
 
+	def testGetPlayersReturnsPlayers(self):
+		self.assertEqual(self.players, self.game.getPlayers())
+
 if __name__ == "__main__":
 	unittest.main()

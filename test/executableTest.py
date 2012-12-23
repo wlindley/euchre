@@ -11,6 +11,7 @@ from src import model
 from src import euchre
 from src import game
 from src import serializer
+from src import retriever
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -272,6 +273,9 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self._assertResponseResult(True)
 
 class GetGameDataExecutableTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
@@ -297,7 +301,11 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.upCardRetriever = testhelper.createSingletonMock(util.UpCardRetriever)
 		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
 
-		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.dealer = "123456"
+		self.dealerRetriever = testhelper.createSingletonMock(retriever.DealerRetriever)
+		when(self.dealerRetriever).retrieveDealer(self.gameObj).thenReturn(self.dealer)
+
+		self._buildTestObj()
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
 		playerIds = [self.playerId, "2", "3", "4"]
@@ -314,7 +322,32 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"playerIds" : playerIds,
 			"currentPlayerId" : self.playerId,
 			"gameId" : self.gameId,
-			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value}
+			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
+			"dealerId" : self.dealer
+		}))
+
+	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
+		util.UpCardRetriever.instance = None
+		self.upCardRetriever = testhelper.createSingletonMock(util.UpCardRetriever)
+		when(self.upCardRetriever).retrieveUpCard().thenReturn(None)
+		self._buildTestObj()
+		
+		playerIds = [self.playerId, "2", "3", "4"]
+		self.gameModel.playerId = playerIds
+		hand = [euchre.Card(suit=euchre.SUIT_DIAMONDS, value=10), euchre.Card(suit=euchre.SUIT_CLUBS, value=8)]
+		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(hand)
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
+
+		self.testObj.execute()
+
+		verify(self.responseWriter).write(json.dumps({
+			"success" : True,
+			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
+			"playerIds" : playerIds,
+			"currentPlayerId" : self.playerId,
+			"gameId" : self.gameId,
+			"upCard" : None,
+			"dealerId" : self.dealer
 		}))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):

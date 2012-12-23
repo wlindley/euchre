@@ -400,6 +400,9 @@ class Game(object):
 	def getSequenceState(self):
 		return self._curSequence.getState()
 
+	def getPlayers(self):
+		return self._players
+
 	def _dealHands(self, deck):
 		hands = {}
 		for player in self._players:
