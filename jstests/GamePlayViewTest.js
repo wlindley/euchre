@@ -49,11 +49,11 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var upCardHtml = "up card html";
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value))).thenReturn(upCardHtml);
 
-	var upCardAreaHtml = "up card section";
-	when(this.templateRenderer).renderTemplate("upCard", hasMember("card", upCardHtml)).thenReturn(upCardAreaHtml);
+	var trumpSelectionHtml = "trump selection section";
+	when(this.templateRenderer).renderTemplate("trumpSelection", hasMember("card", upCardHtml)).thenReturn(trumpSelectionHtml);
 
 	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn), hasMember("upCard", upCardAreaHtml))).thenReturn(gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn), hasMember("trumpSelection", trumpSelectionHtml))).thenReturn(gameHtml);
 
 	this.testObj.show({"gameId" : gameId});
 
@@ -100,7 +100,7 @@ GamePlayViewTest.prototype.testHandlesNullUpCard = function() {
 
 	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 	verify(this.templateRenderer).renderTemplate("game", hasMember("turn", expectedTurn));
-	verify(this.templateRenderer, never()).renderTemplate("upCard", anything());
+	verify(this.templateRenderer, never()).renderTemplate("trumpSelection", anything());
 };
 
 GamePlayViewTest.prototype.testHideHidesDiv = function() {
