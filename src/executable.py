@@ -83,7 +83,7 @@ class ListGamesExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance())
 
 	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever):
 		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
@@ -181,7 +181,7 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), util.TurnRetriever.getInstance(), util.HandRetriever.getInstance(), util.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance())
 
 	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)

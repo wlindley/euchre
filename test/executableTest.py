@@ -90,7 +90,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
-		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
+		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
 		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteReturnsCorrectGameData(self):
@@ -288,8 +288,8 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
 		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
-		self.turnRetriever = testhelper.createSingletonMock(util.TurnRetriever)
-		self.handRetriever = testhelper.createSingletonMock(util.HandRetriever)
+		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
+		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
 		self.gameObj = testhelper.createMock(euchre.Game)
 		self.serializedGame = "a serialized game"
 		self.gameModel.serializedGame = self.serializedGame
@@ -298,7 +298,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		when(self.gameObj).getSequence().thenReturn(self.sequence)
 
 		self.upCard = euchre.Card(euchre.SUIT_CLUBS, euchre.VALUE_ACE)
-		self.upCardRetriever = testhelper.createSingletonMock(util.UpCardRetriever)
+		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
 		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
 
 		self.dealer = "123456"
@@ -327,8 +327,8 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		}))
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
-		util.UpCardRetriever.instance = None
-		self.upCardRetriever = testhelper.createSingletonMock(util.UpCardRetriever)
+		retriever.UpCardRetriever.instance = None
+		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
 		when(self.upCardRetriever).retrieveUpCard().thenReturn(None)
 		self._buildTestObj()
 		
