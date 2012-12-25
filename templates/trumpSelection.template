@@ -1,5 +1,6 @@
 <div>
-	Up card: <div>%card%</div>
+	<div class="dealer">Dealer: %dealerName%</div>
+	<div class="upCared">Up card: <div>%card%</div></div>
 	%trumpSelectionAction%
 	<div class="trumpSelectionPass">
 		<button class="trumpSelectionPassButton" type="button">Pass</input>

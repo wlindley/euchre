@@ -1,4 +1,13 @@
 {
 	"yourTurn" : "Your turn",
-	"otherTurn" : "Player %playerId%'s turn"
+	"otherTurn" : "Player %playerId%'s turn",
+	"player" : "Player %playerId%",
+	"heart" : "heart",
+	"hearts" : "hearts",
+	"spade" : "spade",
+	"spades" : "spades",
+	"diamond" : "diamond",
+	"diamonds" : "diamonds",
+	"club" : "club",
+	"clubs" : "clubs"
 }

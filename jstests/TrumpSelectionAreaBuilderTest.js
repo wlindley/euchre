@@ -1,6 +1,12 @@
 TrumpSelectionAreaBuilder = TestCase("TrumpSelectionAreaBuilder");
 
 TrumpSelectionAreaBuilder.prototype.setUp = function() {
+	this.locStrings = {"player" : "player %playerId%"};
+	this.playerId = "030480983";
+	this.gameId = 34987234;
+	this.dealerId = "092380213";
+	this.dealerName = this.locStrings["player"].replace("%playerId%", this.dealerId);
+
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 
 	this.upCard = {"suit" : 1, "value" : 10};
@@ -8,7 +14,7 @@ TrumpSelectionAreaBuilder.prototype.setUp = function() {
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
 
 	this.trumpSelectionHtml = "trump selection section";
-	when(this.templateRenderer).renderTemplate("trumpSelection", hasMember("card", this.upCardHtml)).thenReturn(this.trumpSelectionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection", allOf(hasMember("card", this.upCardHtml), hasMember("dealerName", this.dealerName))).thenReturn(this.trumpSelectionHtml);
 
 	this.status = "trump_selection";
 
@@ -21,9 +27,6 @@ TrumpSelectionAreaBuilder.prototype.setUp = function() {
 
 	this.ajax = mock(AVOCADO.Ajax);
 
-	this.playerId = "030480983";
-	this.gameId = 34987234;
-
 	this.buildTestObj();
 };
 
@@ -31,18 +34,18 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 	var clickHandler = function() {};
 	this.testObj.buildPassClickHandler = mockFunction();
 	when(this.testObj.buildPassClickHandler)(this.gameId).thenReturn(clickHandler);
-	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
 	verify(this.passButtonElement).click(clickHandler);
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenUpCardIsNull = function() {
 	this.upCard = null;
-	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
 	this.status = "round_in_progress";
-	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
 };
 
 TrumpSelectionAreaBuilder.prototype.testHandlePassClickedCallsAjaxWithCorrectData = function() {
@@ -51,5 +54,5 @@ TrumpSelectionAreaBuilder.prototype.testHandlePassClickedCallsAjaxWithCorrectDat
 };
 
 TrumpSelectionAreaBuilder.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings);
 };

@@ -2,6 +2,7 @@ GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
 	this.playerId = "12345";
+	this.dealerId = "098765";
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gamePlayDiv = mock(TEST.FakeJQueryElement);
@@ -28,7 +29,7 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
 	var upCard = {"suit" : 4, "value" : 12};
 	var status = "awesome status";
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.playerId, "upCard" : upCard, "status" : status};
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.playerId, "upCard" : upCard, "status" : status, "dealerId" : this.dealerId};
 	
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = response;
@@ -50,7 +51,7 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
 
 	var trumpSelectionElement = mock(TEST.FakeJQueryElement);
-	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value)), equalTo(status)).thenReturn(trumpSelectionElement);
+	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value)), equalTo(status), equalTo(gameId), equalTo(this.dealerId)).thenReturn(trumpSelectionElement);
 
 	var gameHtml = "the whole game";
 	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn))).thenReturn(gameHtml);
@@ -73,7 +74,7 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 	var otherPlayerId = "4320987";
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
 	var upCard = {"suit" : 4, "value" : 12};
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId, "upCard" : upCard};
+	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId, "upCard" : upCard, "dealerId" : this.dealerId};
 	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 
 	this.ajax = new TEST.FakeAjax();
