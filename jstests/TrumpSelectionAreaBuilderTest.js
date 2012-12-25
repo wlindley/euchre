@@ -19,24 +19,37 @@ TrumpSelectionAreaBuilder.prototype.setUp = function() {
 	when(this.jqueryWrapper).getElement(this.trumpSelectionHtml).thenReturn(this.trumpSelectionElement);
 	when(this.trumpSelectionElement).find(".trumpSelectionPassButton").thenReturn(this.passButtonElement);
 
+	this.ajax = mock(AVOCADO.Ajax);
+
+	this.playerId = "030480983";
+	this.gameId = 34987234;
+
 	this.buildTestObj();
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValidData = function() {
-	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
-	verify(this.passButtonElement).click(this.testObj.handlePassClicked);
+	var clickHandler = function() {};
+	this.testObj.buildPassClickHandler = mockFunction();
+	when(this.testObj.buildPassClickHandler)(this.gameId).thenReturn(clickHandler);
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
+	verify(this.passButtonElement).click(clickHandler);
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenUpCardIsNull = function() {
 	this.upCard = null;
-	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
 	this.status = "round_in_progress";
-	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId));
+};
+
+TrumpSelectionAreaBuilder.prototype.testHandlePassClickedCallsAjaxWithCorrectData = function() {
+	this.testObj.buildPassClickHandler(this.gameId)(null);
+	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", null), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
 };
 
 TrumpSelectionAreaBuilder.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId);
 };
