@@ -8,4 +8,5 @@ js/TemplateRenderer.js
 js/GameJoiner.js
 js/GamePlayView.js
 js/ViewManager.js
+js/TrumpSelectionAreaBuilder.js
 js/init.js

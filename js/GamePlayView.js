@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings) {
+AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -28,12 +28,8 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		if (fbId != response.currentPlayerId) {
 			turn = locStrings.otherTurn.replace("%playerId%", response.currentPlayerId);
 		}
-		var trumpSelectorHtml = "";
-		if (null != response.upCard) {
-			var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : response.upCard.suit, "value" : response.upCard.value});
-			trumpSelectorHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml});
-		}
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "trumpSelection" : trumpSelectorHtml});
+		var trumpSelectionHtml = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard);
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "trumpSelection" : trumpSelectionHtml});
 		gamePlayDiv.html(gameHtml);
 		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
 		gamePlayDiv.show();
@@ -45,5 +41,5 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 };
 
 AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings) {
-	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings);
+	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer));
 };
