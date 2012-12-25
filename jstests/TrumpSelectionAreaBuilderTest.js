@@ -2,26 +2,41 @@ TrumpSelectionAreaBuilder = TestCase("TrumpSelectionAreaBuilder");
 
 TrumpSelectionAreaBuilder.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+
+	this.upCard = {"suit" : 1, "value" : 10};
+	this.upCardHtml = "up card html";
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
+
+	this.trumpSelectionHtml = "trump selection section";
+	when(this.templateRenderer).renderTemplate("trumpSelection", hasMember("card", this.upCardHtml)).thenReturn(this.trumpSelectionHtml);
+
+	this.status = "trump_selection";
+
+	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+
+	this.trumpSelectionElement = mock(TEST.FakeJQueryElement);
+	this.passButtonElement = mock(TEST.FakeJQueryElement);
+	when(this.jqueryWrapper).getElement(this.trumpSelectionHtml).thenReturn(this.trumpSelectionElement);
+	when(this.trumpSelectionElement).find(".trumpSelectionPassButton").thenReturn(this.passButtonElement);
+
 	this.buildTestObj();
 };
 
-TrumpSelectionAreaBuilder.prototype.testBuildReturnsCorrectResult = function() {
-	var upCard = {"suit" : 1, "value" : 10};
-	var upCardHtml = "up card html";
-	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value))).thenReturn(upCardHtml);
-
-	var trumpSelectionHtml = "trump selection section";
-	when(this.templateRenderer).renderTemplate("trumpSelection", hasMember("card", upCardHtml)).thenReturn(trumpSelectionHtml);
-
-	var actualResult = this.testObj.buildTrumpSelectionArea(upCard);
-	assertEquals(trumpSelectionHtml, actualResult);
+TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValidData = function() {
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
+	verify(this.passButtonElement).click(this.testObj.handlePassClicked);
 };
 
-TrumpSelectionAreaBuilder.prototype.testBuildReturnsEmptyStringWhenUpCardIsNull = function() {
-	var upCard = null;
-	assertEquals("", this.testObj.buildTrumpSelectionArea(upCard));
+TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenUpCardIsNull = function() {
+	this.upCard = null;
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
+};
+
+TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
+	this.status = "round_in_progress";
+	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status));
 };
 
 TrumpSelectionAreaBuilder.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper);
 };

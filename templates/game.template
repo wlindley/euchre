@@ -3,6 +3,6 @@
 	Game %gameId%:
 	%turn%
 	%hand%
-	%trumpSelection%
+	<div class="trumpSelection"></div>
 </div>
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>

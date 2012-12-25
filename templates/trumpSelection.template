@@ -1,1 +1,7 @@
-<div class="upCard">Up card: <div>%card%</div></div>
+<div>
+	Up card: <div>%card%</div>
+	%trumpSelectionAction%
+	<div class="trumpSelectionPass">
+		<button class="trumpSelectionPassButton" type="button">Pass</input>
+	</div>
+</div>
