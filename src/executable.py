@@ -47,7 +47,7 @@ class AbstractExecutable(object):
 		return None
 
 	def _writeResponse(self, response):
-		self._responseWriter.write(json.dumps(response))
+		self._responseWriter.write(json.dumps(response, sort_keys=True))
 
 class CreateGameExecutable(AbstractExecutable):
 	instance = None
@@ -83,13 +83,14 @@ class ListGamesExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.GameStatusRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, gameStatusRetriever):
 		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
+		self._gameStatusRetriever = gameStatusRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -103,23 +104,13 @@ class ListGamesExecutable(AbstractExecutable):
 			"playerIds" : gameModel.playerId
 		}
 		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
-			gameData["status"] = "waiting_for_more_players"
+			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(None)
 			gameData["currentPlayerId"] = None
 		else:
 			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
-			gameData["status"] = self._getStatusFromGame(gameObj)
+			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
 			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
 		return gameData
-
-	def _getStatusFromGame(self, gameObj):
-		sequence = gameObj.getSequence()
-		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
-			return "trump_selection"
-		elif euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
-			return "trump_selection_2"
-		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
-			return "round_in_progress"
-		return ""
 
 class DefaultExecutable(AbstractExecutable):
 	instance = None
@@ -181,9 +172,9 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
@@ -191,6 +182,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		self._handRetriever = handRetriever
 		self._upCardRetriever = upCardRetriever
 		self._dealerRetriever = dealerRetriever
+		self._gameStatusRetriever = gameStatusRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -222,6 +214,8 @@ class GetGameDataExecutable(AbstractExecutable):
 		response["gameId"] = gameId
 		response["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
 		response["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
+		response["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
+		print json.dumps(response)
 		self._writeResponse(response)
 
 	def _convertHand(self, hand):

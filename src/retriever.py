@@ -64,3 +64,23 @@ class UpCardRetriever(object):
 		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
 			return sequence.getUpCard()
 		return None
+
+class GameStatusRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return GameStatusRetriever()
+
+	def retrieveGameStatus(self, gameObj):
+		if None == gameObj:
+			return "waiting_for_more_players"
+		sequenceState = gameObj.getSequence().getState()
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequenceState:
+			return "trump_selection"
+		elif euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequenceState:
+			return "trump_selection_2"
+		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
+			return "round_in_progress"
+		return ""

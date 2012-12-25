@@ -124,3 +124,25 @@ class UpCardRetrieverTest(testhelper.TestCase):
 
 		result = self.testObj.retrieveUpCard(gameObj)
 		self.assertEqual(None, result)
+
+class GameStatusRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.game = mock(euchre.Game)
+		self.sequence = mock(euchre.Sequence)
+		when(self.game).getSequence().thenReturn(self.sequence)
+		self.testObj = retriever.GameStatusRetriever.getInstance()
+
+	def testRetrieveStatusReturnsCorrectValueWhenGameIsNull(self):
+		self.assertEqual("waiting_for_more_players", self.testObj.retrieveGameStatus(None))
+
+	def testRetrieveStatusReturnsTrumpSelectionWhenSequenceIsInTrumpSelection(self):
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
+		self.assertEqual("trump_selection", self.testObj.retrieveGameStatus(self.game))
+
+	def testRetrieveStatusReturnsTrumpSelection2WhenSequenceIsInTrumpSelection2(self):
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
+		self.assertEqual("trump_selection_2", self.testObj.retrieveGameStatus(self.game))
+
+	def testRetrieveStatusReturnsRoundInProgressWhenSequenceIsInPlayingRound(self):
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
+		self.assertEqual("round_in_progress", self.testObj.retrieveGameStatus(self.game))

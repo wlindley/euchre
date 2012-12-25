@@ -145,7 +145,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			})
 		expectedResponse["games"][3]["playerIds"] = participatingPlayerIds[:2]
 
-		verify(self.responseWriter).write(json.dumps(expectedResponse))
+		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
 
 class DefaultExecutableTest(testhelper.TestCase):
 	def setUp(self):
@@ -305,6 +305,10 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.dealerRetriever = testhelper.createSingletonMock(retriever.DealerRetriever)
 		when(self.dealerRetriever).retrieveDealer(self.gameObj).thenReturn(self.dealer)
 
+		self.gameStatus = "gamiest of statuses"
+		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
+		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn(self.gameStatus)
+
 		self._buildTestObj()
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
@@ -318,13 +322,14 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 
 		verify(self.responseWriter).write(json.dumps({
 			"success" : True,
-			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"playerIds" : playerIds,
 			"currentPlayerId" : self.playerId,
+			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"gameId" : self.gameId,
 			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
-			"dealerId" : self.dealer
-		}))
+			"dealerId" : self.dealer,
+			"status" : self.gameStatus
+		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
 		retriever.UpCardRetriever.instance = None
@@ -342,13 +347,14 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 
 		verify(self.responseWriter).write(json.dumps({
 			"success" : True,
-			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"playerIds" : playerIds,
 			"currentPlayerId" : self.playerId,
+			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"gameId" : self.gameId,
 			"upCard" : None,
-			"dealerId" : self.dealer
-		}))
+			"dealerId" : self.dealer,
+			"status" : self.gameStatus
+		}, sort_keys=True))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):
 		self.gameModel.serializedGame = ""
