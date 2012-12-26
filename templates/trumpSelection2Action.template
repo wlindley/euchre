@@ -1,0 +1,4 @@
+<div class="selectTrumpSuit">
+	<input type="text" class="selectTrumpSuitInput">Suit</input>
+	<button type="button" class="selectTrumpSuitButton">Select suit</button>
+</div>
