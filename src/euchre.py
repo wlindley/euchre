@@ -1,5 +1,8 @@
 import random
 import game
+import logging
+
+logging.getLogger().setLevel(logging.DEBUG)
 
 SUIT_NONE = 0
 SUIT_CLUBS = 1

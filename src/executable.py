@@ -9,6 +9,8 @@ import model
 import logging
 import retriever
 
+logging.getLogger().setLevel(logging.DEBUG)
+
 MAX_TEAM_SIZE = 2
 
 class ExecutableFactory(object):

@@ -1,4 +1,7 @@
 import euchre
+import logging
+
+logging.getLogger().setLevel(logging.DEBUG)
 
 class DealerRetriever(object):
 	instance = None

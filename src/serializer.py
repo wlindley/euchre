@@ -141,6 +141,7 @@ class TrumpSelectorSerializer(AbstractSerializer):
 			selectingPlayerId = ""
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"availableTrump" : obj._availableTrump,
+				"selectedTrump" : obj._selectedTrump,
 				"selectingPlayerId" : selectingPlayerId}
 
 	def deserialize(self, data, players):
@@ -151,6 +152,7 @@ class TrumpSelectorSerializer(AbstractSerializer):
 			selectingPlayerId = None
 		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		trumpSelector = euchre.TrumpSelector(turnTracker, data["availableTrump"])
+		trumpSelector._selectedTrump = data["selectedTrump"]
 		trumpSelector._selectingPlayerId = selectingPlayerId
 		return trumpSelector
 
