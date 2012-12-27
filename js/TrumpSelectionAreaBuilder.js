@@ -27,7 +27,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 	this.buildPassClickHandler = function(gameId) {
 		return function(event) {
 			ajax.call("selectTrump", {
-				"suit" : null,
+				"suit" : 0,
 				"playerId" : playerId,
 				"gameId" : gameId
 			}, function() {});

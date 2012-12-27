@@ -83,7 +83,7 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgr
 
 TrumpSelectionAreaBuilder.prototype.testHandlePassClickedCallsAjaxWithCorrectData = function() {
 	this.testObj.buildPassClickHandler(this.gameId)(null);
-	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", null), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
+	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", 0), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
 };
 
 TrumpSelectionAreaBuilder.prototype.testHandleDealerPicksUpClickedCallsAjaxWithCorrectData = function() {

@@ -26,7 +26,8 @@ class ExecutableFactory(object):
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
 			"addPlayer" : AddPlayerExecutable,
-			"getGameData" : GetGameDataExecutable
+			"getGameData" : GetGameDataExecutable,
+			"selectTrump" : SelectTrumpExecutable
 		}
 
 	def createExecutable(self):
@@ -215,8 +216,60 @@ class GetGameDataExecutable(AbstractExecutable):
 		response["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
 		response["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		response["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
-		print json.dumps(response)
 		self._writeResponse(response)
 
 	def _convertHand(self, hand):
 		return [{"suit" : card.suit, "value" : card.value} for card in hand]
+
+class SelectTrumpExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return SelectTrumpExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
+		super(SelectTrumpExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+
+	def execute(self):
+		gameId = self._requestDataAccessor.get("gameId")
+		playerId = self._requestDataAccessor.get("playerId")
+		suit = self._requestDataAccessor.get("suit")
+
+		if None == gameId or None == playerId:
+			logging.info("Missing game id or player id")
+			self._writeResponse({"success" : False})
+			return
+
+		if None == suit:
+			suit = euchre.SUIT_NONE
+
+		try:
+			gameId = int(gameId)
+			suit = int(suit)
+		except ValueError:
+			logging.info("Invalid game id (%s) or suit (%s)" % (gameId, suit))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+		if None == gameModel:
+			logging.info("Could not find game model for id %s" % gameId)
+			self._writeResponse({"success" : False})
+			return
+
+		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+		try:
+			gameObj.selectTrump(game.Player.getInstance(playerId), suit)
+		except game.GameRuleException as e:
+			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
+		gameModel.put()
+
+		self._writeResponse({"success" : True})
