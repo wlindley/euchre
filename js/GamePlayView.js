@@ -32,7 +32,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 			turn = locStrings.otherTurn.replace("%playerId%", response.currentPlayerId);
 		}
 
-		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard, response.status, response.gameId, response.dealerId);
+		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard, response.status, response.gameId, response.dealerId, response.currentPlayerId);
 		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");

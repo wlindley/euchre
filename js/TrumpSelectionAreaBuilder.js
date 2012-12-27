@@ -6,23 +6,30 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 	var self = this;
 	var SUITS = ["clubs", "diamonds", "spades", "hearts"];
 
-	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId) {
+	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId, currentPlayerId) {
 		if ("round_in_progress" == status) {
 			return null;
 		}
-		var trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
-		if ("trump_selection_2" == status) {
-			trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection2Action", {});
-			upCard = {"suit" : 0, "value" : 0};
+		var trumpSelectionActionHtml = "";
+		if (playerId == currentPlayerId) {
+			if ("trump_selection_2" == status) {
+				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection2Action", {});
+				upCard = {"suit" : 0, "value" : 0};
+			} else {
+				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
+			}
 		}
 		var dealerName = locStrings.player.replace("%playerId%", dealerId);
 		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
 		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerName" : dealerName, "trumpSelectionAction" : trumpSelectionActionHtml});
-		console.log(trumpSelectionHtml);
 		var trumpSelectionElement = jqueryWrapper.getElement(trumpSelectionHtml);
-		trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));
-		trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
-		trumpSelectionElement.find(".selectTrumpSuitButton").click(self.buildSelectTrumpSuitClickHandler(gameId, trumpSelectionElement.find(".selectTrumpSuitInput")));
+		if (playerId == currentPlayerId) {
+			trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));
+			trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
+			trumpSelectionElement.find(".selectTrumpSuitButton").click(self.buildSelectTrumpSuitClickHandler(gameId, trumpSelectionElement.find(".selectTrumpSuitInput")));
+		} else {
+			trumpSelectionElement.find(".trumpSelectionPassButton").hide();
+		}
 		return trumpSelectionElement;
 	};
 

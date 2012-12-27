@@ -3,6 +3,7 @@ TrumpSelectionAreaBuilder = TestCase("TrumpSelectionAreaBuilder");
 TrumpSelectionAreaBuilder.prototype.setUp = function() {
 	this.locStrings = {"player" : "player %playerId%"};
 	this.playerId = "030480983";
+	this.currentPlayerId = this.playerId;
 	this.gameId = 34987234;
 	this.dealerId = "092380213";
 	this.dealerName = this.locStrings["player"].replace("%playerId%", this.dealerId);
@@ -53,7 +54,7 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 	this.testObj.buildDealerPicksUpClickHandler = mockFunction();
 	when(this.testObj.buildDealerPicksUpClickHandler)(this.gameId, this.upCard.suit).thenReturn(dealerPicksUpClickHandler);
 
-	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId, this.currentPlayerId));
 
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.dealerPicksUpButtonElement).click(dealerPicksUpClickHandler);
@@ -77,11 +78,47 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 	this.testObj.buildSelectTrumpSuitClickHandler = mockFunction();
 	when(this.testObj.buildSelectTrumpSuitClickHandler)(this.gameId, this.selectTrumpSuitInputElement).thenReturn(selectTrumpSuitClickHandler);
 
-	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(null, this.status, this.gameId, this.dealerId));
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(null, this.status, this.gameId, this.dealerId, this.currentPlayerId));
 
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.selectTrumpSuitButtonElement).click(selectTrumpSuitClickHandler);
 };
+
+TrumpSelectionAreaBuilder.prototype.testBuildDoesNotIncludeActionsWhenNotCurrentPlayersTurn = function() {
+	this.currentPlayerId = this.playerId + "4325";
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.buildTestObj();
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	this.train("");
+
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId, this.currentPlayerId));
+
+	verify(this.templateRenderer, never()).renderTemplate("trumpSelection1Action", anything());
+	verify(this.passButtonElement, never()).click(func());
+	verify(this.passButtonElement).hide();
+	verify(this.dealerPicksUpButtonElement, never()).click(func());
+};
+
+TrumpSelectionAreaBuilder.prototype.testBuildDoesNotIncludeActionsWhenNotCurrentPlayersTurnAndInTrumpSelection2 = function() {
+	this.currentPlayerId = this.playerId + "4325";
+	this.status = "trump_selection_2";
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.buildTestObj();
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	this.train("");
+
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId, this.currentPlayerId));
+
+	verify(this.templateRenderer, never()).renderTemplate("trumpSelection1Action", anything());
+	verify(this.passButtonElement, never()).click(func());
+	verify(this.passButtonElement).hide();
+	verify(this.dealerPicksUpButtonElement, never()).click(func());
+};
+
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
 	this.status = "round_in_progress";
