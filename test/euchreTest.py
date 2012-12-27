@@ -406,6 +406,13 @@ class SequenceTest(testhelper.TestCase):
 		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, False, False)
 		self.assertEqual(euchre.Sequence.STATE_TRUMP_SELECTION_2, self.sequence.getState())
 
+	def testCanSelectTrumpWhileInTrumpSelection2(self):
+		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, False, False)
+		player = self.players[0]
+		trump = euchre.SUIT_HEARTS
+		self.sequence.selectTrump(player, trump)
+		verify(self.trumpSelector).selectTrump(player, trump)
+
 	def testAdvancesToRoundWhenTrumpSelectionIsSuccessfullyCompleted(self):
 		self._train(selectedTrump=euchre.SUIT_DIAMONDS, trumpSelectorComplete=True, roundComplete=False)
 		self.assertEqual(euchre.Sequence.STATE_PLAYING_ROUND, self.sequence.getState())

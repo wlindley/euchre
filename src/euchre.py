@@ -292,7 +292,8 @@ class Sequence(object):
 		return Sequence.STATE_INVALID
 
 	def selectTrump(self, player, trumpSuit):
-		if Sequence.STATE_TRUMP_SELECTION != self.getState():
+		currentState = self.getState()
+		if Sequence.STATE_TRUMP_SELECTION != currentState and Sequence.STATE_TRUMP_SELECTION_2 != currentState:
 			raise game.GameStateException("Cannot select trump once trump selection is complete")
 		self._trumpSelector.selectTrump(player, trumpSuit)
 		if self._trumpSelector.isComplete():

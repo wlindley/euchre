@@ -2,21 +2,23 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, ajax, playerId, locStrings) {
+AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, ajax, playerId, locStrings, viewManager) {
 	var self = this;
 	var SUITS = ["clubs", "diamonds", "spades", "hearts"];
 
 	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId) {
-		if (null == upCard || "round_in_progress" == status) {
+		if ("round_in_progress" == status) {
 			return null;
 		}
 		var trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
 		if ("trump_selection_2" == status) {
 			trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection2Action", {});
+			upCard = {"suit" : 0, "value" : 0};
 		}
 		var dealerName = locStrings.player.replace("%playerId%", dealerId);
 		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
 		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerName" : dealerName, "trumpSelectionAction" : trumpSelectionActionHtml});
+		console.log(trumpSelectionHtml);
 		var trumpSelectionElement = jqueryWrapper.getElement(trumpSelectionHtml);
 		trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));
 		trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
@@ -30,7 +32,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : 0,
 				"playerId" : playerId,
 				"gameId" : gameId
-			}, function() {});
+			}, self.buildRefreshViewFunc(gameId));
 		};
 	};
 
@@ -40,7 +42,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : upSuit,
 				"playerId" : playerId,
 				"gameId" : gameId
-			}, function() {});
+			}, self.buildRefreshViewFunc(gameId));
 		};
 	};
 
@@ -52,11 +54,17 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : selectedSuitValue,
 				"playerId" : playerId,
 				"gameId" : gameId
-			}, function() {});
+			}, self.buildRefreshViewFunc(gameId));
+		};
+	};
+
+	this.buildRefreshViewFunc = function(gameId) {
+		return function(event) {
+			viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
 		};
 	};
 };
 
-AVOCADO.TrumpSelectionAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, ajax, playerId, locStrings) {
-	return new AVOCADO.TrumpSelectionAreaBuilder(templateRenderer, jqueryWrapper, ajax, playerId, locStrings);
+AVOCADO.TrumpSelectionAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, ajax, playerId, locStrings, viewManager) {
+	return new AVOCADO.TrumpSelectionAreaBuilder(templateRenderer, jqueryWrapper, ajax, playerId, locStrings, viewManager);
 };

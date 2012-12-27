@@ -468,3 +468,10 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		self.testObj.execute()
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenThereIsAGameStateExceptionWhileSelectingTrump(self):
+		self.gameModel.serializedGame = self.serializedGame
+		when(self.game).selectTrump(self.player, self.suit).thenRaise(game.GameStateException("some exception"))
+		self.testObj.execute()
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))

@@ -33,7 +33,13 @@ TrumpSelectionAreaBuilder.prototype.setUp = function() {
 
 	this.ajax = mock(AVOCADO.Ajax);
 
+	this.viewManager = mock(AVOCADO.ViewManager);
+
 	this.buildTestObj();
+
+	this.refreshDisplayFunc = function() {};
+	this.testObj.buildRefreshViewFunc = mockFunction();
+	when(this.testObj.buildRefreshViewFunc)(this.gameId).thenReturn(this.refreshDisplayFunc);
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValidData = function() {
@@ -54,6 +60,12 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2 = function() {
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+
+	this.buildTestObj();
 	this.status = "trump_selection_2";
 	this.train(this.trumpSelection2ActionHtml);
 
@@ -65,15 +77,10 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 	this.testObj.buildSelectTrumpSuitClickHandler = mockFunction();
 	when(this.testObj.buildSelectTrumpSuitClickHandler)(this.gameId, this.selectTrumpSuitInputElement).thenReturn(selectTrumpSuitClickHandler);
 
-	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(null, this.status, this.gameId, this.dealerId));
 
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.selectTrumpSuitButtonElement).click(selectTrumpSuitClickHandler);
-};
-
-TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenUpCardIsNull = function() {
-	this.upCard = null;
-	assertEquals(null, this.testObj.buildTrumpSelectionArea(this.upCard, this.status, this.gameId, this.dealerId));
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
@@ -83,12 +90,12 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgr
 
 TrumpSelectionAreaBuilder.prototype.testHandlePassClickedCallsAjaxWithCorrectData = function() {
 	this.testObj.buildPassClickHandler(this.gameId)(null);
-	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", 0), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
+	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", 0), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), this.refreshDisplayFunc);
 };
 
 TrumpSelectionAreaBuilder.prototype.testHandleDealerPicksUpClickedCallsAjaxWithCorrectData = function() {
 	this.testObj.buildDealerPicksUpClickHandler(this.gameId, this.upCard.suit)(null);
-	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", this.upCard.suit), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
+	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", this.upCard.suit), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), this.refreshDisplayFunc);
 };
 
 TrumpSelectionAreaBuilder.prototype.testHandleSelectTrumpSuitClickedCallsAjaxWithCorrectData = function() {
@@ -100,7 +107,13 @@ TrumpSelectionAreaBuilder.prototype.testHandleSelectTrumpSuitClickedCallsAjaxWit
 	when(this.selectTrumpSuitInputElement).val().thenReturn(selectedSuit);
 
 	this.testObj.buildSelectTrumpSuitClickHandler(this.gameId, this.selectTrumpSuitInputElement)(null);
-	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", selectedValue), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), func());
+	verify(this.ajax).call("selectTrump", allOf(hasMember("suit", selectedValue), hasMember("playerId", this.playerId), hasMember("gameId", this.gameId)), this.refreshDisplayFunc);
+};
+
+TrumpSelectionAreaBuilder.prototype.testRefreshViewFuncCallsViewManager = function() {
+	this.buildTestObj();
+	this.testObj.buildRefreshViewFunc(this.gameId)(null);
+	verify(this.viewManager).showView("gamePlay", allOf(hasMember("gameId", this.gameId), hasMember("playerId", this.playerId)));
 };
 
 TrumpSelectionAreaBuilder.prototype.train = function(trumpSelectionActionHtml) {
@@ -110,5 +123,5 @@ TrumpSelectionAreaBuilder.prototype.train = function(trumpSelectionActionHtml) {
 };
 
 TrumpSelectionAreaBuilder.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings, this.viewManager);
 };

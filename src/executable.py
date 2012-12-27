@@ -268,6 +268,11 @@ class SelectTrumpExecutable(AbstractExecutable):
 			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
 			self._writeResponse({"success" : False})
 			return
+		except game.GameStateException as e:
+			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
+			self._writeResponse({"success" : False})
+			return
+
 
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
