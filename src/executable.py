@@ -29,7 +29,8 @@ class ExecutableFactory(object):
 			"listGames" : ListGamesExecutable,
 			"addPlayer" : AddPlayerExecutable,
 			"getGameData" : GetGameDataExecutable,
-			"selectTrump" : SelectTrumpExecutable
+			"selectTrump" : SelectTrumpExecutable,
+			"playCard" : PlayCardExecutable
 		}
 
 	def createExecutable(self):
@@ -279,4 +280,59 @@ class SelectTrumpExecutable(AbstractExecutable):
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 
+		self._writeResponse({"success" : True})
+
+class PlayCardExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return PlayCardExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
+		super(PlayCardExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+
+	def execute(self):
+		playerId = self._requestDataAccessor.get("playerId")
+		gameId = self._requestDataAccessor.get("gameId")
+		cardSuit = self._requestDataAccessor.get("suit")
+		cardValue = self._requestDataAccessor.get("value")
+		if None == playerId or None == gameId or None == cardSuit or None == cardValue:
+			logging.info("One of the required parameters (player id, game id, card suit, and card value) was not specified")
+			self._writeResponse({"success" : False})
+			return
+		try:
+			gameId = int(gameId)
+			cardSuit = int(cardSuit)
+			cardValue = int(cardValue)
+		except ValueError:
+			logging.info("Error parsing integer for game id (%s), card suit (%s), or card value (%s)" % (gameId, cardSuit, cardValue))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+		if None == gameModel:
+			logging.info("Could not find game model for game id: %s" % gameId)
+			self._writeResponse({"success" : False})
+			return
+		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+
+		player = game.Player.getInstance(playerId)
+		card = euchre.Card.getInstance(cardSuit, cardValue)
+		try:
+			gameObj.playCard(player, card)
+		except game.GameRuleException as e:
+			logging.info("Error while player %s tried to play card %s in game %s: %s" % (player, card, gameId, e))
+			self._writeResponse({"success" : False})
+			return
+		except game.GameStateException as e:
+			logging.info("Error while player %s tried to play card %s in game %s: %s" % (player, card, gameId, e))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
+		gameModel.put()
 		self._writeResponse({"success" : True})

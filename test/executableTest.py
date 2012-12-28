@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import testhelper
 import json
+import random
 from mockito import *
 
 import src.euchre
@@ -42,6 +43,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 
 	def testCallsSelectTrumpExecutableWhenActionIsSelectTrump(self):
 		self._runTestForAction("selectTrump", "SelectTrumpExecutable")
+
+	def testCallsPlayCardExecutableWhenActionIsPlayCard(self):
+		self._runTestForAction("playCard", "PlayCardExecutable")
 
 class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
@@ -475,3 +479,122 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		self.testObj.execute()
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+class PlayCardExecutableTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = executable.PlayCardExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+
+		self.gameId = 45678
+		self.playerId = "1230982304"
+		self.cardValue = random.randrange(9, 15)
+		self.cardSuit = random.randrange(1, euchre.NUM_SUITS + 1)
+		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
+		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+		when(self.requestDataAccessor).get("suit").thenReturn(str(self.cardSuit))
+		when(self.requestDataAccessor).get("value").thenReturn(str(self.cardValue))
+
+		self.player = game.Player(self.playerId)
+		testhelper.replaceClass(src.game, "Player", testhelper.createSimpleMock())
+		when(src.game.Player).getInstance(self.playerId).thenReturn(self.player)
+
+		self.card = euchre.Card(self.cardSuit, self.cardSuit)
+		testhelper.replaceClass(src.euchre, "Card", testhelper.createSimpleMock())
+		when(src.euchre.Card).getInstance(self.cardSuit, self.cardValue).thenReturn(self.card)
+
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameModel = testhelper.createMock(model.GameModel)
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+
+		self.game = testhelper.createSingletonMock(euchre.Game)
+		self.serializedGame = "a super serialized game"
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.game)
+
+		self._buildTestObj()
+
+	def testExecuteCorrectlyPlaysCardWhenValidDataIsPassedIn(self):
+		postSerializedGame = "a slightly different serialized game"
+		when(self.gameSerializer).serialize(self.game).thenReturn(postSerializedGame)
+		self.gameModel.serializedGame = self.serializedGame
+
+		self.testObj.execute()
+
+		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
+		inorder.verify(self.game).playCard(self.player, self.card)
+		inorder.verify(self.gameModel).put()
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+
+	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
+		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfGameIdIsMissing(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn(None)
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfSuitIsMissing(self):
+		when(self.requestDataAccessor).get("suit").thenReturn(None)
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenSuitIsInvalid(self):
+		when(self.requestDataAccessor).get("suit").thenReturn("bing")
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfValueIsMissing(self):
+		when(self.requestDataAccessor).get("value").thenReturn(None)
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenValueIsInvalid(self):
+		when(self.requestDataAccessor).get("value").thenReturn("baz")
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameModelFinder)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfGameModelNotFound(self):
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(None)
+		self.testObj.execute()
+		verifyZeroInteractions(self.gameSerializer)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenThereIsAGameRuleExceptionWhilePlayingCard(self):
+		self.gameModel.serializedGame = self.serializedGame
+		when(self.game).playCard(self.player, self.card).thenRaise(game.GameRuleException("some exception"))
+		self.testObj.execute()
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenThereIsAGameStateExceptionWhilePlayingCard(self):
+		self.gameModel.serializedGame = self.serializedGame
+		when(self.game).playCard(self.player, self.card).thenRaise(game.GameStateException("some exception"))
+		self.testObj.execute()
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
