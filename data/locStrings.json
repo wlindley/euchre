@@ -13,5 +13,6 @@
 	"suit_1" : "clubs",
 	"suit_2" : "diamonds",
 	"suit_3" : "spades",
-	"suit_4" : "hearts"
+	"suit_4" : "hearts",
+	"noCardsPlayed" : "No cards played yet"
 }

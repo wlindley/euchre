@@ -11,6 +11,9 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 		}
 
 		var ledSuitString = locStrings["suit_" + ledSuit];
+		if (0 == ledSuit) {
+			ledSuitString = locStrings["noCardsPlayed"];
+		}
 
 		var trickHtml = "";
 		for (var playerId in trick) {
