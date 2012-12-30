@@ -34,3 +34,8 @@
 	font-weight: normal;
 	margin-top: 20px;
 }
+
+.clickableCard img {
+	cursor: hand;
+	cursor: pointer;
+}

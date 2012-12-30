@@ -33,9 +33,13 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		}
 
 		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard, response.status, response.gameId, response.dealerId, response.currentPlayerId);
-		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.ledSuit, response.currentTrick);
+
 		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
+
+		var cardElements = gameElement.find(".card");
+		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.ledSuit, response.currentTrick, cardElements, response.gameId);
+
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");
 		trumpSelectionInsertionPoint.append(trumpSelectionElement);
 		var roundPlayingInsertionPoint = gameElement.find(".playingRound");
@@ -53,6 +57,6 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 
 AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, jqueryWrapper) {
 	var trumpSelectionAreaBuilder = AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer, jqueryWrapper, ajax, fbId, locStrings, viewManager);
-	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings);
+	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, fbId, viewManager);
 	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder);
 };

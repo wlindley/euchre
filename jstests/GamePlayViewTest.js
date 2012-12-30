@@ -57,9 +57,6 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var trumpSelectionElement = mock(TEST.FakeJQueryElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value)), equalTo(status), equalTo(gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(trumpSelectionElement);
 
-	var roundPlayingElement = mock(TEST.FakeJQueryElement);
-	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(status, ledSuit, trick).thenReturn(roundPlayingElement);
-
 	var gameHtml = "the whole game";
 	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn))).thenReturn(gameHtml);
 	var gameElement = mock(TEST.FakeJQueryElement);
@@ -68,6 +65,11 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	when(gameElement).find(".trumpSelection").thenReturn(trumpSelectionInsertionElement);
 	var roundPlayingInsertionElement = mock(TEST.FakeJQueryElement);
 	when(gameElement).find(".playingRound").thenReturn(roundPlayingInsertionElement);
+
+	var cardElements = mock(TEST.FakeJQueryElement);
+	when(gameElement).find(".card").thenReturn(cardElements);
+	var roundPlayingElement = mock(TEST.FakeJQueryElement);
+	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(status, ledSuit, trick, cardElements, gameId).thenReturn(roundPlayingElement);
 
 	this.testObj.show({"gameId" : gameId});
 
