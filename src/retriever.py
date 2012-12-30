@@ -101,7 +101,6 @@ class LedSuitRetriever(object):
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
 		if None == trick:
-			logging.info("No current trick")
 			return None
 		return trick.getLedSuit()
 
@@ -118,7 +117,6 @@ class CurrentTrickRetriever(object):
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
 		if None == trick:
-			logging.info("No current trick")
 			return {}
 		playedCards = trick.getPlayedCards()
 		return  {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}

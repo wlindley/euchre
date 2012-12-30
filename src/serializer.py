@@ -4,6 +4,8 @@ import logging
 import game
 import euchre
 
+logging.getLogger().setLevel(logging.DEBUG)
+
 class AbstractSerializer(object):
 	__metaclass__ = ABCMeta
 
@@ -174,7 +176,6 @@ class RoundSerializer(AbstractSerializer):
 	def serialize(self, obj):
 		if None == obj:
 			return None
-		logging.info("serializing round with curTrick: %s, serialized curTrick: %s" % (obj.getCurrentTrick(), self.trickSerializer.serialize(obj.getCurrentTrick())))
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
 				"hands" : self._serializeHands(obj.hands),
@@ -211,7 +212,6 @@ class RoundSerializer(AbstractSerializer):
 		hands = self._deserializeHands(data["hands"])
 		round = euchre.Round(turnTracker, trickEvaluator, hands)
 		round._curTrick = self.trickSerializer.deserialize(data["curTrick"])
-		logging.info("serialized curTrick: %s, deserialized curTrick: %s" % (data["curTrick"], round.getCurrentTrick()))
 		round.prevTricks = self._deserializeTricks(data["prevTricks"])
 		round._scores = self._deserializeScores(data["scores"])
 		return round
