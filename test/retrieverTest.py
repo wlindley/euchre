@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import testhelper
 import json
+import random
 from mockito import *
 
 from src import euchre
@@ -146,3 +147,50 @@ class GameStatusRetrieverTest(testhelper.TestCase):
 	def testRetrieveStatusReturnsRoundInProgressWhenSequenceIsInPlayingRound(self):
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
 		self.assertEqual("round_in_progress", self.testObj.retrieveGameStatus(self.game))
+
+class LedSuitRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.game = mock(euchre.Game)
+		self.sequence = mock(euchre.Sequence)
+		self.round = mock(euchre.Round)
+		self.trick = mock(euchre.Trick)
+		self.ledSuit = random.randint(1, 4)
+
+		when(self.game).getSequence().thenReturn(self.sequence)
+		when(self.sequence).getRound().thenReturn(self.round)
+		when(self.round).getCurrentTrick().thenReturn(self.trick)
+		when(self.trick).getLedSuit().thenReturn(self.ledSuit)
+		
+		self.testObj = retriever.LedSuitRetriever.getInstance()
+
+	def testRetrieveLedSuitReturnsExpectedResult(self):
+		self.assertEqual(self.ledSuit, self.testObj.retrieveLedSuit(self.game))
+
+	def testRetrieveLedSuitReturnsNoneWhenCurrentTrickIsNone(self):
+		when(self.round).getCurrentTrick().thenReturn(None)
+		self.assertEqual(None, self.testObj.retrieveLedSuit(self.game))
+
+class CurrentTrickRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.game = mock(euchre.Game)
+		self.sequence = mock(euchre.Sequence)
+		self.round = mock(euchre.Round)
+		self.trick = mock(euchre.Trick)
+		self.cards = {"1234" : euchre.Card(euchre.SUIT_HEARTS, 10), "4567" : euchre.Card(euchre.SUIT_HEARTS, 12), "7890" : euchre.Card(euchre.SUIT_HEARTS, 11), "0123" : euchre.Card(euchre.SUIT_HEARTS, 14)}
+		self.expectedResult = {}
+		for playerId, card in self.cards.iteritems():
+			self.expectedResult[playerId] = {"suit" : card.suit, "value" : card.value}
+
+		when(self.game).getSequence().thenReturn(self.sequence)
+		when(self.sequence).getRound().thenReturn(self.round)
+		when(self.round).getCurrentTrick().thenReturn(self.trick)
+		when(self.trick).getPlayedCards().thenReturn(self.cards)
+
+		self.testObj = retriever.CurrentTrickRetriever.getInstance()
+
+	def testRetrieveCurrentTrickReturnsExpectedResult(self):
+		self.assertEqual(self.expectedResult, self.testObj.retrieveCurrentTrick(self.game))
+
+	def testRetrieveCurrentTrickReturnsEmptyDictionaryIfCurrentTrickIsNone(self):
+		when(self.round).getCurrentTrick().thenReturn(None)
+		self.assertEqual({}, self.testObj.retrieveCurrentTrick(self.game))

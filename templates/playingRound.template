@@ -1,0 +1,5 @@
+<div>
+	<div>Current trick:</div>
+	<div>Led suit: %ledSuit%</div>
+	<div>%currentTrick%</div>
+</div>

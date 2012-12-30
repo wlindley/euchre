@@ -1,5 +1,6 @@
 from abc import ABCMeta
 from abc import abstractmethod
+import logging
 import game
 import euchre
 
@@ -173,10 +174,11 @@ class RoundSerializer(AbstractSerializer):
 	def serialize(self, obj):
 		if None == obj:
 			return None
+		logging.info("serializing round with curTrick: %s, serialized curTrick: %s" % (obj.getCurrentTrick(), self.trickSerializer.serialize(obj.getCurrentTrick())))
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
 				"hands" : self._serializeHands(obj.hands),
-				"curTrick" : self.trickSerializer.serialize(obj.curTrick),
+				"curTrick" : self.trickSerializer.serialize(obj.getCurrentTrick()),
 				"prevTricks" : self._serializeTricks(obj.prevTricks),
 				"scores" : self._serializeScores(obj._scores)}
 
@@ -208,7 +210,8 @@ class RoundSerializer(AbstractSerializer):
 		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		hands = self._deserializeHands(data["hands"])
 		round = euchre.Round(turnTracker, trickEvaluator, hands)
-		round.curTrick = self.trickSerializer.deserialize(data["curTrick"])
+		round._curTrick = self.trickSerializer.deserialize(data["curTrick"])
+		logging.info("serialized curTrick: %s, deserialized curTrick: %s" % (data["curTrick"], round.getCurrentTrick()))
 		round.prevTricks = self._deserializeTricks(data["prevTricks"])
 		round._scores = self._deserializeScores(data["scores"])
 		return round
@@ -288,8 +291,8 @@ class TrickSerializer(AbstractSerializer):
 	def serialize(self, obj):
 		if None == obj:
 			return None
-		return {"ledSuit" : obj.ledSuit,
-				"playedCards" : self._serializePlayedCards(obj.playedCards)}
+		return {"ledSuit" : obj.getLedSuit(),
+				"playedCards" : self._serializePlayedCards(obj.getPlayedCards())}
 
 	def _serializePlayedCards(self, cards):
 		serializedCards = {}
@@ -301,8 +304,8 @@ class TrickSerializer(AbstractSerializer):
 		if None == data:
 			return None
 		trick = euchre.Trick.getInstance()
-		trick.ledSuit = data["ledSuit"]
-		trick.playedCards = self._deserializePlayedCards(data["playedCards"])
+		trick._ledSuit = data["ledSuit"]
+		trick._playedCards = self._deserializePlayedCards(data["playedCards"])
 		return trick
 
 	def _deserializePlayedCards(self, playedCards):

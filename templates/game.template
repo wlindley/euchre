@@ -4,5 +4,6 @@
 	%turn%
 	%hand%
 	<div class="trumpSelection"></div>
+	<div class="playingRound"></div>
 </div>
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>

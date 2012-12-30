@@ -86,18 +86,24 @@ class Trick(object):
 		return Trick()
 
 	def __init__(self):
-		self.playedCards = {}
-		self.ledSuit = SUIT_NONE
+		self._playedCards = {}
+		self._ledSuit = SUIT_NONE
 
 	def add(self, player, card):
-		if SUIT_NONE == self.ledSuit:
-			self.ledSuit = card.suit
-		if player.playerId in self.playedCards:
+		if SUIT_NONE == self._ledSuit:
+			self._ledSuit = card.suit
+		if player.playerId in self._playedCards:
 			raise game.GameRuleException("Player with id %s has already played a card in this trick" % player.playerId)
-		self.playedCards[player.playerId] = card
+		self._playedCards[player.playerId] = card
 
 	def isComplete(self):
-		return len(self.playedCards) >= NUM_PLAYERS
+		return len(self._playedCards) >= NUM_PLAYERS
+
+	def getLedSuit(self):
+		return self._ledSuit
+
+	def getPlayedCards(self):
+		return self._playedCards
 
 class TrickEvaluator(object):
 	instance = None
@@ -120,7 +126,7 @@ class TrickEvaluator(object):
 		highestLedCard = None
 		highestTrumpId = None
 		highestLedId = None
-		for playerId, card in trick.playedCards.iteritems():
+		for playerId, card in trick.getPlayedCards().iteritems():
 			cardSuit = card.suit
 			cardValue = card.value
 			if cardValue == VALUE_JACK:
@@ -133,7 +139,7 @@ class TrickEvaluator(object):
 				highestTrumpValue = cardValue
 				highestTrumpCard = card
 				highestTrumpId = playerId
-			if cardSuit == trick.ledSuit and cardValue > highestLedValue:
+			if cardSuit == trick.getLedSuit() and cardValue > highestLedValue:
 				highestLedValue = cardValue
 				highestLedCard = card
 				highestLedId = playerId
@@ -154,14 +160,11 @@ class Round(object):
 
 	def __init__(self, turnTracker, trickEvaluator, hands):
 		self.hands = hands
-		self.curTrick = None
+		self._curTrick = Trick.getInstance()
 		self.prevTricks = []
 		self._scores = {}
 		self._trickEvaluator = trickEvaluator
 		self._turnTracker = turnTracker
-
-	def startRound(self):
-		self.curTrick = Trick()
 
 	def playCard(self, player, card):
 		if None == player or player.playerId not in self.hands:
@@ -172,10 +175,10 @@ class Round(object):
 			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 
 		self.hands[player.playerId].remove(card)
-		self.curTrick.add(player, card)
+		self._curTrick.add(player, card)
 		self._nextTurn()
 
-		if self.curTrick.isComplete():
+		if self._curTrick.isComplete():
 			self._nextTrick()
 
 	def isComplete(self):
@@ -192,11 +195,14 @@ class Round(object):
 	def getTurnTracker(self):
 		return self._turnTracker
 
+	def getCurrentTrick(self):
+		return self._curTrick
+
 	def _nextTrick(self):
-		winner = self._trickEvaluator.evaluateTrick(self.curTrick)
+		winner = self._trickEvaluator.evaluateTrick(self._curTrick)
 		self._incrementScore(winner)
-		self.prevTricks.append(self.curTrick)
-		self.curTrick = Trick()
+		self.prevTricks.append(self._curTrick)
+		self._curTrick = Trick()
 		self._setPlayerTurn(winner)
 
 	def _incrementScore(self, playerId):

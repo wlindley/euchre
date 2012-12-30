@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper) {
+AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -33,10 +33,13 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		}
 
 		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard, response.status, response.gameId, response.dealerId, response.currentPlayerId);
+		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.ledSuit, response.currentTrick);
 		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");
 		trumpSelectionInsertionPoint.append(trumpSelectionElement);
+		var roundPlayingInsertionPoint = gameElement.find(".playingRound");
+		roundPlayingInsertionPoint.append(roundPlayingElement);
 
 		gamePlayDiv.append(gameElement);
 		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
@@ -50,5 +53,6 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 
 AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, jqueryWrapper) {
 	var trumpSelectionAreaBuilder = AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer, jqueryWrapper, ajax, fbId, locStrings, viewManager);
-	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper);
+	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings);
+	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder);
 };

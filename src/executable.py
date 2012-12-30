@@ -176,9 +176,9 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
@@ -187,6 +187,8 @@ class GetGameDataExecutable(AbstractExecutable):
 		self._upCardRetriever = upCardRetriever
 		self._dealerRetriever = dealerRetriever
 		self._gameStatusRetriever = gameStatusRetriever
+		self._ledSuitRetriever = ledSuitRetriever
+		self._currentTrickRetriever = currentTrickRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -219,6 +221,8 @@ class GetGameDataExecutable(AbstractExecutable):
 		response["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
 		response["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		response["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
+		response["ledSuit"] = self._ledSuitRetriever.retrieveLedSuit(gameObj)
+		response["currentTrick"] = self._currentTrickRetriever.retrieveCurrentTrick(gameObj)
 		self._writeResponse(response)
 
 	def _convertHand(self, hand):

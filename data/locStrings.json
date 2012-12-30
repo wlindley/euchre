@@ -9,5 +9,9 @@
 	"diamond" : "diamond",
 	"diamonds" : "diamonds",
 	"club" : "club",
-	"clubs" : "clubs"
+	"clubs" : "clubs",
+	"suit_1" : "clubs",
+	"suit_2" : "diamonds",
+	"suit_3" : "spades",
+	"suit_4" : "hearts"
 }

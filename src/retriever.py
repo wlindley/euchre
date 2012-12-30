@@ -87,3 +87,38 @@ class GameStatusRetriever(object):
 		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
 			return "round_in_progress"
 		return ""
+
+class LedSuitRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return LedSuitRetriever()
+
+	def retrieveLedSuit(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		trick = round.getCurrentTrick()
+		if None == trick:
+			logging.info("No current trick")
+			return None
+		return trick.getLedSuit()
+
+class CurrentTrickRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return CurrentTrickRetriever()
+
+	def retrieveCurrentTrick(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		trick = round.getCurrentTrick()
+		if None == trick:
+			logging.info("No current trick")
+			return {}
+		playedCards = trick.getPlayedCards()
+		return  {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}

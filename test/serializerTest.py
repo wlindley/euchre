@@ -245,7 +245,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		expectedTrickEvaluator = "a trick evaluator"
 		when(self.trickEvaluatorSerializer).serialize(self.trickEvaluator).thenReturn(expectedTrickEvaluator)
 		curTrick = testhelper.createMock(euchre.Trick)
-		self.round.curTrick = curTrick
+		self.round._curTrick = curTrick
 		prevTricks = [testhelper.createMock(euchre.Trick), testhelper.createMock(euchre.Trick)]
 		self.round.prevTricks = prevTricks
 		expectedTricks = {curTrick : "trick 1", prevTricks[0] : "trick 2", prevTricks[1] : "trick 3"}
@@ -308,7 +308,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		for playerId, hand in hands.iteritems():
 			for i in range(len(hand)):
 				self.assertEqual(expectedCards[hand[i]], obj.hands[playerId][i])
-		self.assertEqual(expectedTricks[curTrick], obj.curTrick)
+		self.assertEqual(expectedTricks[curTrick], obj.getCurrentTrick())
 		for i in range(len(prevTricks)):
 			self.assertEqual(expectedTricks[prevTricks[i]], obj.prevTricks[i])
 		for playerId, score in scores.iteritems():
@@ -349,9 +349,9 @@ class TrickSerializerTest(testhelper.TestCase):
 		expectedCards = {playedCards["1"] : "card 1", playedCards["2"] : "card 2"}
 		for key, val in expectedCards.iteritems():
 			when(self.cardSerializer).serialize(key).thenReturn(val)
-		trick = euchre.Trick()
-		trick.ledSuit = expectedLedSuit
-		trick.playedCards = playedCards
+		trick = mock(euchre.Trick)
+		when(trick).getLedSuit().thenReturn(expectedLedSuit)
+		when(trick).getPlayedCards().thenReturn(playedCards)
 
 		data = self.testObj.serialize(trick)
 
@@ -371,9 +371,9 @@ class TrickSerializerTest(testhelper.TestCase):
 
 		obj = self.testObj.deserialize(data)
 
-		self.assertEqual(expectedLedSuit, obj.ledSuit)
+		self.assertEqual(expectedLedSuit, obj.getLedSuit())
 		for playerId, card in expectedPlayedCards.iteritems():
-			self.assertEqual(playedCards[card], obj.playedCards[playerId])
+			self.assertEqual(playedCards[card], obj.getPlayedCards()[playerId])
 
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))

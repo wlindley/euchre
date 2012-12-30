@@ -9,4 +9,5 @@ js/GameJoiner.js
 js/GamePlayView.js
 js/ViewManager.js
 js/TrumpSelectionAreaBuilder.js
+js/RoundPlayingAreaBuilder.js
 js/init.js

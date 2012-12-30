@@ -316,6 +316,14 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
 		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn(self.gameStatus)
 
+		self.ledSuit = random.randint(1, 4)
+		self.ledSuitRetriever = testhelper.createSingletonMock(retriever.LedSuitRetriever)
+		when(self.ledSuitRetriever).retrieveLedSuit(self.gameObj).thenReturn(self.ledSuit)
+
+		self.currentTrick = "lots of trick data"
+		self.currentTrickRetriever = testhelper.createSingletonMock(retriever.CurrentTrickRetriever)
+		when(self.currentTrickRetriever).retrieveCurrentTrick(self.gameObj).thenReturn(self.currentTrick)
+
 		self._buildTestObj()
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
@@ -335,7 +343,9 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"gameId" : self.gameId,
 			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
 			"dealerId" : self.dealer,
-			"status" : self.gameStatus
+			"status" : self.gameStatus,
+			"ledSuit" : self.ledSuit,
+			"currentTrick" : self.currentTrick
 		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
@@ -360,7 +370,9 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"gameId" : self.gameId,
 			"upCard" : None,
 			"dealerId" : self.dealer,
-			"status" : self.gameStatus
+			"status" : self.gameStatus,
+			"ledSuit" : self.ledSuit,
+			"currentTrick" : self.currentTrick
 		}, sort_keys=True))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):
