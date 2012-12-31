@@ -478,16 +478,9 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-	def testExecuteWritesFailureWhenThereIsAGameRuleExceptionWhileSelectingTrump(self):
+	def testExecuteWritesFailureWhenThereIsAGameExceptionWhileSelectingTrump(self):
 		self.gameModel.serializedGame = self.serializedGame
-		when(self.game).selectTrump(self.player, self.suit).thenRaise(game.GameRuleException("some exception"))
-		self.testObj.execute()
-		verify(self.gameModel, never).put()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testExecuteWritesFailureWhenThereIsAGameStateExceptionWhileSelectingTrump(self):
-		self.gameModel.serializedGame = self.serializedGame
-		when(self.game).selectTrump(self.player, self.suit).thenRaise(game.GameStateException("some exception"))
+		when(self.game).selectTrump(self.player, self.suit).thenRaise(game.GameException("some exception"))
 		self.testObj.execute()
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
@@ -596,17 +589,9 @@ class PlayCardExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-	def testExecuteWritesFailureWhenThereIsAGameRuleExceptionWhilePlayingCard(self):
+	def testExecuteWritesFailureWhenThereIsAGameExceptionWhilePlayingCard(self):
 		self.gameModel.serializedGame = self.serializedGame
-		when(self.game).playCard(self.player, self.card).thenRaise(game.GameRuleException("some exception"))
+		when(self.game).playCard(self.player, self.card).thenRaise(game.GameException("some exception"))
 		self.testObj.execute()
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testExecuteWritesFailureWhenThereIsAGameStateExceptionWhilePlayingCard(self):
-		self.gameModel.serializedGame = self.serializedGame
-		when(self.game).playCard(self.player, self.card).thenRaise(game.GameStateException("some exception"))
-		self.testObj.execute()
-		verify(self.gameModel, never).put()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-

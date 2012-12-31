@@ -1,10 +1,13 @@
-class InvalidPlayerException(Exception):
+class GameException(Exception):
 	pass
 
-class GameRuleException(Exception):
+class InvalidPlayerException(GameException):
 	pass
 
-class GameStateException(Exception):
+class GameRuleException(GameException):
+	pass
+
+class GameStateException(GameException):
 	pass
 
 class Player(object):

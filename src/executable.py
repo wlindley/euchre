@@ -271,15 +271,10 @@ class SelectTrumpExecutable(AbstractExecutable):
 		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
 		try:
 			gameObj.selectTrump(game.Player.getInstance(playerId), suit)
-		except game.GameRuleException as e:
+		except game.GameException as e:
 			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
 			self._writeResponse({"success" : False})
 			return
-		except game.GameStateException as e:
-			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
-			self._writeResponse({"success" : False})
-			return
-
 
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
@@ -328,11 +323,7 @@ class PlayCardExecutable(AbstractExecutable):
 		card = euchre.Card.getInstance(cardSuit, cardValue)
 		try:
 			gameObj.playCard(player, card)
-		except game.GameRuleException as e:
-			logging.info("Error while player %s tried to play card %s in game %s: %s" % (player, card, gameId, e))
-			self._writeResponse({"success" : False})
-			return
-		except game.GameStateException as e:
+		except game.GameException as e:
 			logging.info("Error while player %s tried to play card %s in game %s: %s" % (player, card, gameId, e))
 			self._writeResponse({"success" : False})
 			return
