@@ -210,7 +210,7 @@ class RoundSerializer(AbstractSerializer):
 		trickEvaluator = self.trickEvaluatorSerializer.deserialize(data["trickEvaluator"])
 		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		hands = self._deserializeHands(data["hands"])
-		round = euchre.Round(turnTracker, trickEvaluator, hands)
+		round = euchre.Round(turnTracker, trickEvaluator, hands, euchre.CardTranslator.getInstance())
 		round._curTrick = self.trickSerializer.deserialize(data["curTrick"])
 		round.prevTricks = self._deserializeTricks(data["prevTricks"])
 		round._scores = self._deserializeScores(data["scores"])

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import testhelper
 import unittest
+import random
 from mockito import *
 from src import euchre
 from src import game
@@ -109,9 +110,34 @@ class TrickTest(testhelper.TestCase):
 			self.trick.add(self.players[i], cards[i])
 		self.assertTrue(self.trick.isComplete())
 
+class CardTranslatorTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = euchre.CardTranslator.getInstance()
+
+	def setUp(self):
+		self.card = euchre.Card(random.randint(1, 4), random.randint(9, 14))
+		self.trumpSuit = random.randint(1, 4)
+		self._buildTestObj()
+
+	def testReturnsCardIfNotTrumpSuit(self):
+		self.trumpSuit = self.card.suit + 1
+		self.assertEqual(self.card, self.testObj.translateCard(self.card, self.trumpSuit))
+
+	def testCorrectsValueIfJackOfTrumpSuit(self):
+		self.trumpSuit = self.card.suit
+		self.card.value = euchre.VALUE_JACK
+		expectedCard = euchre.Card.getInstance(self.trumpSuit, euchre.VALUE_RIGHT_BOWER)
+		self.assertEqual(expectedCard, self.testObj.translateCard(self.card, self.trumpSuit))
+
+	def testCorrectsSuitAndValueIfJackOfSisterTrumpSuit(self):
+		self.trumpSuit = ((self.card.suit + 1) % 4) + 1
+		self.card.value = euchre.VALUE_JACK
+		expectedCard = euchre.Card.getInstance(self.trumpSuit, euchre.VALUE_LEFT_BOWER)
+		self.assertEqual(expectedCard, self.testObj.translateCard(self.card, self.trumpSuit))
+
 class TrickEvaluatorTest(testhelper.TestCase):
 	def setUp(self):
-		self.evaluator = euchre.TrickEvaluator()
+		self.evaluator = euchre.TrickEvaluator.getInstance()
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 
 	def testCardOfTrumpSuitWinsAgainstNonTrumps(self):
@@ -174,6 +200,11 @@ class TrickEvaluatorTest(testhelper.TestCase):
 		winner = self.evaluator.evaluateTrick(trick)
 		self.assertEqual(cards[0], trick.getPlayedCards()[winner])
 
+	def testGetTrumpReturnsSetTrump(self):
+		trumpSuit = random.randint(1, 4)
+		self.evaluator.setTrump(trumpSuit)
+		self.assertEqual(trumpSuit, self.evaluator.getTrump())
+
 class RoundTest(testhelper.TestCase):
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
@@ -183,6 +214,8 @@ class RoundTest(testhelper.TestCase):
 		self.handSize = euchre.HAND_SIZE
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(self.handSize)
+		self.cardTranslator = testhelper.createSingletonMock(euchre.CardTranslator)
+		self.cardTranslator.translateCard = lambda card, trumpSuit: card
 		self._buildTestObj()
 
 	def _buildTestObj(self):
@@ -263,7 +296,7 @@ class RoundTest(testhelper.TestCase):
 			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
 
 	def testScoreIsCorrectAfterACompleteRound(self):
-		trickEvaluator = euchre.TrickEvaluator(self.trump)
+		trickEvaluator = euchre.TrickEvaluator.getInstance(self.trump)
 		scores = {}
 		for player in self.players:
 			scores[player.playerId] = 0
@@ -290,6 +323,17 @@ class RoundTest(testhelper.TestCase):
 		turnTracker = testhelper.createSingletonMock(game.TurnTracker)
 		self._buildTestObj()
 		self.assertEqual(turnTracker, self.round.getTurnTracker())
+
+	def testNotFollowingSuitThrowsException(self):
+		firstCard = self.round.hands[self.players[0].playerId][0]
+		self.round.playCard(self.players[0], firstCard)
+		offSuit = firstCard.suit + 1
+		if offSuit > euchre.SUIT_HEARTS:
+			offSuit = euchre.SUIT_CLUBS
+		self.round.hands[self.players[1].playerId][0].suit = offSuit
+		self.round.hands[self.players[1].playerId][1].suit = firstCard.suit
+		with self.assertRaises(game.GameRuleException):
+			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
 
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):

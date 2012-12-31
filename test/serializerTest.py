@@ -222,7 +222,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		self.turnTrackerSerializer = testhelper.createSingletonMock(serializer.TurnTrackerSerializer)
 		self.trickSerializer = testhelper.createSingletonMock(serializer.TrickSerializer)
 		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
-		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands)
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands, euchre.CardTranslator.getInstance())
 		self.testObj = serializer.RoundSerializer.getInstance()
 
 	def _randomCard(self):
@@ -324,7 +324,7 @@ class TrickEvaluatorSerializerTest(testhelper.TestCase):
 
 	def testSerializesTrickEvaluatorCorrectly(self):
 		trumpSuit = random.randint(1, euchre.NUM_SUITS)
-		trickEvaluator = euchre.TrickEvaluator(trumpSuit)
+		trickEvaluator = euchre.TrickEvaluator.getInstance(trumpSuit)
 		data = self.testObj.serialize(trickEvaluator)
 		self.assertEqual(trumpSuit, data["trumpSuit"])
 

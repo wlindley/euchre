@@ -105,19 +105,40 @@ class Trick(object):
 	def getPlayedCards(self):
 		return self._playedCards
 
+class CardTranslator(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return CardTranslator()
+
+	def translateCard(self, card, trumpSuit=SUIT_NONE):
+		translatedCard = Card.getInstance(card.suit, card.value)
+		if trumpSuit == card.suit and VALUE_JACK == card.value:
+			translatedCard.value = VALUE_RIGHT_BOWER
+		elif ((trumpSuit + 1) % 4) + 1 == card.suit and VALUE_JACK == card.value:
+			translatedCard.suit = trumpSuit
+			translatedCard.value = VALUE_LEFT_BOWER
+		return translatedCard
+
 class TrickEvaluator(object):
 	instance = None
 	@classmethod
 	def getInstance(cls, trump=SUIT_NONE):
 		if None != cls.instance:
 			return cls.instance
-		return TrickEvaluator(trump)
+		return TrickEvaluator(CardTranslator.getInstance(), trump)
 
-	def __init__(self, trump=SUIT_NONE):
+	def __init__(self, cardTranslator, trump=SUIT_NONE):
 		self._trumpSuit = trump
+		self._cardTranslator = cardTranslator
 
 	def setTrump(self, trumpSuit):
 		self._trumpSuit = trumpSuit
+
+	def getTrump(self):
+		return self._trumpSuit
 
 	def evaluateTrick(self, trick):
 		highestTrumpValue = -1
@@ -127,14 +148,9 @@ class TrickEvaluator(object):
 		highestTrumpId = None
 		highestLedId = None
 		for playerId, card in trick.getPlayedCards().iteritems():
-			cardSuit = card.suit
-			cardValue = card.value
-			if cardValue == VALUE_JACK:
-				if cardSuit == self._trumpSuit:
-					cardValue = VALUE_RIGHT_BOWER
-				elif cardSuit % 2 == self._trumpSuit % 2:
-					cardSuit = self._trumpSuit
-					cardValue = VALUE_LEFT_BOWER
+			translatedCard = self._cardTranslator.translateCard(card, self._trumpSuit)
+			cardSuit = translatedCard.suit
+			cardValue = translatedCard.value
 			if cardSuit == self._trumpSuit and cardValue > highestTrumpValue:
 				highestTrumpValue = cardValue
 				highestTrumpCard = card
@@ -156,15 +172,16 @@ class Round(object):
 	def getInstance(cls, players, hands, trumpSuit=SUIT_NONE):
 		if None != cls.instance:
 			return cls.instance
-		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(trumpSuit), hands)
+		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(trumpSuit), hands, CardTranslator.getInstance())
 
-	def __init__(self, turnTracker, trickEvaluator, hands):
+	def __init__(self, turnTracker, trickEvaluator, hands, cardTranslator):
 		self.hands = hands
 		self._curTrick = Trick.getInstance()
 		self.prevTricks = []
 		self._scores = {}
 		self._trickEvaluator = trickEvaluator
 		self._turnTracker = turnTracker
+		self._cardTranslator = cardTranslator
 
 	def playCard(self, player, card):
 		if None == player or player.playerId not in self.hands:
@@ -173,6 +190,14 @@ class Round(object):
 			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
+		ledSuit = self._curTrick.getLedSuit()
+		trumpSuit = self._trickEvaluator.getTrump()
+		translatedCard = self._cardTranslator.translateCard(card, trumpSuit)
+		if SUIT_NONE != ledSuit and ledSuit != translatedCard.suit:
+			for heldCard in self.hands[player.playerId]:
+				translatedHeldCard = self._cardTranslator.translateCard(heldCard, trumpSuit)
+				if ledSuit == translatedHeldCard.suit:
+					raise game.GameRuleException("Player with id %s must follow suit, cannot play %s when led suit is %s and %s is in their hand" % (player.playerId, card, ledSuit, heldCard))
 
 		self.hands[player.playerId].remove(card)
 		self._curTrick.add(player, card)
