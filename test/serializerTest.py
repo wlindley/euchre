@@ -349,7 +349,7 @@ class TrickSerializerTest(testhelper.TestCase):
 		expectedCards = {playedCards["1"] : "card 1", playedCards["2"] : "card 2"}
 		for key, val in expectedCards.iteritems():
 			when(self.cardSerializer).serialize(key).thenReturn(val)
-		trick = mock(euchre.Trick)
+		trick = testhelper.createMock(euchre.Trick)
 		when(trick).getLedSuit().thenReturn(expectedLedSuit)
 		when(trick).getPlayedCards().thenReturn(playedCards)
 

@@ -324,6 +324,26 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.currentTrickRetriever = testhelper.createSingletonMock(retriever.CurrentTrickRetriever)
 		when(self.currentTrickRetriever).retrieveCurrentTrick(self.gameObj).thenReturn(self.currentTrick)
 
+		self.trump = random.randint(1, 4)
+		self.trumpRetriever = testhelper.createSingletonMock(retriever.TrumpRetriever)
+		when(self.trumpRetriever).retrieveTrump(self.gameObj).thenReturn(self.trump)
+
+		self.playerIds = [self.playerId, "65432", "21098", "87654"]
+		self.teams = [0, 0, 1, 1]
+		random.shuffle(self.teams)
+		self.expectedTeams = [[], []]
+		self.teamRetriever = testhelper.createSingletonMock(retriever.TeamRetriever)
+		for i in range(len(self.playerIds)):
+			when(self.teamRetriever).retrieveTeamByPlayerId(self.gameObj, self.playerIds[i]).thenReturn(self.teams[i])
+			self.expectedTeams[self.teams[i]].append(self.playerIds[i])
+		when(self.teamRetriever).retrieveTeamLists(self.gameObj).thenReturn(self.expectedTeams)
+
+		self.gameScores = [random.randint(0, 11), random.randint(0, 11)]
+		self.roundScores = [random.randint(0, 5), random.randint(0, 5)]
+		self.scoreRetriever = testhelper.createSingletonMock(retriever.ScoreRetriever)
+		when(self.scoreRetriever).retrieveGameScores(self.gameObj).thenReturn(self.gameScores)
+		when(self.scoreRetriever).retrieveRoundScores(self.gameObj).thenReturn(self.roundScores)
+
 		self._buildTestObj()
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
@@ -345,7 +365,11 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"dealerId" : self.dealer,
 			"status" : self.gameStatus,
 			"ledSuit" : self.ledSuit,
-			"currentTrick" : self.currentTrick
+			"currentTrick" : self.currentTrick,
+			"trump" : self.trump,
+			"teams" : self.expectedTeams,
+			"gameScores" : self.gameScores,
+			"roundScores" : self.roundScores
 		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
@@ -372,7 +396,11 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 			"dealerId" : self.dealer,
 			"status" : self.gameStatus,
 			"ledSuit" : self.ledSuit,
-			"currentTrick" : self.currentTrick
+			"currentTrick" : self.currentTrick,
+			"trump" : self.trump,
+			"teams" : self.expectedTeams,
+			"gameScores" : self.gameScores,
+			"roundScores" : self.roundScores
 		}, sort_keys=True))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):

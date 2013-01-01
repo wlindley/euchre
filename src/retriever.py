@@ -120,3 +120,58 @@ class CurrentTrickRetriever(object):
 			return {}
 		playedCards = trick.getPlayedCards()
 		return  {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}
+
+class TrumpRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TrumpRetriever()
+
+	def retrieveTrump(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		return round.getTrump()
+
+class ScoreRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return ScoreRetriever(TeamRetriever.getInstance())
+
+	def __init__(self, teamRetriever):
+		super(ScoreRetriever, self).__init__()
+		self._teamRetriever = teamRetriever
+
+	def retrieveGameScores(self, gameObj):
+		return [gameObj.getTeamScore(0), gameObj.getTeamScore(1)]
+
+	def retrieveRoundScores(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		scores = [0, 0]
+		for player in gameObj.getPlayers():
+			playerTeam = self._teamRetriever.retrieveTeamByPlayerId(gameObj, player.playerId)
+			scores[playerTeam] += round.getScore(player.playerId)
+		return scores
+
+class TeamRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TeamRetriever()
+
+	def retrieveTeamByPlayerId(self, gameObj, playerId):
+		return gameObj.getTeamFromPlayerId(playerId)
+
+	def retrieveTeamLists(self, gameObj):
+		teamLists = gameObj.getTeamLists()
+		result = []
+		for teamList in teamLists:
+			result.append([player.playerId for player in teamList])
+		return result

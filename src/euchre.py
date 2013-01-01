@@ -217,6 +217,9 @@ class Round(object):
 	def setTrump(self, trumpSuit):
 		self._trickEvaluator.setTrump(trumpSuit)
 
+	def getTrump(self):
+		return self._trickEvaluator.getTrump()
+
 	def getTurnTracker(self):
 		return self._turnTracker
 
@@ -389,7 +392,7 @@ class ScoreTracker(object):
 				teamTricks[teamId] += round.getScore(playerId)
 		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
 		self._teamScores[winningTeam] += 1
-		if winningTeam != self._getTeamIdFromPlayerId(callingPlayerId):
+		if winningTeam != self.getTeamIdFromPlayerId(callingPlayerId):
 			self._teamScores[winningTeam] += 1
 		elif HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
 			self._teamScores[winningTeam] += 1
@@ -397,11 +400,14 @@ class ScoreTracker(object):
 	def getTeamScore(self, teamId):
 		return self._teamScores[teamId]
 
-	def _getTeamIdFromPlayerId(self, playerId):
+	def getTeamIdFromPlayerId(self, playerId):
 		for teamId in range(len(self._teams)):
 			for curId in self._teams[teamId]:
 				if playerId == curId:
 					return teamId
+
+	def getTeams(self):
+		return self._teams
 
 class Game(object):
 	instance = None
@@ -437,6 +443,15 @@ class Game(object):
 
 	def getPlayers(self):
 		return self._players
+
+	def getTeamScore(self, teamId):
+		return self._scoreTracker.getTeamScore(teamId)
+
+	def getTeamFromPlayerId(self, playerId):
+		return self._scoreTracker.getTeamIdFromPlayerId(playerId)
+
+	def getTeamLists(self):
+		return self._scoreTracker.getTeams()
 
 	def _dealHands(self, deck):
 		hands = {}

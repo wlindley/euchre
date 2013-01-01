@@ -206,6 +206,9 @@ class TrickEvaluatorTest(testhelper.TestCase):
 		self.assertEqual(trumpSuit, self.evaluator.getTrump())
 
 class RoundTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.round = euchre.Round.getInstance(self.players, self.hands, self.trump)
+
 	def setUp(self):
 		self.trump = euchre.SUIT_CLUBS
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -217,9 +220,6 @@ class RoundTest(testhelper.TestCase):
 		self.cardTranslator = testhelper.createSingletonMock(euchre.CardTranslator)
 		self.cardTranslator.translateCard = lambda card, trumpSuit: card
 		self._buildTestObj()
-
-	def _buildTestObj(self):
-		self.round = euchre.Round.getInstance(self.players, self.hands, self.trump)
 
 	def testGetScoreReturns0IfPlayerHasNotWonTrick(self):
 		self.assertEqual(0, self.round.getScore(self.players[0].playerId))
@@ -334,6 +334,13 @@ class RoundTest(testhelper.TestCase):
 		self.round.hands[self.players[1].playerId][1].suit = firstCard.suit
 		with self.assertRaises(game.GameRuleException):
 			self.round.playCard(self.players[1], self.round.hands[self.players[1].playerId][0])
+
+	def testGetTrumpReturnsValueFromTrickEvaluator(self):
+		trickEvaluator = testhelper.createSingletonMock(euchre.TrickEvaluator)
+		trump = random.randint(1, 4)
+		when(trickEvaluator).getTrump().thenReturn(trump)
+		self._buildTestObj()
+		self.assertEqual(trump, self.round.getTrump())
 
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
@@ -519,10 +526,10 @@ class SequenceTest(testhelper.TestCase):
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
-		self.teams = {
-			0 : [self.players[0].playerId, self.players[2].playerId],
-			1 : [self.players[1].playerId, self.players[3].playerId]
-		}
+		self.teams = [
+			[self.players[0].playerId, self.players[2].playerId],
+			[self.players[1].playerId, self.players[3].playerId]
+		]
 		self.callingPlayerId = self.players[0].playerId
 		self.scoreTracker = euchre.ScoreTracker(self.players, self.teams)
 		self.round = testhelper.createSingletonMock(euchre.Round)
@@ -572,6 +579,9 @@ class ScoreTrackerTest(testhelper.TestCase):
 		with self.assertRaises(game.GameStateException):
 			self.scoreTracker.recordRoundScore(self.round, self.callingPlayerId)
 
+	def testGetTeamsReturnsTeams(self):
+		self.assertEqual(self.teams, self.scoreTracker.getTeams())
+
 class GameTest(testhelper.TestCase):
 	def _buildTestObj(self):
 		self.game = euchre.Game.getInstance(self.players, self.teams)
@@ -583,6 +593,12 @@ class GameTest(testhelper.TestCase):
 			[self.players[1].playerId, self.players[3].playerId]
 		]
 		self.scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
+
+		for teamId in range(len(self.teams)):
+			for playerId in self.teams[teamId]:
+				when(self.scoreTracker).getTeamIdFromPlayerId(playerId).thenReturn(teamId)
+		when(self.scoreTracker).getTeams().thenReturn(self.teams)
+
 		self._buildTestObj()
 
 	def testStartGameShufflesDeck(self):
@@ -653,6 +669,21 @@ class GameTest(testhelper.TestCase):
 
 	def testGetPlayersReturnsPlayers(self):
 		self.assertEqual(self.players, self.game.getPlayers())
+
+	def testGetTeamScoreReturnsValueFromScoreTracker(self):
+		teamScores = [random.randint(0, 11), random.randint(0, 11)]
+		when(self.scoreTracker).getTeamScore(0).thenReturn(teamScores[0])
+		when(self.scoreTracker).getTeamScore(1).thenReturn(teamScores[1])
+		self.assertEqual(teamScores[0], self.game.getTeamScore(0))
+		self.assertEqual(teamScores[1], self.game.getTeamScore(1))
+
+	def testGetTeamFromPlayerIdReturnsValueFromScoreTracker(self):
+		for teamId in range(len(self.teams)):
+			for playerId in self.teams[teamId]:
+				self.assertEqual(teamId, self.game.getTeamFromPlayerId(playerId))
+
+	def testGetTeamListsReturnValueFromScoreTracker(self):
+		self.assertEqual(self.teams, self.game.getTeamLists())
 
 if __name__ == "__main__":
 	unittest.main()
