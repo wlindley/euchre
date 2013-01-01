@@ -358,18 +358,22 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		verify(self.responseWriter).write(json.dumps({
 			"success" : True,
 			"playerIds" : playerIds,
-			"currentPlayerId" : self.playerId,
-			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"gameId" : self.gameId,
-			"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
-			"dealerId" : self.dealer,
 			"status" : self.gameStatus,
-			"ledSuit" : self.ledSuit,
-			"currentTrick" : self.currentTrick,
-			"trump" : self.trump,
 			"teams" : self.expectedTeams,
-			"gameScores" : self.gameScores,
-			"roundScores" : self.roundScores
+			"scores" : self.gameScores,
+			"round" : {
+				"tricksTaken" : self.roundScores,
+				"trump" : self.trump,
+				"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
+				"dealerId" : self.dealer,
+				"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
+				"currentPlayerId" : self.playerId,
+				"currentTrick" : {
+					"ledSuit" : self.ledSuit,
+					"playedCards" : self.currentTrick
+				}
+			}
 		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
@@ -389,18 +393,22 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		verify(self.responseWriter).write(json.dumps({
 			"success" : True,
 			"playerIds" : playerIds,
-			"currentPlayerId" : self.playerId,
-			"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
 			"gameId" : self.gameId,
-			"upCard" : None,
-			"dealerId" : self.dealer,
 			"status" : self.gameStatus,
-			"ledSuit" : self.ledSuit,
-			"currentTrick" : self.currentTrick,
-			"trump" : self.trump,
 			"teams" : self.expectedTeams,
-			"gameScores" : self.gameScores,
-			"roundScores" : self.roundScores
+			"scores" : self.gameScores,
+			"round" : {
+				"tricksTaken" : self.roundScores,
+				"trump" : self.trump,
+				"upCard" : None,
+				"dealerId" : self.dealer,
+				"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
+				"currentPlayerId" : self.playerId,
+				"currentTrick" : {
+					"ledSuit" : self.ledSuit,
+					"playedCards" : self.currentTrick
+				}
+			}
 		}, sort_keys=True))
 
 	def testReturnsFailureWhenGameNotStartedYet(self):

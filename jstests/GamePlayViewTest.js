@@ -33,7 +33,19 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var status = "awesome status";
 	var ledSuit = Math.floor(Math.random() * 4) + 1;
 	var trick = "a bunch of trick data";
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : this.currentPlayerId, "upCard" : upCard, "status" : status, "dealerId" : this.dealerId, "ledSuit" : ledSuit, "currentTrick" : trick};
+	var response = {
+		"gameId" : gameId,
+		"status" : status,
+		"round" : {
+			"hand" : hand,
+			"currentPlayerId" : this.currentPlayerId,
+			"upCard" : upCard, "dealerId" : this.dealerId,
+			"currentTrick" : {
+				"ledSuit" : ledSuit,
+				"playedCards" : trick
+			}
+		}
+	};
 	
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = response;
@@ -57,8 +69,10 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	var trumpSelectionElement = mock(TEST.FakeJQueryElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value)), equalTo(status), equalTo(gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(trumpSelectionElement);
 
+	var expectedTurn = this.locStrings.yourTurn;
+
 	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", this.locStrings.yourTurn))).thenReturn(gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", expectedTurn))).thenReturn(gameHtml);
 	var gameElement = mock(TEST.FakeJQueryElement);
 	when(this.jqueryWrapper).getElement(gameHtml).thenReturn(gameElement);
 	var trumpSelectionInsertionElement = mock(TEST.FakeJQueryElement);
@@ -86,7 +100,21 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 	var otherPlayerId = "4320987";
 	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
 	var upCard = {"suit" : 4, "value" : 12};
-	var response = {"gameId" : gameId, "hand" : hand, "currentPlayerId" : otherPlayerId, "upCard" : upCard, "dealerId" : this.dealerId};
+	var ledSuit = Math.floor(Math.random() * 4) + 1;
+	var trick = "a bunch of trick data";
+	var response = {
+		"gameId" : gameId,
+		"round" : {
+			"hand" : hand,
+			"currentPlayerId" : otherPlayerId,
+			"upCard" : upCard,
+			"dealerId" : this.dealerId,
+			"currentTrick" : {
+				"ledSuit" : ledSuit,
+				"playedCards" : trick
+			}
+		}
+	};
 	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 
 	this.ajax = new TEST.FakeAjax();

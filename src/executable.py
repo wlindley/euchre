@@ -216,21 +216,31 @@ class GetGameDataExecutable(AbstractExecutable):
 		}
 
 		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
-		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
 		response["playerIds"] = gameModel.playerId
-		response["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
-		response["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
 		response["gameId"] = gameId
-		response["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
-		response["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		response["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
-		response["ledSuit"] = self._ledSuitRetriever.retrieveLedSuit(gameObj)
-		response["currentTrick"] = self._currentTrickRetriever.retrieveCurrentTrick(gameObj)
-		response["trump"] = self._trumpRetriever.retrieveTrump(gameObj)
 		response["teams"] = self._teamRetriever.retrieveTeamLists(gameObj)
-		response["gameScores"] = self._scoreRetriever.retrieveGameScores(gameObj)
-		response["roundScores"] = self._scoreRetriever.retrieveRoundScores(gameObj)
+		response["scores"] = self._scoreRetriever.retrieveGameScores(gameObj)
+		response["round"] = self._getRoundData(gameObj, playerId)
 		self._writeResponse(response)
+
+	def _getRoundData(self, gameObj, playerId):
+		roundData = {}
+		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
+		roundData["tricksTaken"] = self._scoreRetriever.retrieveRoundScores(gameObj)
+		roundData["trump"] = self._trumpRetriever.retrieveTrump(gameObj)
+		roundData["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
+		roundData["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
+		roundData["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		roundData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+		roundData["currentTrick"] = self._getCurrentTrickData(gameObj)
+		return roundData
+
+	def _getCurrentTrickData(self, gameObj):
+		trickData = {}
+		trickData["ledSuit"] = self._ledSuitRetriever.retrieveLedSuit(gameObj)
+		trickData["playedCards"] = self._currentTrickRetriever.retrieveCurrentTrick(gameObj)
+		return trickData
 
 	def _convertHand(self, hand):
 		return [{"suit" : card.suit, "value" : card.value} for card in hand]

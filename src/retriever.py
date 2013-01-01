@@ -170,8 +170,4 @@ class TeamRetriever(object):
 		return gameObj.getTeamFromPlayerId(playerId)
 
 	def retrieveTeamLists(self, gameObj):
-		teamLists = gameObj.getTeamLists()
-		result = []
-		for teamList in teamLists:
-			result.append([player.playerId for player in teamList])
-		return result
+		return gameObj.getTeamLists()

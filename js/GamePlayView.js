@@ -21,24 +21,24 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		gamePlayDiv.empty();
 
 		var cardsHtml = "";
-		for (var i = 0; i < response.hand.length; i++) {
-			var card = response.hand[i];
+		for (var i = 0; i < response.round.hand.length; i++) {
+			var card = response.round.hand[i];
 			cardsHtml += templateRenderer.renderTemplate("card", {"suit" : card.suit, "value" : card.value});
 		}
 		var handHtml = templateRenderer.renderTemplate("hand", {"hand" : cardsHtml});
 
 		var turn = locStrings.yourTurn;
-		if (fbId != response.currentPlayerId) {
-			turn = locStrings.otherTurn.replace("%playerId%", response.currentPlayerId);
+		if (fbId != response.round.currentPlayerId) {
+			turn = locStrings.otherTurn.replace("%playerId%", response.round.currentPlayerId);
 		}
 
-		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.upCard, response.status, response.gameId, response.dealerId, response.currentPlayerId);
+		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.round.upCard, response.status, response.gameId, response.round.dealerId, response.round.currentPlayerId);
 
 		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 
 		var cardElements = gameElement.find(".card");
-		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.ledSuit, response.currentTrick, cardElements, response.gameId);
+		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.round.currentTrick.ledSuit, response.round.currentTrick.playedCards, cardElements, response.gameId);
 
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");
 		trumpSelectionInsertionPoint.append(trumpSelectionElement);

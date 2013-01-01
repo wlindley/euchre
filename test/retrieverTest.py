@@ -267,7 +267,7 @@ class TeamRetrieverTest(testhelper.TestCase):
 
 		for i in range(len(self.playerIds)):
 			when(self.game).getTeamFromPlayerId(self.playerIds[i]).thenReturn(self.teams[i])
-			self.teamLists[self.teams[i]].append(game.Player.getInstance(self.playerIds[i]))
+			self.teamLists[self.teams[i]].append(self.playerIds[i])
 		when(self.game).getTeamLists().thenReturn(self.teamLists)
 
 		self._buildTestObj()
@@ -279,6 +279,6 @@ class TeamRetrieverTest(testhelper.TestCase):
 	def testRetireveTeamListsReturnsExpectedResult(self):
 		expectedResult = [[], []]
 		for teamId in range(len(self.teamLists)):
-			expectedResult[teamId].extend([player.playerId for player in self.teamLists[teamId]])
+			expectedResult[teamId].extend([playerId for playerId in self.teamLists[teamId]])
 		actualResult = self.testObj.retrieveTeamLists(self.game)
 		self.assertEqual(expectedResult, actualResult)
