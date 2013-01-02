@@ -38,7 +38,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 
 		var cardElements = gameElement.find(".card");
-		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.round.currentTrick.ledSuit, response.round.currentTrick.playedCards, cardElements, response.gameId);
+		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.round.currentTrick.ledSuit, response.round.currentTrick.playedCards, cardElements, response.gameId, response.round.currentPlayerId);
 
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");
 		trumpSelectionInsertionPoint.append(trumpSelectionElement);

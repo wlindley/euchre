@@ -2,6 +2,7 @@ RoundPlayingAreaBuilderTest = TestCase("RoundPlayingAreaBuilderTest");
 
 RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.playerId = "123456";
+	this.currentPlayerId = "123456";
 	this.gameId = 908234;
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
@@ -99,12 +100,19 @@ RoundPlayingAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrect
 	verify(this.viewManager).showView("gamePlay", allOf(hasMember("gameId", this.gameId), hasMember("playerId", this.playerId)));
 };
 
+RoundPlayingAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPlayersTurn = function() {
+	this.currentPlayerId = "7890123";
+	this.trigger();
+	verify(this.cardElements, never()).addClass("clickableCard");
+	verify(this.cardElements, never()).click(func());
+};
+
 RoundPlayingAreaBuilderTest.prototype.buildTestObj = function() {
 	this.testObj = AVOCADO.RoundPlayingAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.playerId, this.viewManager);
 };
 
 RoundPlayingAreaBuilderTest.prototype.trigger = function() {
-	return this.testObj.buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId);
+	return this.testObj.buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId);
 };
 
 RoundPlayingAreaBuilderTest.prototype.trainCardAndTrickElementTemplates = function() {

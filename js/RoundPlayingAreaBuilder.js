@@ -5,13 +5,15 @@ if (AVOCADO == undefined) {
 AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
 	var self = this;
 
-	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId) {
+	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId) {
 		if ("round_in_progress" != status) {
 			return null;
 		}
 
-		cardElements.addClass("clickableCard");
-		cardElements.click(self.buildCardClickHandler(gameId));
+		if (currentPlayerId == playerId) {
+			cardElements.addClass("clickableCard");
+			cardElements.click(self.buildCardClickHandler(gameId));
+		}
 
 		var ledSuitString = locStrings["suit_" + ledSuit];
 		if (0 == ledSuit) {
@@ -19,9 +21,9 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 		}
 
 		var trickHtml = "";
-		for (var playerId in trick) {
-			var playerName = locStrings["player"].replace("%playerId%", playerId);
-			var cardHtml = templateRenderer.renderTemplate("card", {"suit" : trick[playerId].suit, value : trick[playerId].value});
+		for (var pid in trick) {
+			var playerName = locStrings["player"].replace("%playerId%", pid);
+			var cardHtml = templateRenderer.renderTemplate("card", {"suit" : trick[pid].suit, value : trick[pid].value});
 			trickHtml += templateRenderer.renderTemplate("trickElement", {"player" : playerName, "card" : cardHtml});
 		}
 

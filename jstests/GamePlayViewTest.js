@@ -70,7 +70,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
-	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId).thenReturn(this.roundPlayingElement);
+	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.roundPlayingElement);
 };
 
 GamePlayViewTest.prototype.verifyCorrectView = function() {
