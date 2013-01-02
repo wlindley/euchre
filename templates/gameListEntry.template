@@ -1,9 +1,9 @@
-<div class="gameListEntry gameListEntryClickable">
+<div class="gameListEntry gameListEntryClickable gameListEntryYourTurn">
 	<a class="viewGameData" id="gameId_%gameId%">
 	<div>Game id: %gameId%</div>
-	<div>Status: %status%</div>
 	<div>Player IDs: %playerIds%</div>
-	<div>Current Player: %currentPlayer%</div>
+	<div>Status: %status%</div>
+	<div>Turn: %turn%</div>
 	</a>
 </div>
 <div class="gameListEntrySpacer"></div>

@@ -5,6 +5,11 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
+	this.playerIds = [this.playerId, "2", "3", "4"];
+	this.teams = [[this.playerId, "2"], ["3", "4"]];
+	this.gameScores = [Math.floor(Math.random() * 11), Math.floor(Math.random() * 11)];
+	this.roundScores = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
+	this.trumpSuit = Math.floor(Math.random() * 4) + 1;
 	this.dealerId = "098765";
 	this.hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
 	this.upCard = {"suit" : 4, "value" : 12};
@@ -44,12 +49,19 @@ GamePlayViewTest.prototype.setUp = function() {
 
 GamePlayViewTest.prototype.buildResponseObj = function() {
 	this.response = {
+		"success" : true,
 		"gameId" : this.gameId,
 		"status" : this.status,
+		"playerIds" : this.playerIds,
+		"teams" : this.teams,
+		"scores" : this.gameScores,
 		"round" : {
 			"hand" : this.hand,
 			"currentPlayerId" : this.currentPlayerId,
 			"upCard" : this.upCard, "dealerId" : this.dealerId,
+			"trump" : this.trumpSuit,
+			"dealerId" : this.dealerId,
+			"tricksTakeN" : this.roundScores,
 			"currentTrick" : {
 				"ledSuit" : this.ledSuit,
 				"playedCards" : this.trick

@@ -17,6 +17,10 @@
 	cursor: pointer;
 }
 
+.gameListEntryYourTurn {
+	background-color: 66CC66;
+}
+
 .gameListEntrySpacer {
 	height: 5px;
 }

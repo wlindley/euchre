@@ -1,6 +1,7 @@
 {
 	"yourTurn" : "Your turn",
 	"otherTurn" : "Player %playerId%'s turn",
+	"noTurn" : "No turn",
 	"player" : "Player %playerId%",
 	"heart" : "heart",
 	"hearts" : "hearts",

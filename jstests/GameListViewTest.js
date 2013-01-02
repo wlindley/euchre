@@ -7,7 +7,9 @@ GameListViewTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager);
+	this.locStrings = {"yourTurn" : "your turn", "otherTurn" : "Player %playerId%'s turn", "noTurn" : "no turn"};
+	this.playerId = "3";
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.locStrings, this.playerId);
 };
 
 GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
@@ -36,11 +38,17 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	}
 	this.ajax.callbackResponse = {"games" : gameList, "success" : true};
 	for (var i = 0; i < gameList.length; i++) {
+		var expectedTurnString = this.locStrings.yourTurn;
+		if (null == currentPlayers[i]) {
+			expectedTurnString = this.locStrings.noTurn;
+		} else if (currentPlayers[i] != this.playerId) {
+			expectedTurnString = this.locStrings.otherTurn.replace("%playerId%", currentPlayers[i]);
+		}
 		var expectedValues = allOf(
 			hasMember("gameId", equalTo(gameList[i].gameId)),
 			hasMember("status", equalTo(gameList[i].status)),
 			hasMember("playerIds", equalTo(gameList[i].playerIds)),
-			hasMember("currentPlayer", equalTo(gameList[i].currentPlayerId))
+			hasMember("turn", equalTo(expectedTurnString))
 		);
 		var gameHtml = gameEntryBase + gameList[i].gameId;
 		when(this.templateRenderer).renderTemplate("gameListEntry", expectedValues).thenReturn(gameHtml);
@@ -58,6 +66,9 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 		} else {
 			verify(linkElements[i], never()).click(this.testObj.showGameData);
 			verify(elements[i]).removeClass("gameListEntryClickable");
+		}
+		if (currentPlayers[i] != this.playerId) {
+			verify(elements[i]).removeClass("gameListEntryYourTurn");
 		}
 	}
 
