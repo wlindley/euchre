@@ -1,18 +1,85 @@
 GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
+	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%"};
+	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
 	this.dealerId = "098765";
+	this.hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
+	this.upCard = {"suit" : 4, "value" : 12};
+	this.status = "awesome status";
+	this.ledSuit = Math.floor(Math.random() * 4) + 1;
+	this.trick = "a bunch of trick data";
+	this.cardHtmls = [];
+	this.completeCardHtml = "";
+	for (var i = 0; i < this.hand.length; i++) {
+		var curHtml = "card " + i;
+		this.cardHtmls.push(curHtml);
+		this.completeCardHtml += curHtml;
+	}
+	this.handHtml = "the whole hand";
+	this.viewGameListElement = mock(TEST.FakeJQueryElement);
+	this.trumpSelectionElement = mock(TEST.FakeJQueryElement);
+	this.expectedTurn = this.locStrings.yourTurn;
+	this.gameHtml = "the whole game";
+	this.gameElement = mock(TEST.FakeJQueryElement);
+	this.trumpSelectionInsertionElement = mock(TEST.FakeJQueryElement);
+	this.roundPlayingInsertionElement = mock(TEST.FakeJQueryElement);
+	this.cardElements = mock(TEST.FakeJQueryElement);
+	this.roundPlayingElement = mock(TEST.FakeJQueryElement);
+
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gamePlayDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
-	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%"};
 	this.trumpSelectionAreaBuilder = mock(AVOCADO.TrumpSelectionAreaBuilder);
 	this.roundPlayingAreaBuilder = mock(AVOCADO.RoundPlayingAreaBuilder);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+
+	this.buildResponseObj();
+	this.doTraining();
 	this.buildTestObj();
+};
+
+GamePlayViewTest.prototype.buildResponseObj = function() {
+	this.response = {
+		"gameId" : this.gameId,
+		"status" : this.status,
+		"round" : {
+			"hand" : this.hand,
+			"currentPlayerId" : this.currentPlayerId,
+			"upCard" : this.upCard, "dealerId" : this.dealerId,
+			"currentTrick" : {
+				"ledSuit" : this.ledSuit,
+				"playedCards" : this.trick
+			}
+		}
+	};
+}
+
+GamePlayViewTest.prototype.doTraining = function() {
+	for (var i = 0; i < this.hand.length; i++) {
+		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.hand[i].suit), hasMember("value", this.hand[i].value))).thenReturn(this.cardHtmls[i]);
+	}
+	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
+	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
+	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), equalTo(this.status), equalTo(this.gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(this.trumpSelectionElement);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn))).thenReturn(this.gameHtml);
+	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
+	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
+	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
+	when(this.gameElement).find(".card").thenReturn(this.cardElements);
+	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId).thenReturn(this.roundPlayingElement);
+};
+
+GamePlayViewTest.prototype.verifyCorrectView = function() {
+	verify(this.gamePlayDiv).empty();
+	verify(this.trumpSelectionInsertionElement).append(this.trumpSelectionElement);
+	verify(this.roundPlayingInsertionElement).append(this.roundPlayingElement);
+	verify(this.gamePlayDiv).append(this.gameElement);
+	verify(this.viewGameListElement).click(this.testObj.handleViewGameListClick);
+	verify(this.gamePlayDiv).show();
 };
 
 GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
@@ -21,120 +88,38 @@ GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
 };
 
 GamePlayViewTest.prototype.testShowCallsAjaxCorrectly = function() {
-	var gameId = "5678";
-	this.testObj.show({"gameId" : gameId});
-	verify(this.ajax).call("getGameData", allOf(hasMember("playerId", equalTo(this.playerId)), hasMember("gameId", equalTo(gameId))), func());
+	this.testObj.show({"gameId" : this.gameId});
+	verify(this.ajax).call("getGameData", allOf(hasMember("playerId", equalTo(this.playerId)), hasMember("gameId", equalTo(this.gameId))), func());
 };
 
 GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
-	var gameId = "34827";
-	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
-	var upCard = {"suit" : 4, "value" : 12};
-	var status = "awesome status";
-	var ledSuit = Math.floor(Math.random() * 4) + 1;
-	var trick = "a bunch of trick data";
-	var response = {
-		"gameId" : gameId,
-		"status" : status,
-		"round" : {
-			"hand" : hand,
-			"currentPlayerId" : this.currentPlayerId,
-			"upCard" : upCard, "dealerId" : this.dealerId,
-			"currentTrick" : {
-				"ledSuit" : ledSuit,
-				"playedCards" : trick
-			}
-		}
-	};
-	
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = response;
 	this.buildTestObj();
 
-	var cardHtmls = [];
-	var completeCardHtml = "";
-	for (var i = 0; i < hand.length; i++) {
-		var curHtml = "card " + i;
-		cardHtmls.push(curHtml);
-		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", hand[i].suit), hasMember("value", hand[i].value))).thenReturn(curHtml);
-		completeCardHtml += curHtml;
-	}
-	
-	var handHtml = "the whole hand";
-	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", completeCardHtml)).thenReturn(handHtml);
+	this.ajax.callbackResponse = this.response;
 
-	var viewGameListElement = mock(TEST.FakeJQueryElement);
-	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+	this.testObj.show({"gameId" : this.gameId});
 
-	var trumpSelectionElement = mock(TEST.FakeJQueryElement);
-	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", upCard.suit), hasMember("value", upCard.value)), equalTo(status), equalTo(gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(trumpSelectionElement);
-
-	var expectedTurn = this.locStrings.yourTurn;
-
-	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", handHtml), hasMember("turn", expectedTurn))).thenReturn(gameHtml);
-	var gameElement = mock(TEST.FakeJQueryElement);
-	when(this.jqueryWrapper).getElement(gameHtml).thenReturn(gameElement);
-	var trumpSelectionInsertionElement = mock(TEST.FakeJQueryElement);
-	when(gameElement).find(".trumpSelection").thenReturn(trumpSelectionInsertionElement);
-	var roundPlayingInsertionElement = mock(TEST.FakeJQueryElement);
-	when(gameElement).find(".playingRound").thenReturn(roundPlayingInsertionElement);
-
-	var cardElements = mock(TEST.FakeJQueryElement);
-	when(gameElement).find(".card").thenReturn(cardElements);
-	var roundPlayingElement = mock(TEST.FakeJQueryElement);
-	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(status, ledSuit, trick, cardElements, gameId).thenReturn(roundPlayingElement);
-
-	this.testObj.show({"gameId" : gameId});
-
-	verify(this.gamePlayDiv).empty();
-	verify(trumpSelectionInsertionElement).append(trumpSelectionElement);
-	verify(roundPlayingInsertionElement).append(roundPlayingElement);
-	verify(this.gamePlayDiv).append(gameElement);
-	verify(viewGameListElement).click(this.testObj.handleViewGameListClick);
-	verify(this.gamePlayDiv).show();
+	this.verifyCorrectView();
 };
 
 GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
-	var gameId = "34827";
 	var otherPlayerId = "4320987";
-	var hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
-	var upCard = {"suit" : 4, "value" : 12};
-	var ledSuit = Math.floor(Math.random() * 4) + 1;
-	var trick = "a bunch of trick data";
-	var response = {
-		"gameId" : gameId,
-		"round" : {
-			"hand" : hand,
-			"currentPlayerId" : otherPlayerId,
-			"upCard" : upCard,
-			"dealerId" : this.dealerId,
-			"currentTrick" : {
-				"ledSuit" : ledSuit,
-				"playedCards" : trick
-			}
-		}
-	};
-	var expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
+	this.currentPlayerId = otherPlayerId;
+	this.expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = response;
+
+	this.buildResponseObj();
+	this.doTraining();
 	this.buildTestObj();
 
-	var viewGameListElement = mock(TEST.FakeJQueryElement);
-	when(this.gamePlayDiv).find(".viewGameList").thenReturn(viewGameListElement);
+	this.ajax.callbackResponse = this.response;
 
-	var gameHtml = "the whole game";
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", gameId), hasMember("hand", anything()), hasMember("turn", expectedTurn))).thenReturn(gameHtml);
-	var gameElement = mock(TEST.FakeJQueryElement);
-	when(this.jqueryWrapper).getElement(gameHtml).thenReturn(gameElement);
-	var insertionDivElement = mock(TEST.FakeJQueryElement);
-	when(gameElement).find(".trumpSelection").thenReturn(insertionDivElement);
-	when(gameElement).find(".playingRound").thenReturn(insertionDivElement);
+	this.testObj.show({"gameId" : this.gameId});
 
-	this.testObj.show({"gameId" : gameId});
-
-	verify(this.gamePlayDiv).append(gameElement);
+	this.verifyCorrectView();
 };
 
 GamePlayViewTest.prototype.testHideHidesDiv = function() {
