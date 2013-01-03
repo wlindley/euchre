@@ -19,7 +19,7 @@ class DealerRetrieverTest(testhelper.TestCase):
 		when(gameObj).getPlayers().thenReturn(players)
 
 		actualResult = self.testObj.retrieveDealer(gameObj)
-		self.assertEqual(players[0].playerId, actualResult)
+		self.assertEqual(players[-1].playerId, actualResult)
 
 class HandRetrieverTest(testhelper.TestCase):
 	def setUp(self):

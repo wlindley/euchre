@@ -12,7 +12,7 @@ class DealerRetriever(object):
 		return DealerRetriever()
 
 	def retrieveDealer(self, gameObj):
-		return gameObj.getPlayers()[0].playerId
+		return gameObj.getPlayers()[-1].playerId
 
 class HandRetriever(object):
 	instance = None
