@@ -641,13 +641,17 @@ class GameTest(testhelper.TestCase):
 		verify(sequence).playCard(player, card)
 		self.assertEqual(state, self.game.getSequenceState())
 
-	def testPlayCardCreatesANewSequenceAndShufflesDeckIfCurrentOneIsComplete(self):
+	def testPlayCardCreatesANewSequenceShufflesDeckAndAdvancesDealerIfCurrentOneIsComplete(self):
+		initialPlayers = self.players[:]
+		secondSequencePlayers = self.players[1:] + [self.players[0]]
 		actualDeck = euchre.Deck.getInstance()
 		deck = testhelper.createSingletonMock(euchre.Deck)
 		when(deck).deal(5).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5))
 		when(deck).peekTop().thenReturn(actualDeck.peekTop())
 		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
-		when(sequenceFactory).buildSequence(any(), any(), actualDeck.peekTop()).thenReturn(testhelper.createMock(euchre.Sequence)).thenReturn(testhelper.createMock(euchre.Sequence))
+		firstSequence = testhelper.createMock(euchre.Sequence)
+		secondSequence = testhelper.createMock(euchre.Sequence)
+		when(sequenceFactory).buildSequence(any(), any(), actualDeck.peekTop()).thenReturn(firstSequence).thenReturn(secondSequence)
 		self._buildTestObj()
 		self.game.startGame()
 		sequence = self.game.getSequence()
@@ -655,6 +659,8 @@ class GameTest(testhelper.TestCase):
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 9))
 		self.assertNotEqual(sequence, self.game.getSequence())
 		verify(deck, times=2).shuffle()
+		#verify(sequenceFactory).buildSequence(initialPlayers, any(), any())
+		verify(sequenceFactory).buildSequence(secondSequencePlayers, any(), any())
 
 	def testPlayCardScoresRoundWhenCurSequenceIsComplete(self):
 		callingPlayerId = self.players[1].playerId

@@ -436,6 +436,7 @@ class Game(object):
 		self._curSequence.playCard(player, card)
 		if Sequence.STATE_COMPLETE == self._curSequence.getState():
 			self._scoreCurrentSequence()
+			self._advanceDealer()
 			self._buildNextSequence()
 
 	def getSequenceState(self):
@@ -458,6 +459,9 @@ class Game(object):
 		for player in self._players:
 			hands[player.playerId] = deck.deal(HAND_SIZE)
 		return hands
+
+	def _advanceDealer(self):
+		self._players = self._players[1:] + [self._players[0]]
 
 	def _scoreCurrentSequence(self):
 		self._curSequence.scoreCurrentRound(self._scoreTracker)
