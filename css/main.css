@@ -43,3 +43,15 @@
 	cursor: hand;
 	cursor: pointer;
 }
+
+.score {
+	margin-left: 20px;
+}
+
+.yourScore {
+	color: green;
+}
+
+.otherScore {
+	color: red;
+}

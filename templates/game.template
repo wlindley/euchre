@@ -1,6 +1,7 @@
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>
 <div class="game">
 	Game %gameId%:
+	%gameScores%
 	%turn%
 	%hand%
 	<div class="trumpSelection"></div>
