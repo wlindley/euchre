@@ -1,12 +1,13 @@
 from abc import ABCMeta
 from abc import abstractmethod
 import json
+import logging
+import random
 import util
 import game
 import euchre
 import serializer
 import model
-import logging
 import retriever
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -163,12 +164,24 @@ class AddPlayerExecutable(AbstractExecutable):
 		teamInfo[team].append(playerId)
 		gameModel.teams = json.dumps(teamInfo)
 		if MAX_TEAM_SIZE == len(teamInfo[0]) and MAX_TEAM_SIZE == len(teamInfo[1]):
-			players = [game.Player(pid) for pid in gameModel.playerId]
+			players = self._buildPlayersFromTeams(teamInfo)
 			gameObj = euchre.Game.getInstance(players, teamInfo)
 			gameObj.startGame()
 			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._writeResponse({"success" : True})
+
+	def _buildPlayersFromTeams(self, teams):
+		firstTeam = random.randint(0, 1)
+		teamFirstIndeces = [random.randint(0, 1), random.randint(0, 1)]
+		players = []
+		for i in range(MAX_TEAM_SIZE * 2):
+			currentTeam = (firstTeam + (i % 2)) % 2
+			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
+			players.append(game.Player(teams[currentTeam][currentIndex]))
+		print "teams:", teams
+		print "players:", [player.playerId for player in players]
+		return players
 
 class GetGameDataExecutable(AbstractExecutable):
 	instance = None

@@ -268,7 +268,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		expectedPlayers = [game.Player(pid) for pid in expectedPlayerIds]
 		gameObj = testhelper.createMock(euchre.Game)
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
-		when(src.euchre.Game).getInstance(expectedPlayers, expectedTeams).thenReturn(gameObj)
+		when(src.euchre.Game).getInstance(any(list), expectedTeams).thenReturn(gameObj)
 		serializedGame = "correct game serialized"
 		when(self.gameSerializer).serialize(gameObj).thenReturn(serializedGame)
 
@@ -278,6 +278,33 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.assertEqual(serializedGame, self.gameModel.serializedGame)
 		verify(self.gameModel).put()
 		self._assertResponseResult(True)
+
+	def testExecuteInterleavesPlayersFromDifferentTeamsWhenStartingAGame(self):
+		self.existingPlayerIds.append("3")
+		self.existingTeams[0].append("3")
+		self.gameModel.playerId = self.existingPlayerIds
+		self.gameModel.teams = json.dumps(self.existingTeams)
+		expectedPlayerIds, self.expectedTeams = self._trainPlayerIdAndTeam("4", 1)
+
+		gameObj = testhelper.createMock(euchre.Game)
+		self.wasCalled = False
+		def verifyPlayerOrderAndMembership(players, teams):
+			self.wasCalled = True
+			self.assertNotEqual(players[0].playerId in teams[0], players[1].playerId in teams[0])
+			self.assertNotEqual(players[1].playerId in teams[0], players[2].playerId in teams[0])
+			self.assertNotEqual(players[2].playerId in teams[0], players[3].playerId in teams[0])
+			self.assertNotEqual(players[3].playerId in teams[0], players[0].playerId in teams[0])
+			for i in range(4):
+				self.assertTrue(players[i].playerId in teams[0] or players[i].playerId in teams[1])
+			self.assertEqual(self.expectedTeams, teams)
+			return gameObj
+
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		src.euchre.Game.getInstance = verifyPlayerOrderAndMembership
+
+		self.testObj.execute()
+
+		self.assertTrue(self.wasCalled)
 
 class GetGameDataExecutableTest(testhelper.TestCase):
 	def _buildTestObj(self):
