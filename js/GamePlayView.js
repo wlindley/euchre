@@ -33,14 +33,17 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		}
 
 		var gameScores = response.scores;
+		var roundScores = response.round.tricksTaken;
 		if (0 <= response.teams[1].indexOf(fbId)) {
 			gameScores = [response.scores[1], response.scores[0]];
+			roundScores = [response.round.tricksTaken[1], response.round.tricksTaken[0]];
 		}
 		var gameScoresHtml = templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[0], "otherScore" : gameScores[1]});
+		var roundScoresHtml = templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[0], "otherScore" : roundScores[1]});
 
 		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.round.upCard, response.status, response.gameId, response.round.dealerId, response.round.currentPlayerId);
 
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "gameScores" : gameScoresHtml});
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 
 		var cardElements = gameElement.find(".card");

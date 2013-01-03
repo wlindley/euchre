@@ -1,0 +1,5 @@
+<div class="roundScores">
+	Tricks taken this hand:
+		<div class="score yourScore">Your team: %yourScore% tricks</div>
+		<div class="score otherScore">Other team: %otherScore% tricks</div>
+</div>

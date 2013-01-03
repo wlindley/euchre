@@ -34,6 +34,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.cardElements = mock(TEST.FakeJQueryElement);
 	this.roundPlayingElement = mock(TEST.FakeJQueryElement);
 	this.gameScoresHtml = "game scores for both teams";
+	this.roundScoresHtml = "round scores for both teams";
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -62,7 +63,7 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 			"upCard" : this.upCard, "dealerId" : this.dealerId,
 			"trump" : this.trumpSuit,
 			"dealerId" : this.dealerId,
-			"tricksTakeN" : this.roundScores,
+			"tricksTaken" : this.roundScores,
 			"currentTrick" : {
 				"ledSuit" : this.ledSuit,
 				"playedCards" : this.trick
@@ -78,7 +79,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), equalTo(this.status), equalTo(this.gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(this.trumpSelectionElement);
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
@@ -87,11 +88,16 @@ GamePlayViewTest.prototype.doTraining = function() {
 
 	var yourTeamScore = this.gameScores[0];
 	var otherTeamScore = this.gameScores[1];
+	var yourTeamRoundScore = this.roundScores[0];
+	var otherTeamRoundScore = this.roundScores[1];
 	if (0 <= this.teams[1].indexOf(this.playerId)) {
 		yourTeamScore = this.gameScores[1];
 		otherTeamScore = this.gameScores[0];
+		yourTeamRoundScore = this.roundScores[1];
+		otherTeamRoundScore = this.roundScores[0];
 	}
 	when(this.templateRenderer).renderTemplate("gameScores", allOf(hasMember("yourScore", yourTeamScore), hasMember("otherScore", otherTeamScore))).thenReturn(this.gameScoresHtml);
+	when(this.templateRenderer).renderTemplate("roundScores", allOf(hasMember("yourScore", yourTeamRoundScore), hasMember("otherScore", otherTeamRoundScore))).thenReturn(this.roundScoresHtml);
 };
 
 GamePlayViewTest.prototype.verifyCorrectView = function() {
