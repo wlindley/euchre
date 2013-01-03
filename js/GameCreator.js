@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreator = function(fbId, ajax, createGameButton, gameListView) {
+AVOCADO.GameCreator = function(fbId, ajax, createGameButton, viewManager) {
 	var self = this;
 
 	this.init = function() {
@@ -19,11 +19,11 @@ AVOCADO.GameCreator = function(fbId, ajax, createGameButton, gameListView) {
 
 	function handleCreateGameResponse(response) {
 		if (response.success) {
-			gameListView.show();
+			viewManager.showView("gameList");
 		}
 	}
 };
 
-AVOCADO.GameCreator.getInstance = function(fbId, ajax, createGameButton, gameListView) {
-	return new AVOCADO.GameCreator(fbId, ajax, createGameButton, gameListView);
+AVOCADO.GameCreator.getInstance = function(fbId, ajax, createGameButton, viewManager) {
+	return new AVOCADO.GameCreator(fbId, ajax, createGameButton, viewManager);
 };

@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, gameListView) {
+AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
 	var self = this;
 
 	this.init = function() {
@@ -21,11 +21,11 @@ AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, gameL
 
 	function handleJoinGameResponse(response) {
 		if (response.success) {
-			gameListView.show();
+			viewManager.showView("gameList");
 		}
 	}
 };
 
-AVOCADO.GameJoiner.getInstance = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, gameListView) {
-	return new AVOCADO.GameJoiner(fbId, ajax, txtGameId, txtTeam, btnJoinGame, gameListView);
+AVOCADO.GameJoiner.getInstance = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
+	return new AVOCADO.GameJoiner(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager);
 };

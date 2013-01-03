@@ -4,7 +4,7 @@ GameCreatorTest.prototype.setUp = function() {
 	this.fbId = "12345";
 	this.ajax = mock(AVOCADO.Ajax);
 	this.button = mock(TEST.FakeJQueryElement);
-	this.gameListView = mock(AVOCADO.GameListView);
+	this.viewManager = mock(AVOCADO.ViewManager);
 	this.buildTestObj();
 };
 
@@ -29,7 +29,7 @@ GameCreatorTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView
 	this.buildTestObj();
 
 	this.testObj.createGame();
-	verify(this.gameListView).show();
+	verify(this.viewManager).showView("gameList");
 };
 
 GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
@@ -38,9 +38,9 @@ GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGam
 	this.buildTestObj();
 
 	this.testObj.createGame();
-	verify(this.gameListView, never()).show();
+	verify(this.viewManager, never()).showView("gameList");
 };
 
 GameCreatorTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreator.getInstance(this.fbId, this.ajax, this.button, this.gameListView);
+	this.testObj = AVOCADO.GameCreator.getInstance(this.fbId, this.ajax, this.button, this.viewManager);
 };
