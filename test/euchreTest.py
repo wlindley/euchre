@@ -659,7 +659,7 @@ class GameTest(testhelper.TestCase):
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_CLUBS, 9))
 		self.assertNotEqual(sequence, self.game.getSequence())
 		verify(deck, times=2).shuffle()
-		#verify(sequenceFactory).buildSequence(initialPlayers, any(), any())
+		verify(sequenceFactory).buildSequence(initialPlayers, any(), any())
 		verify(sequenceFactory).buildSequence(secondSequencePlayers, any(), any())
 
 	def testPlayCardScoresRoundWhenCurSequenceIsComplete(self):
