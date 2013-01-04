@@ -41,9 +41,14 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		var gameScoresHtml = templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[0], "otherScore" : gameScores[1]});
 		var roundScoresHtml = templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[0], "otherScore" : roundScores[1]});
 
+		var trumpText = "";
+		if (0 < response.round.trump) {
+			trumpText = locStrings.trumpDisplay.replace("%trumpSuit%", locStrings["suit_" + response.round.trump]);
+		}
+
 		var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.round.upCard, response.status, response.gameId, response.round.dealerId, response.round.currentPlayerId);
 
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml});
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "turn" : turn, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml, "trump" : trumpText});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 
 		var cardElements = gameElement.find(".card");

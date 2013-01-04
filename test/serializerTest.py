@@ -5,6 +5,8 @@ import random
 import json
 from mockito import *
 
+import src.euchre
+
 from src import serializer
 from src import game
 from src import euchre
@@ -218,11 +220,13 @@ class RoundSerializerTest(testhelper.TestCase):
 		self.hands = {"1" : [self._randomCard(), self._randomCard()], "2" : [self._randomCard(), self._randomCard()]}
 		self.trickEvaluator = testhelper.createMock(euchre.TrickEvaluator)
 		self.trickEvaluatorSerializer = testhelper.createSingletonMock(serializer.TrickEvaluatorSerializer)
+		self.trump = random.randint(1, 4)
+		when(self.trickEvaluator).getTrump().thenReturn(self.trump)
 		self.turnTracker = testhelper.createMock(game.TurnTracker)
 		self.turnTrackerSerializer = testhelper.createSingletonMock(serializer.TurnTrackerSerializer)
 		self.trickSerializer = testhelper.createSingletonMock(serializer.TrickSerializer)
 		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
-		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands, euchre.CardTranslator.getInstance())
+		self.round = euchre.Round(self.turnTracker, self.trickEvaluator, self.hands, euchre.CardTranslator.getInstance(euchre.SUIT_NONE))
 		self.testObj = serializer.RoundSerializer.getInstance()
 
 	def _randomCard(self):
@@ -294,14 +298,22 @@ class RoundSerializerTest(testhelper.TestCase):
 				expectedCards[card] = deserializedCard
 
 		expectedTricks = {curTrick : testhelper.createMock(euchre.Trick)}
-		when(self.trickSerializer).deserialize(curTrick).thenReturn(expectedTricks[curTrick])
+		when(self.trickSerializer).deserialize(curTrick, self.trump).thenReturn(expectedTricks[curTrick])
 		for trick in prevTricks:
 			deserializedTrick = testhelper.createMock(euchre.Trick)
 			expectedTricks[trick] = deserializedTrick
-			when(self.trickSerializer).deserialize(trick).thenReturn(deserializedTrick)
+			when(self.trickSerializer).deserialize(trick, self.trump).thenReturn(deserializedTrick)
+
+		testhelper.replaceClass(src.euchre, "CardTranslator", testhelper.createSimpleMock())
+		self.wasCalled = False
+		def assertCorrectTrump(trump):
+			self.assertEqual(self.trump, trump)
+			self.wasCalled = True
+		src.euchre.CardTranslator.getInstance = assertCorrectTrump
 
 		obj = self.testObj.deserialize(data, players)
 
+		self.assertTrue(self.wasCalled)
 		self.assertEqual(self.turnTracker, obj._turnTracker)
 		verify(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players)
 		self.assertEqual(self.trickEvaluator, obj._trickEvaluator)
@@ -340,6 +352,7 @@ class TrickEvaluatorSerializerTest(testhelper.TestCase):
 
 class TrickSerializerTest(testhelper.TestCase):
 	def setUp(self):
+		self.trump = random.randint(1, 4)
 		self.cardSerializer = testhelper.createSingletonMock(serializer.CardSerializer)
 		self.testObj = serializer.TrickSerializer.getInstance()
 
@@ -369,15 +382,16 @@ class TrickSerializerTest(testhelper.TestCase):
 			playedCards[card] = deserializedCard
 			when(self.cardSerializer).deserialize(card).thenReturn(deserializedCard)
 
-		obj = self.testObj.deserialize(data)
+		obj = self.testObj.deserialize(data, self.trump)
 
 		self.assertEqual(expectedLedSuit, obj.getLedSuit())
 		for playerId, card in expectedPlayedCards.iteritems():
 			self.assertEqual(playedCards[card], obj.getPlayedCards()[playerId])
+		self.assertEqual(self.trump, obj._cardTranslator._trumpSuit)
 
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
-		self.assertEqual(None, self.testObj.deserialize(None))
+		self.assertEqual(None, self.testObj.deserialize(None, self.trump))
 
 	def _randomCard(self):
 		suit = random.randint(1, euchre.NUM_SUITS)

@@ -13,7 +13,6 @@ TrumpSelectionAreaBuilder.prototype.setUp = function() {
 
 	this.upCard = {"suit" : 1, "value" : 10};
 	this.upCardHtml = "up card html";
-	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
 
 	this.trumpSelection1ActionHtml = "trump 1 action";
 	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
@@ -82,6 +81,20 @@ TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValid
 
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.selectTrumpSuitButtonElement).click(selectTrumpSuitClickHandler);
+};
+
+TrumpSelectionAreaBuilder.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2AndNotPlayersTurn = function() {
+	this.currentPlayerId = this.playerId + "4325";
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+
+	this.buildTestObj();
+	this.status = "trump_selection_2";
+	this.train("");
+
+	assertEquals(this.trumpSelectionElement, this.testObj.buildTrumpSelectionArea(null, this.status, this.gameId, this.dealerId, this.currentPlayerId));
 };
 
 TrumpSelectionAreaBuilder.prototype.testBuildDoesNotIncludeActionsWhenNotCurrentPlayersTurn = function() {
@@ -157,6 +170,12 @@ TrumpSelectionAreaBuilder.prototype.train = function(trumpSelectionActionHtml) {
 	this.trumpSelectionHtml = "trump selection section";
 	when(this.templateRenderer).renderTemplate("trumpSelection", allOf(hasMember("card", this.upCardHtml), hasMember("dealerName", this.dealerName), hasMember("trumpSelectionAction", trumpSelectionActionHtml))).thenReturn(this.trumpSelectionHtml);
 	when(this.jqueryWrapper).getElement(this.trumpSelectionHtml).thenReturn(this.trumpSelectionElement);
+
+	if (null != this.upCard) {
+		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
+	} else {
+		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
+	}
 };
 
 TrumpSelectionAreaBuilder.prototype.buildTestObj = function() {

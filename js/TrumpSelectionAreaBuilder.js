@@ -14,12 +14,14 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 		if (playerId == currentPlayerId) {
 			if ("trump_selection_2" == status) {
 				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection2Action", {});
-				upCard = {"suit" : 0, "value" : 0};
 			} else {
 				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
 			}
 		}
 		var dealerName = locStrings.player.replace("%playerId%", dealerId);
+		if (null == upCard) {
+			upCard = {"suit" : 0, "value" : 0};
+		}
 		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
 		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerName" : dealerName, "trumpSelectionAction" : trumpSelectionActionHtml});
 		var trumpSelectionElement = jqueryWrapper.getElement(trumpSelectionHtml);

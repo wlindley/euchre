@@ -208,11 +208,12 @@ class RoundSerializer(AbstractSerializer):
 		if None == data:
 			return None
 		trickEvaluator = self.trickEvaluatorSerializer.deserialize(data["trickEvaluator"])
+		trumpSuit = trickEvaluator.getTrump()
 		turnTracker = self.turnTrackerSerializer.deserialize(data["turnTracker"], players)
 		hands = self._deserializeHands(data["hands"])
-		round = euchre.Round(turnTracker, trickEvaluator, hands, euchre.CardTranslator.getInstance())
-		round._curTrick = self.trickSerializer.deserialize(data["curTrick"])
-		round.prevTricks = self._deserializeTricks(data["prevTricks"])
+		round = euchre.Round(turnTracker, trickEvaluator, hands, euchre.CardTranslator.getInstance(trumpSuit))
+		round._curTrick = self.trickSerializer.deserialize(data["curTrick"], trumpSuit)
+		round.prevTricks = self._deserializeTricks(data["prevTricks"], trumpSuit)
 		round._scores = self._deserializeScores(data["scores"])
 		return round
 
@@ -228,10 +229,10 @@ class RoundSerializer(AbstractSerializer):
 			deserializedHand.append(self.cardSerializer.deserialize(card))
 		return deserializedHand
 
-	def _deserializeTricks(self, tricks):
+	def _deserializeTricks(self, tricks, trumpSuit):
 		deserializedTricks = []
 		for trick in tricks:
-			deserializedTricks.append(self.trickSerializer.deserialize(trick))
+			deserializedTricks.append(self.trickSerializer.deserialize(trick, trumpSuit))
 		return deserializedTricks
 
 	def _deserializeScores(self, scores):
@@ -300,10 +301,10 @@ class TrickSerializer(AbstractSerializer):
 			serializedCards[playerId] = self.cardSerializer.serialize(card)
 		return serializedCards
 
-	def deserialize(self, data):
+	def deserialize(self, data, trumpSuit):
 		if None == data:
 			return None
-		trick = euchre.Trick.getInstance()
+		trick = euchre.Trick.getInstance(trumpSuit)
 		trick._ledSuit = data["ledSuit"]
 		trick._playedCards = self._deserializePlayedCards(data["playedCards"])
 		return trick

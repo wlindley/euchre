@@ -1,7 +1,7 @@
 GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
-	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%"};
+	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%", "trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c"};
 	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
@@ -73,13 +73,18 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 }
 
 GamePlayViewTest.prototype.doTraining = function() {
+	this.expectedTrumpText = "";
+	if (0 < this.trumpSuit) {
+		this.expectedTrumpText = this.locStrings.trumpDisplay.replace("%trumpSuit%", this.locStrings["suit_" + this.trumpSuit]);
+	}
+
 	for (var i = 0; i < this.hand.length; i++) {
 		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.hand[i].suit), hasMember("value", this.hand[i].value))).thenReturn(this.cardHtmls[i]);
 	}
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), equalTo(this.status), equalTo(this.gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(this.trumpSelectionElement);
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.expectedTrumpText))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
@@ -151,6 +156,23 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 
 GamePlayViewTest.prototype.testSwapsScoresWhenPlayerIsOnSecondTeam = function() {
 	this.teams = [this.teams[1], this.teams[0]];
+
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.ajax = new TEST.FakeAjax();
+
+	this.buildResponseObj();
+	this.doTraining();
+	this.buildTestObj();
+
+	this.ajax.callbackResponse = this.response;
+
+	this.testObj.show({"gameId" : this.gameId});
+
+	this.verifyCorrectView();
+};
+
+GamePlayViewTest.prototype.testShowsNoTrumpSuitWhenNoTrumpSelected = function() {
+	this.trumpSuit = 0;
 
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.ajax = new TEST.FakeAjax();
