@@ -254,7 +254,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		trickData = {}
 		trickData["ledSuit"] = self._ledSuitRetriever.retrieveLedSuit(gameObj)
 		trickData["playedCards"] = self._currentTrickRetriever.retrieveCurrentTrick(gameObj)
-		trickData["leader"] = self._trickLeaderRetriever.retrieveTrickLeader(gameObj)
+		trickData["leaderId"] = self._trickLeaderRetriever.retrieveTrickLeader(gameObj)
 		return trickData
 
 	def _convertHand(self, hand):

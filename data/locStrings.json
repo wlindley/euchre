@@ -8,5 +8,7 @@
 	"suit_3" : "spades",
 	"suit_4" : "hearts",
 	"noCardsPlayed" : "No cards played yet",
-	"trumpDisplay" : "Current trump suit: %trumpSuit%"
+	"trumpDisplay" : "Current trump suit: %trumpSuit%",
+	"yourTeam" : "Your team",
+	"otherTeam" : "Other team"
 }

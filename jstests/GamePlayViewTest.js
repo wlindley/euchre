@@ -35,6 +35,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.roundPlayingElement = mock(TEST.FakeJQueryElement);
 	this.gameScoresHtml = "game scores for both teams";
 	this.roundScoresHtml = "round scores for both teams";
+	this.leaderId = this.playerIds[Math.floor(Math.random() * this.playerIds.length)];
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -66,7 +67,8 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 			"tricksTaken" : this.roundScores,
 			"currentTrick" : {
 				"ledSuit" : this.ledSuit,
-				"playedCards" : this.trick
+				"playedCards" : this.trick,
+				"leaderId" : this.leaderId
 			}
 		}
 	};
@@ -89,7 +91,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
-	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.roundPlayingElement);
+	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams).thenReturn(this.roundPlayingElement);
 
 	var yourTeamScore = this.gameScores[0];
 	var otherTeamScore = this.gameScores[1];

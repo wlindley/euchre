@@ -6,7 +6,15 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.gameId = 908234;
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
-	this.locStrings = {"suit_1" : "clubs", "suit_2" : "diamonds", "suit_3" : "spades", "suit_4" : "hearts", "player" : "Player %playerId%", "noCardsPlayed" : "blah blah blah"};
+	this.locStrings = {"suit_1" : "clubs", "suit_2" : "diamonds", "suit_3" : "spades", "suit_4" : "hearts", "player" : "Player %playerId%", "noCardsPlayed" : "blah blah blah", "yourTeam" : "team 1", "otherTeam" : "team 2"};
+	this.teams = [[this.playerId, "1234"], ["5678", "9012"]];
+	this.leaderId = this.teams[Math.floor(Math.random() * 2)][Math.floor(Math.random() * 2)];
+	this.leaderHtml = "some leader html";
+	this.leaderName = this.locStrings.player.replace("%playerId%", this.leaderId);
+	this.leaderTeamString = this.locStrings.yourTeam;
+	if (this.teams[1].indexOf(this.leaderId) >= 0) {
+		this.leaderTeamString = this.locStrings.otherTeam;
+	}
 
 	this.status = "round_in_progress";
 	this.ledSuit = Math.floor(Math.random() * 4) + 1;
@@ -112,7 +120,7 @@ RoundPlayingAreaBuilderTest.prototype.buildTestObj = function() {
 };
 
 RoundPlayingAreaBuilderTest.prototype.trigger = function() {
-	return this.testObj.buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId);
+	return this.testObj.buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams);
 };
 
 RoundPlayingAreaBuilderTest.prototype.trainCardAndTrickElementTemplates = function() {
@@ -133,8 +141,13 @@ RoundPlayingAreaBuilderTest.prototype.trainCardAndTrickElementTemplates = functi
 };
 
 RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function() {
+	when(this.templateRenderer).renderTemplate("leader", allOf(
+		hasMember("leaderName", this.leaderName),
+		hasMember("team", this.leaderTeamString)
+	)).thenReturn(this.leaderHtml);
 	when(this.templateRenderer).renderTemplate("playingRound", allOf(
 		hasMember("ledSuit", this.expectedLedSuitString),
-		hasMember("currentTrick", this.trickHtml)
+		hasMember("currentTrick", this.trickHtml),
+		hasMember("leader", this.leaderHtml)
 	)).thenReturn(this.playingRoundHtml);
 };

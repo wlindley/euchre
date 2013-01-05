@@ -5,7 +5,7 @@ if (AVOCADO == undefined) {
 AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
 	var self = this;
 
-	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId) {
+	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId, leaderId, teams) {
 		if ("round_in_progress" != status) {
 			return null;
 		}
@@ -20,6 +20,13 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			ledSuitString = locStrings["noCardsPlayed"];
 		}
 
+		var leaderName = locStrings["player"].replace("%playerId%", leaderId);
+		var teamString = locStrings.yourTeam;
+		if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
+			teamString = locStrings.otherTeam;
+		}
+		var leaderHtml = templateRenderer.renderTemplate("leader", {"leaderName" : leaderName, "team" : teamString});
+
 		var trickHtml = "";
 		for (var pid in trick) {
 			var playerName = locStrings["player"].replace("%playerId%", pid);
@@ -27,7 +34,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			trickHtml += templateRenderer.renderTemplate("trickElement", {"player" : playerName, "card" : cardHtml});
 		}
 
-		var roundPlayingAreaHtml = templateRenderer.renderTemplate("playingRound", {"ledSuit" : ledSuitString, "currentTrick" : trickHtml});
+		var roundPlayingAreaHtml = templateRenderer.renderTemplate("playingRound", {"ledSuit" : ledSuitString, "currentTrick" : trickHtml, "leader" : leaderHtml});
 		var roundPlayingElement = jqueryWrapper.getElement(roundPlayingAreaHtml);
 		return roundPlayingElement;
 	};

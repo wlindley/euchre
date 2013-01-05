@@ -403,7 +403,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 				"currentTrick" : {
 					"ledSuit" : self.ledSuit,
 					"playedCards" : self.currentTrick,
-					"leader" : self.trickLeader
+					"leaderId" : self.trickLeader
 				}
 			}
 		}, sort_keys=True))
