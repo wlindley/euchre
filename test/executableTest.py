@@ -371,72 +371,62 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		when(self.scoreRetriever).retrieveGameScores(self.gameObj).thenReturn(self.gameScores)
 		when(self.scoreRetriever).retrieveRoundScores(self.gameObj).thenReturn(self.roundScores)
 
+		self.trickLeader = self.playerIds[random.randrange(0, len(self.playerIds))]
+		self.trickLeaderRetriever = testhelper.createSingletonMock(retriever.TrickLeaderRetriever)
+		when(self.trickLeaderRetriever).retrieveTrickLeader(self.gameObj).thenReturn(self.trickLeader)
+
+		self.hand = [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)), euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14))]
+		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(self.hand)
+
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
+
 		self._buildTestObj()
+
+	def _verifyCorrectResponse(self):
+		expectedUpCard = None
+		if None != self.upCard:
+			expectedUpCard = {"suit" : self.upCard.suit, "value" : self.upCard.value}
+		verify(self.responseWriter).write(json.dumps({
+			"success" : True,
+			"playerIds" : self.playerIds,
+			"gameId" : self.gameId,
+			"status" : self.gameStatus,
+			"teams" : self.expectedTeams,
+			"scores" : self.gameScores,
+			"round" : {
+				"tricksTaken" : self.roundScores,
+				"trump" : self.trump,
+				"upCard" : expectedUpCard,
+				"dealerId" : self.dealer,
+				"hand": [{"suit" : card.suit, "value" : card.value} for card in self.hand],
+				"currentPlayerId" : self.playerId,
+				"currentTrick" : {
+					"ledSuit" : self.ledSuit,
+					"playedCards" : self.currentTrick,
+					"leader" : self.trickLeader
+				}
+			}
+		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):
-		playerIds = [self.playerId, "2", "3", "4"]
-		self.gameModel.playerId = playerIds
-		hand = [euchre.Card(suit=euchre.SUIT_DIAMONDS, value=10), euchre.Card(suit=euchre.SUIT_CLUBS, value=8)]
-		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(hand)
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
+		self.gameModel.playerId = self.playerIds
 
 		self.testObj.execute()
 
-		verify(self.responseWriter).write(json.dumps({
-			"success" : True,
-			"playerIds" : playerIds,
-			"gameId" : self.gameId,
-			"status" : self.gameStatus,
-			"teams" : self.expectedTeams,
-			"scores" : self.gameScores,
-			"round" : {
-				"tricksTaken" : self.roundScores,
-				"trump" : self.trump,
-				"upCard" : {"suit" : self.upCard.suit, "value" : self.upCard.value},
-				"dealerId" : self.dealer,
-				"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
-				"currentPlayerId" : self.playerId,
-				"currentTrick" : {
-					"ledSuit" : self.ledSuit,
-					"playedCards" : self.currentTrick
-				}
-			}
-		}, sort_keys=True))
+		self._verifyCorrectResponse()
 
 	def testReturnsCorrectDataWhenCalledWithValidDataAndUpCardIsNone(self):
+		self.upCard = None
 		retriever.UpCardRetriever.instance = None
 		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
-		when(self.upCardRetriever).retrieveUpCard().thenReturn(None)
+		when(self.upCardRetriever).retrieveUpCard().thenReturn(self.upCard)
 		self._buildTestObj()
 		
-		playerIds = [self.playerId, "2", "3", "4"]
-		self.gameModel.playerId = playerIds
-		hand = [euchre.Card(suit=euchre.SUIT_DIAMONDS, value=10), euchre.Card(suit=euchre.SUIT_CLUBS, value=8)]
-		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(hand)
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
+		self.gameModel.playerId = self.playerIds
 
 		self.testObj.execute()
 
-		verify(self.responseWriter).write(json.dumps({
-			"success" : True,
-			"playerIds" : playerIds,
-			"gameId" : self.gameId,
-			"status" : self.gameStatus,
-			"teams" : self.expectedTeams,
-			"scores" : self.gameScores,
-			"round" : {
-				"tricksTaken" : self.roundScores,
-				"trump" : self.trump,
-				"upCard" : None,
-				"dealerId" : self.dealer,
-				"hand": [{"suit" : card.suit, "value" : card.value} for card in hand],
-				"currentPlayerId" : self.playerId,
-				"currentTrick" : {
-					"ledSuit" : self.ledSuit,
-					"playedCards" : self.currentTrick
-				}
-			}
-		}, sort_keys=True))
+		self._verifyCorrectResponse()
 
 	def testReturnsFailureWhenGameNotStartedYet(self):
 		self.gameModel.serializedGame = ""

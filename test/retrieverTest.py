@@ -282,3 +282,35 @@ class TeamRetrieverTest(testhelper.TestCase):
 			expectedResult[teamId].extend([playerId for playerId in self.teamLists[teamId]])
 		actualResult = self.testObj.retrieveTeamLists(self.game)
 		self.assertEqual(expectedResult, actualResult)
+
+class TrickLeaderRetrieverTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = retriever.TrickLeaderRetriever.getInstance()
+
+	def setUp(self):
+		self.game = testhelper.createMock(euchre.Game)
+		self.sequence = testhelper.createMock(euchre.Sequence)
+		self.round = testhelper.createMock(euchre.Round)
+		self.trump = random.randint(1, 4)
+		self.trickEvaluator = euchre.TrickEvaluator.getInstance(self.trump)
+		self.trick = euchre.Trick.getInstance(self.trump)
+		self.playerIds = ["12345", "56789", "90123", "34567"]
+		self.cards = {playerId : euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)) for playerId in self.playerIds}
+
+		when(self.game).getSequence().thenReturn(self.sequence)
+		when(self.sequence).getRound().thenReturn(self.round)
+		when(self.round).getCurrentTrick().thenReturn(self.trick)
+		when(self.round).getTrump().thenReturn(self.trump)
+		
+		self._buildTestObj()
+
+	def testReturnsCurrentTrickLeader(self):
+		for i in range(len(self.playerIds)):
+			self.trick.add(game.Player(self.playerIds[i]), self.cards[self.playerIds[i]])
+			expectedWinner = self.trickEvaluator.evaluateTrick(self.trick)
+			actualWinner = self.testObj.retrieveTrickLeader(self.game)
+			self.assertEqual(expectedWinner, actualWinner)
+
+	def testReturnsNoneIfCurrentTrickIsNull(self):
+		when(self.round).getCurrentTrick().thenReturn(None)
+		self.assertIsNone(self.testObj.retrieveTrickLeader(self.game))

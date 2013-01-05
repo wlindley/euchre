@@ -171,3 +171,24 @@ class TeamRetriever(object):
 
 	def retrieveTeamLists(self, gameObj):
 		return gameObj.getTeamLists()
+
+class TrickLeaderRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TrickLeaderRetriever(euchre.TrickEvaluator.getInstance())
+
+	def __init__(self, trickEvaluator):
+		super(TrickLeaderRetriever, self).__init__()
+		self._trickEvaluator = trickEvaluator
+
+	def retrieveTrickLeader(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		trick = round.getCurrentTrick()
+		if None == trick:
+			return None
+		self._trickEvaluator.setTrump(round.getTrump())
+		return self._trickEvaluator.evaluateTrick(trick)

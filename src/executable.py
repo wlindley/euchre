@@ -189,9 +189,9 @@ class GetGameDataExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance(), retriever.TrickLeaderRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever, trickLeaderRetriever):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
@@ -205,6 +205,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		self._trumpRetriever = trumpRetriever
 		self._teamRetriever = teamRetriever
 		self._scoreRetriever = scoreRetriever
+		self._trickLeaderRetriever = trickLeaderRetriever
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -253,6 +254,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		trickData = {}
 		trickData["ledSuit"] = self._ledSuitRetriever.retrieveLedSuit(gameObj)
 		trickData["playedCards"] = self._currentTrickRetriever.retrieveCurrentTrick(gameObj)
+		trickData["leader"] = self._trickLeaderRetriever.retrieveTrickLeader(gameObj)
 		return trickData
 
 	def _convertHand(self, hand):
