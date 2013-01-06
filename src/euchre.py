@@ -186,6 +186,8 @@ class Round(object):
 			return cls.instance
 		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(trumpSuit), hands, CardTranslator.getInstance(trumpSuit))
 
+	MAX_HAND_SIZE = 5
+
 	def __init__(self, turnTracker, trickEvaluator, hands, cardTranslator):
 		self._hands = hands
 		self._curTrick = Trick.getInstance(trickEvaluator.getTrump())
@@ -221,6 +223,16 @@ class Round(object):
 		if None == player or player.playerId not in self._hands:
 			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
 		self._hands[player.playerId].append(card)
+
+	def discardCard(self, player, card):
+		if None == player or player.playerId not in self._hands:
+			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
+		if Round.MAX_HAND_SIZE >= len(self._hands[player.playerId]):
+			raise game.GameRuleException("Player with id %s does not have too many cards in hand and thus cannot discard any" % player.playerId)
+		try:
+			self._hands[player.playerId].remove(card)
+		except ValueError:
+			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
 
 	def getHands(self):
 		return self._hands
@@ -320,7 +332,6 @@ class Sequence(object):
 	STATE_COMPLETE = "STATE_COMPLETE"
 	STATE_INVALID = "STATE_INVALID"
 
-	MAX_HAND_SIZE = 5
 
 	instance = None
 	@classmethod
@@ -347,7 +358,7 @@ class Sequence(object):
 		elif self._trumpSelector.isComplete:
 			if not self._round.isComplete():
 				for playerId, hand in self._round.getHands().iteritems():
-					if Sequence.MAX_HAND_SIZE < len(hand):
+					if Round.MAX_HAND_SIZE < len(hand):
 						return Sequence.STATE_DISCARD
 				return Sequence.STATE_PLAYING_ROUND
 			return Sequence.STATE_COMPLETE
@@ -374,6 +385,11 @@ class Sequence(object):
 		if Sequence.STATE_TRUMP_SELECTION != self.getState():
 			raise game.GameStateException("Cannot add a card to a player's hand except during first round of trump selection")
 		self._round.addCardToHand(player, card)
+
+	def discardCard(self, player, card):
+		if Sequence.STATE_DISCARD != self.getState():
+			raise game.GameStateException("Cannot discard when not in discard state")
+		self._round.discardCard(player, card)
 
 	def scoreCurrentRound(self, scoreTracker):
 		scoreTracker.recordRoundScore(self._round, self._trumpSelector.getSelectingPlayerId())
@@ -471,6 +487,9 @@ class Game(object):
 
 	def addCardToHand(self, player, card):
 		self._curSequence.addCardToHand(player, card)
+
+	def discardCard(self, player, card):
+		self._curSequence.discardCard(player, card)
 
 	def getSequenceState(self):
 		return self._curSequence.getState()

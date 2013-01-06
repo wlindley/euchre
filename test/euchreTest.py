@@ -380,6 +380,31 @@ class RoundTest(testhelper.TestCase):
 		with self.assertRaises(game.InvalidPlayerException):
 			self.round.addCardToHand(player, card)
 
+	def testDiscardCardRemovesCardFromCorrectPlayersHandButNotBelowMaxHandSize(self):
+		player = random.choice(self.players)
+		self.round.addCardToHand(player, self.deck.peekTop())
+		card = random.choice(self.hands[player.playerId])
+		self.assertEqual(1, self.round.getHands()[player.playerId].count(card))
+		self.round.discardCard(player, card)
+		self.assertEqual(0, self.round.getHands()[player.playerId].count(card))
+
+		card = random.choice(self.round.getHands()[player.playerId])
+		with self.assertRaises(game.GameRuleException):
+			self.round.discardCard(player, card)
+
+	def testDiscardCardRaisesExceptionIfPlayerIdNotInRound(self):
+		player = game.Player("5")
+		card = self.deck.peekTop()
+		with self.assertRaises(game.InvalidPlayerException):
+			self.round.discardCard(player, card)
+
+	def testDiscardCardRaisesExceptionIfCardNotInHand(self):
+		player = self.players[1]
+		self.round.addCardToHand(player, self.deck.peekTop())
+		card = random.choice(self.hands[self.players[0].playerId])
+		with self.assertRaises(game.GameRuleException):
+			self.round.discardCard(player, card)
+
 class TrumpSelectorTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -591,6 +616,24 @@ class SequenceTest(testhelper.TestCase):
 		with self.assertRaises(game.GameStateException):
 			self.sequence.addCardToHand(player, self.upCard)
 
+	def testDiscardCardPassesThoughIfInDiscardState(self):
+		dealerId = self.players[random.randrange(0, len(self.players))].playerId
+		self.hands[dealerId].append(self.upCard)
+		when(self.round).getHands().thenReturn(self.hands)
+		self._createSequence()
+		self._train(selectedTrump=euchre.SUIT_DIAMONDS, trumpSelectorComplete=True, roundComplete=False)
+
+		player = self.players[random.randrange(0, len(self.players))]
+		self.sequence.discardCard(player, self.upCard)
+		verify(self.round).discardCard(player, self.upCard)
+
+	def testDiscardCardRaisesExceptionIfNotInDiscardState(self):
+		self._train(selectedTrump=euchre.SUIT_DIAMONDS, trumpSelectorComplete=True, roundComplete=False)
+
+		player = self.players[random.randrange(0, len(self.players))]
+		with self.assertRaises(game.GameStateException):
+			self.sequence.discardCard(player, self.upCard)
+
 class ScoreTrackerTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
@@ -768,6 +811,16 @@ class GameTest(testhelper.TestCase):
 		self.game.startGame()
 		self.game.addCardToHand(player, card)
 		verify(sequence).addCardToHand(player, card)
+
+	def testDiscardCardPassesThrough(self):
+		sequence = testhelper.createSingletonMock(euchre.Sequence)
+		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
+		when(sequenceFactory).buildSequence(any(), any(), any()).thenReturn(sequence)
+		player = self.players[random.randrange(0, len(self.players))]
+		card = euchre.Card.getInstance(suit=random.randint(1,4), value=random.randint(9,14))
+		self.game.startGame()
+		self.game.discardCard(player, card)
+		verify(sequence).discardCard(player, card)
 
 if __name__ == "__main__":
 	unittest.main()
