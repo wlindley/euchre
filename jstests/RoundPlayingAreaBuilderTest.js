@@ -26,7 +26,7 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.trainCardAndTrickElementTemplates();
 
 	this.playingRoundHtml = "some HTML for playing the round";
-	this.trainAreaTemplate();
+	this.trainAreaTemplate(this.leaderHtml);
 
 	this.playingRoundElement = mock(TEST.FakeJQueryElement);
 	when(this.jqueryWrapper).getElement(this.playingRoundHtml).thenReturn(this.playingRoundElement);
@@ -57,7 +57,19 @@ RoundPlayingAreaBuilderTest.prototype.testUsesNoCardsPlayedLocStringWhenLedSuitI
 	this.expectedLedSuitString = this.locStrings["noCardsPlayed"];
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.trainCardAndTrickElementTemplates();
-	this.trainAreaTemplate();
+	this.trainAreaTemplate(this.leaderHtml);
+	this.buildTestObj();
+
+	var actualResult = this.trigger();
+	assertEquals(this.playingRoundElement, actualResult);
+};
+
+RoundPlayingAreaBuilderTest.prototype.testUsesEmptyStringForTrickLeaderWhenTrickLeaderIsNull = function() {
+	this.leaderId = null;
+	this.leaderHtml = "some leader html";
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.trainCardAndTrickElementTemplates();
+	this.trainAreaTemplate("");
 	this.buildTestObj();
 
 	var actualResult = this.trigger();
@@ -140,7 +152,7 @@ RoundPlayingAreaBuilderTest.prototype.trainCardAndTrickElementTemplates = functi
 	}
 };
 
-RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function() {
+RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function(expectedLeaderHtml) {
 	when(this.templateRenderer).renderTemplate("leader", allOf(
 		hasMember("leaderName", this.leaderName),
 		hasMember("team", this.leaderTeamString)
@@ -148,6 +160,6 @@ RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function() {
 	when(this.templateRenderer).renderTemplate("playingRound", allOf(
 		hasMember("ledSuit", this.expectedLedSuitString),
 		hasMember("currentTrick", this.trickHtml),
-		hasMember("leader", this.leaderHtml)
+		hasMember("leader", expectedLeaderHtml)
 	)).thenReturn(this.playingRoundHtml);
 };

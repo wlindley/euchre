@@ -20,12 +20,15 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			ledSuitString = locStrings["noCardsPlayed"];
 		}
 
-		var leaderName = locStrings["player"].replace("%playerId%", leaderId);
-		var teamString = locStrings.yourTeam;
-		if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
-			teamString = locStrings.otherTeam;
+		var leaderHtml = "";
+		if (null != leaderId) {
+			var leaderName = locStrings["player"].replace("%playerId%", leaderId);
+			var teamString = locStrings.yourTeam;
+			if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
+				teamString = locStrings.otherTeam;
+			}
+			leaderHtml = templateRenderer.renderTemplate("leader", {"leaderName" : leaderName, "team" : teamString});
 		}
-		var leaderHtml = templateRenderer.renderTemplate("leader", {"leaderName" : leaderName, "team" : teamString});
 
 		var trickHtml = "";
 		for (var pid in trick) {
