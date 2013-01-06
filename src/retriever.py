@@ -41,19 +41,26 @@ class TurnRetriever(object):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return TurnRetriever()
+		return TurnRetriever(HandRetriever.getInstance())
 
-	def retrieveTurn(self, gameObj):
+	def __init__(self, handRetriever):
+		super(TurnRetriever, self).__init__()
+		self._handRetriever = handRetriever
+
+	def retrieveTurn(self, gameObj, requestingPlayerId):
 		sequence = gameObj.getSequence()
 		if None == sequence:
 			return None
-		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState() or euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequence.getState():
-			turnTracker = sequence.getTrumpSelector().getTurnTracker()
-		elif euchre.Sequence.STATE_PLAYING_ROUND == sequence.getState():
-			turnTracker = sequence.getRound().getTurnTracker()
-		else:
-			return None
-		return turnTracker.getCurrentPlayerId()
+		sequenceState = sequence.getState()
+		if euchre.Sequence.STATE_TRUMP_SELECTION == sequenceState or euchre.Sequence.STATE_TRUMP_SELECTION_2 == sequenceState:
+			return sequence.getTrumpSelector().getTurnTracker().getCurrentPlayerId()
+		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
+			return sequence.getRound().getTurnTracker().getCurrentPlayerId()
+		elif euchre.Sequence.STATE_DISCARD == sequenceState:
+			hand = self._handRetriever.getHand(requestingPlayerId, gameObj)
+			if euchre.Round.MAX_HAND_SIZE < len(hand):
+				return requestingPlayerId
+		return None
 
 class UpCardRetriever(object):
 	instance = None
@@ -87,6 +94,8 @@ class GameStatusRetriever(object):
 			return "trump_selection_2"
 		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
 			return "round_in_progress"
+		elif euchre.Sequence.STATE_DISCARD == sequenceState:
+			return "discard"
 		return ""
 
 class LedSuitRetriever(object):

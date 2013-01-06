@@ -115,7 +115,7 @@ class ListGamesExecutable(AbstractExecutable):
 		else:
 			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
 			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
-			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj, playerId)
 		return gameData
 
 class DefaultExecutable(AbstractExecutable):
@@ -247,7 +247,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		roundData["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
 		roundData["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		roundData["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
-		roundData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)
+		roundData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj, playerId)
 		roundData["currentTrick"] = self._getCurrentTrickData(gameObj)
 		return roundData
 

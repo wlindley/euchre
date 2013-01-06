@@ -50,6 +50,7 @@ class TurnRetrieverTest(testhelper.TestCase):
 	def setUp(self):
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.teams = [["1", "2"], ["3", "4"]]
+		self.requestingPlayerId = random.choice(self.players).playerId
 		self.sequence = testhelper.createSingletonMock(euchre.Sequence)
 		self.trumpTurnTracker = testhelper.createMock(game.TurnTracker)
 		self.roundTurnTracker = testhelper.createMock(game.TurnTracker)
@@ -60,14 +61,23 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.round).getTurnTracker().thenReturn(self.roundTurnTracker)
 		when(self.trumpSelector).getTurnTracker().thenReturn(self.trumpTurnTracker)
 		self.game = euchre.Game.getInstance(self.players, self.teams)
+
+		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
+
 		self.testObj = retriever.TurnRetriever.getInstance()
+
+	def _trigger(self):
+		return self.testObj.retrieveTurn(self.game, self.requestingPlayerId)
+
+	def _buildHand(self, handSize):
+		return [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)) for i in range(handSize)]
 
 	def testReturnsCorrectDataDuringTrumpSelection(self):
 		currentPlayer = "3"
 		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION)
 		self.game.startGame()
-		result = self.testObj.retrieveTurn(self.game)
+		result = self._trigger()
 		self.assertEqual(currentPlayer, result)
 
 	def testReturnsCorrectDataDuringTrumpSelection2(self):
@@ -75,7 +85,7 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
 		self.game.startGame()
-		result = self.testObj.retrieveTurn(self.game)
+		result = self._trigger()
 		self.assertEqual(currentPlayer, result)
 
 	def testReturnsCorrectDataDuringGamePlay(self):
@@ -83,11 +93,25 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.roundTurnTracker).getCurrentPlayerId().thenReturn(currentPlayer)
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
 		self.game.startGame()
-		result = self.testObj.retrieveTurn(self.game)
+		result = self._trigger()
 		self.assertEqual(currentPlayer, result)
 
+	def testSaysItIsRequestingPlayersTurnIfInDiscardStateAndThatPlayerHasTooManyCards(self):
+		when(self.handRetriever).getHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(6))
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
+		self.game.startGame()
+		result = self._trigger()
+		self.assertEqual(self.requestingPlayerId, result)
+
+	def testSaysItIsNoOnesTurnIfInDiscardStateAndRequestingPlayerDoesNotHaveTooManyCards(self):
+		when(self.handRetriever).getHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(5))
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
+		self.game.startGame()
+		result = self._trigger()
+		self.assertEqual(None, result)
+
 	def testReturnsNoneIfGameNotStarted(self):
-		result = self.testObj.retrieveTurn(self.game)
+		result = self._trigger()
 		self.assertEqual(None, result)
 
 	def testReturnsNoneIfSequenceIsInAnotherState(self):
@@ -95,7 +119,7 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.roundTurnTracker).getCurrentPlayerId().thenReturn("1")
 		when(self.trumpTurnTracker).getCurrentPlayerId().thenReturn("2")
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_INVALID)
-		result = self.testObj.retrieveTurn(self.game)
+		result = self._trigger()
 		self.assertEqual(None, result)
 
 class UpCardRetrieverTest(testhelper.TestCase):
@@ -147,6 +171,10 @@ class GameStatusRetrieverTest(testhelper.TestCase):
 	def testRetrieveStatusReturnsRoundInProgressWhenSequenceIsInPlayingRound(self):
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_PLAYING_ROUND)
 		self.assertEqual("round_in_progress", self.testObj.retrieveGameStatus(self.game))
+
+	def testRetrieveStatusReturnsDiscardWhenSequenceIsInDiscard(self):
+		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
+		self.assertEqual("discard", self.testObj.retrieveGameStatus(self.game))
 
 class LedSuitRetrieverTest(testhelper.TestCase):
 	def setUp(self):

@@ -135,7 +135,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
 			when(games[i]).getSequence().thenReturn(sequences[i])
 			when(sequences[i]).getState().thenReturn(sequenceStates[i])
-			when(self.turnRetriever).retrieveTurn(games[i]).thenReturn(currentTurns[i])
+			when(self.turnRetriever).retrieveTurn(games[i], playerId).thenReturn(currentTurns[i])
 		gameModels[3].playerId = gameModels[3].playerId[:2]
 		gameModels[3].serializedGame = ""
 		
@@ -381,7 +381,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.hand = [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)), euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14))]
 		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(self.hand)
 
-		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
+		when(self.turnRetriever).retrieveTurn(self.gameObj, self.playerId).thenReturn(self.playerId)
 
 		self._buildTestObj()
 
