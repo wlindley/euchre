@@ -5,6 +5,7 @@
 	%roundScores%
 	%turn%
 	<div class="trumpDisplay">%trump%</div>
+	<div class="discard"></div>
 	%hand%
 	<div class="trumpSelection"></div>
 	<div class="playingRound"></div>

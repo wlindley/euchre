@@ -36,6 +36,8 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.gameScoresHtml = "game scores for both teams";
 	this.roundScoresHtml = "round scores for both teams";
 	this.leaderId = this.playerIds[Math.floor(Math.random() * this.playerIds.length)];
+	this.discardInsertionElement = mock(TEST.FakeJQueryElement);
+	this.discardElement = mock(TEST.FakeJQueryElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -43,6 +45,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.trumpSelectionAreaBuilder = mock(AVOCADO.TrumpSelectionAreaBuilder);
 	this.roundPlayingAreaBuilder = mock(AVOCADO.RoundPlayingAreaBuilder);
+	this.discardAreaBuilder = mock(AVOCADO.DiscardAreaBuilder);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 
 	this.buildResponseObj();
@@ -90,8 +93,10 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
+	when(this.gameElement).find(".discard").thenReturn(this.discardInsertionElement);
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
 	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams).thenReturn(this.roundPlayingElement);
+	when(this.discardAreaBuilder).buildDiscardArea(this.status, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.discardElement);
 
 	var yourTeamScore = this.gameScores[0];
 	var otherTeamScore = this.gameScores[1];
@@ -111,6 +116,7 @@ GamePlayViewTest.prototype.verifyCorrectView = function() {
 	verify(this.gamePlayDiv).empty();
 	verify(this.trumpSelectionInsertionElement).append(this.trumpSelectionElement);
 	verify(this.roundPlayingInsertionElement).append(this.roundPlayingElement);
+	verify(this.discardInsertionElement).append(this.discardElement);
 	verify(this.gamePlayDiv).append(this.gameElement);
 	verify(this.viewGameListElement).click(this.testObj.handleViewGameListClick);
 	verify(this.gamePlayDiv).show();
@@ -201,5 +207,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder);
 };

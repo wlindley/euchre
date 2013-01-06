@@ -10,5 +10,6 @@
 	"noCardsPlayed" : "No cards played yet",
 	"trumpDisplay" : "Current trump suit: %trumpSuit%",
 	"yourTeam" : "Your team",
-	"otherTeam" : "Other team"
+	"otherTeam" : "Other team",
+	"discardMessage" : "As dealer, you picked up a card when you or someone else called trump. Now you must discard one of the cards in your hand."
 }
