@@ -30,9 +30,10 @@ class HandRetriever(object):
 		if None == sequenceObj:
 			return []
 		roundObj = sequenceObj.getRound()
-		if playerId not in roundObj.hands:
+		hands = roundObj.getHands()
+		if playerId not in hands:
 			return []
-		return roundObj.hands[playerId]
+		return hands[playerId]
 
 class TurnRetriever(object):
 	instance = None

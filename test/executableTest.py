@@ -463,44 +463,72 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		when(self.requestDataAccessor).get("suit").thenReturn(str(self.suit))
 
-		self.player = game.Player(self.playerId)
-		testhelper.replaceClass(src.game, "Player", testhelper.createSimpleMock())
-		when(src.game.Player).getInstance(self.playerId).thenReturn(self.player)
+		self.player = game.Player.getInstance(self.playerId)
 
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameModel = testhelper.createMock(model.GameModel)
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
 
 		self.game = testhelper.createSingletonMock(euchre.Game)
+		self.sequenceState = euchre.Sequence.STATE_TRUMP_SELECTION
+		when(self.game).getSequenceState().thenReturn(self.sequenceState)
+
 		self.serializedGame = "a super serialized game"
+		self.postSerializedGame = "a slightly different serialized game"
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.game)
+		when(self.gameSerializer).serialize(self.game).thenReturn(self.postSerializedGame)
+
+		self.upCard = euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14))
+		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
+		when(self.upCardRetriever).retrieveUpCard(self.game).thenReturn(self.upCard)
+
+		self.dealerId = "09876543"
+		self.dealerPlayer = game.Player.getInstance(self.dealerId)
+		self.dealerRetriever = testhelper.createSingletonMock(retriever.DealerRetriever)
+		when(self.dealerRetriever).retrieveDealer(self.game).thenReturn(self.dealerId)
+
+		testhelper.replaceClass(src.game, "Player", testhelper.createSimpleMock())
+		when(src.game.Player).getInstance(self.playerId).thenReturn(self.player)
+		when(src.game.Player).getInstance(self.dealerId).thenReturn(self.dealerPlayer)
 
 		self._buildTestObj()
 
-	def testExecuteCorrectlySelectsTrumpWhenValidDataIsPassedIn(self):
-		postSerializedGame = "a slightly different serialized game"
-		when(self.gameSerializer).serialize(self.game).thenReturn(postSerializedGame)
-		self.gameModel.serializedGame = self.serializedGame
-
-		self.testObj.execute()
-
-		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
-		inorder.verify(self.game).selectTrump(self.player, self.suit)
+	def _verifyCorrectResponse(self, expectedSuit):
+		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
+		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
+		inorder.verify(self.game).addCardToHand(self.dealerPlayer, self.upCard)
+		inorder.verify(self.game).selectTrump(self.player, expectedSuit)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
-	def testExecuteCorrectlySelectsSuitNoneWhenSelectedSuitIsNone(self):
-		when(self.requestDataAccessor).get("suit").thenReturn(None)
-		postSerializedGame = "a slightly different serialized game"
-		when(self.gameSerializer).serialize(self.game).thenReturn(postSerializedGame)
+	def testExecuteCorrectlySelectsTrumpWhenValidDataIsPassedIn(self):
 		self.gameModel.serializedGame = self.serializedGame
 
 		self.testObj.execute()
 
-		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
-		inorder.verify(self.game).selectTrump(self.player, euchre.SUIT_NONE)
+		self._verifyCorrectResponse(self.suit)
+
+	def testExecuteCorrectlySelectsSuitNoneWhenSelectedSuitIsNone(self):
+		when(self.requestDataAccessor).get("suit").thenReturn(None)
+		self.gameModel.serializedGame = self.serializedGame
+
+		self.testObj.execute()
+
+		self._verifyCorrectResponse(euchre.SUIT_NONE)
+
+	def testExecuteDoeNotAddCardIfInTrumpSelection2(self):
+		self.sequenceState = euchre.Sequence.STATE_TRUMP_SELECTION_2
+		when(self.game).getSequenceState().thenReturn(self.sequenceState)
+		self.gameModel.serializedGame = self.serializedGame
+
+		self.testObj.execute()
+
+		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
+		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
+		inorder.verify(self.game).selectTrump(self.player, self.suit)
 		inorder.verify(self.gameModel).put()
+		verify(self.game, never).addCardToHand(any(), any())
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
 	def testExecuteWritesFailureIfPlayerIdIsMissing(self):

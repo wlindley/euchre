@@ -187,7 +187,7 @@ class Round(object):
 		return Round(game.TurnTracker.getInstance(players), TrickEvaluator.getInstance(trumpSuit), hands, CardTranslator.getInstance(trumpSuit))
 
 	def __init__(self, turnTracker, trickEvaluator, hands, cardTranslator):
-		self.hands = hands
+		self._hands = hands
 		self._curTrick = Trick.getInstance(trickEvaluator.getTrump())
 		self.prevTricks = []
 		self._scores = {}
@@ -196,26 +196,34 @@ class Round(object):
 		self._cardTranslator = cardTranslator
 
 	def playCard(self, player, card):
-		if None == player or player.playerId not in self.hands:
+		if None == player or player.playerId not in self._hands:
 			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
-		if card not in self.hands[player.playerId]:
+		if card not in self._hands[player.playerId]:
 			raise game.GameRuleException("Player with id %s does not have card %s in their hand" % (player.playerId, card))
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("It is not player %s's turn, current player id is %s" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
 		ledSuit = self._curTrick.getLedSuit()
 		translatedCard = self._cardTranslator.translateCard(card)
 		if SUIT_NONE != ledSuit and ledSuit != translatedCard.suit:
-			for heldCard in self.hands[player.playerId]:
+			for heldCard in self._hands[player.playerId]:
 				translatedHeldCard = self._cardTranslator.translateCard(heldCard)
 				if ledSuit == translatedHeldCard.suit:
 					raise game.GameRuleException("Player with id %s must follow suit, cannot play %s when led suit is %s and %s is in their hand" % (player.playerId, card, ledSuit, heldCard))
 
-		self.hands[player.playerId].remove(card)
+		self._hands[player.playerId].remove(card)
 		self._curTrick.add(player, card)
 		self._nextTurn()
 
 		if self._curTrick.isComplete():
 			self._nextTrick()
+
+	def addCardToHand(self, player, card):
+		if None == player or player.playerId not in self._hands:
+			raise game.InvalidPlayerException("Player with id %s is not a member of this round" % (None if None == player else player.playerId))
+		self._hands[player.playerId].append(card)
+
+	def getHands(self):
+		return self._hands
 
 	def isComplete(self):
 		return HAND_SIZE <= len(self.prevTricks)
@@ -307,9 +315,12 @@ class Sequence(object):
 	STATE_TRUMP_SELECTION = "STATE_TRUMP_SELECTION"
 	STATE_TRUMP_SELECTION_2 = "STATE_TRUMP_SELECTION_2"
 	STATE_TRUMP_SELECTION_FAILED = "STATE_TRUMP_SELECTION_FAILED"
+	STATE_DISCARD = "STATE_DISCARD"
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
 	STATE_COMPLETE = "STATE_COMPLETE"
 	STATE_INVALID = "STATE_INVALID"
+
+	MAX_HAND_SIZE = 5
 
 	instance = None
 	@classmethod
@@ -335,6 +346,9 @@ class Sequence(object):
 			return Sequence.STATE_TRUMP_SELECTION
 		elif self._trumpSelector.isComplete:
 			if not self._round.isComplete():
+				for playerId, hand in self._round.getHands().iteritems():
+					if Sequence.MAX_HAND_SIZE < len(hand):
+						return Sequence.STATE_DISCARD
 				return Sequence.STATE_PLAYING_ROUND
 			return Sequence.STATE_COMPLETE
 		return Sequence.STATE_INVALID
@@ -353,8 +367,13 @@ class Sequence(object):
 
 	def playCard(self, player, card):
 		if Sequence.STATE_PLAYING_ROUND != self.getState():
-			raise game.GameStateException("Cannont play card once round is complete")
+			raise game.GameStateException("Can only play cards when in playing round state")
 		self._round.playCard(player, card)
+
+	def addCardToHand(self, player, card):
+		if Sequence.STATE_TRUMP_SELECTION != self.getState():
+			raise game.GameStateException("Cannot add a card to a player's hand except during first round of trump selection")
+		self._round.addCardToHand(player, card)
 
 	def scoreCurrentRound(self, scoreTracker):
 		scoreTracker.recordRoundScore(self._round, self._trumpSelector.getSelectingPlayerId())
@@ -449,6 +468,9 @@ class Game(object):
 			self._scoreCurrentSequence()
 			self._advanceDealer()
 			self._buildNextSequence()
+
+	def addCardToHand(self, player, card):
+		self._curSequence.addCardToHand(player, card)
 
 	def getSequenceState(self):
 		return self._curSequence.getState()

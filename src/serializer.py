@@ -178,7 +178,7 @@ class RoundSerializer(AbstractSerializer):
 			return None
 		return {"turnTracker" : self.turnTrackerSerializer.serialize(obj._turnTracker),
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
-				"hands" : self._serializeHands(obj.hands),
+				"hands" : self._serializeHands(obj.getHands()),
 				"curTrick" : self.trickSerializer.serialize(obj.getCurrentTrick()),
 				"prevTricks" : self._serializeTricks(obj.prevTricks),
 				"scores" : self._serializeScores(obj._scores)}

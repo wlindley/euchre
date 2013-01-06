@@ -263,7 +263,6 @@ class RoundSerializerTest(testhelper.TestCase):
 
 		self.assertEqual(expectedTurnTracker, data["turnTracker"])
 		self.assertEqual(expectedTrickEvaluator, data["trickEvaluator"])
-		print data["hands"]
 		for playerId in expectedHands:
 			for i in range(len(expectedHands[playerId])):
 				self.assertEqual(expectedHands[playerId][i], data["hands"][playerId][i])
@@ -319,7 +318,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		self.assertEqual(self.trickEvaluator, obj._trickEvaluator)
 		for playerId, hand in hands.iteritems():
 			for i in range(len(hand)):
-				self.assertEqual(expectedCards[hand[i]], obj.hands[playerId][i])
+				self.assertEqual(expectedCards[hand[i]], obj._hands[playerId][i])
 		self.assertEqual(expectedTricks[curTrick], obj.getCurrentTrick())
 		for i in range(len(prevTricks)):
 			self.assertEqual(expectedTricks[prevTricks[i]], obj.prevTricks[i])

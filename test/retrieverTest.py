@@ -31,7 +31,7 @@ class HandRetrieverTest(testhelper.TestCase):
 	def testGetHandReturnsCorrectData(self):
 		playerId = "2"
 		self.game.startGame()
-		expectedHand = self.game._curSequence._round.hands[playerId]
+		expectedHand = self.game._curSequence._round._hands[playerId]
 		result = self.testObj.getHand(playerId, self.game)
 		self.assertEqual(expectedHand, result)
 

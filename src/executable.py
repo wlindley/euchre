@@ -266,12 +266,14 @@ class SelectTrumpExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return SelectTrumpExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
+		return SelectTrumpExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.DealerRetriever.getInstance(), retriever.UpCardRetriever.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, dealerRetriever, upCardRetriever):
 		super(SelectTrumpExecutable, self).__init__(requestDataAccessor, responseWriter)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
+		self._dealerRetriever = dealerRetriever
+		self._upCardRetriever = upCardRetriever
 
 	def execute(self):
 		gameId = self._requestDataAccessor.get("gameId")
@@ -301,7 +303,11 @@ class SelectTrumpExecutable(AbstractExecutable):
 			return
 
 		gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+		dealerPlayer = game.Player.getInstance(self._dealerRetriever.retrieveDealer(gameObj))
+		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
 		try:
+			if euchre.Sequence.STATE_TRUMP_SELECTION == gameObj.getSequenceState():
+				gameObj.addCardToHand(dealerPlayer, upCard)
 			gameObj.selectTrump(game.Player.getInstance(playerId), suit)
 		except game.GameException as e:
 			logging.info("Error while setting trump (player id: %s, game id: %s, suit: %s): %s" % (playerId, gameId, suit, e))
