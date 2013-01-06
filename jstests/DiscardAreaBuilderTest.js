@@ -37,6 +37,13 @@ DiscardAreaBuilderTest.prototype.testReturnsNullWhenStatusIsNotDiscard = functio
 	assertEquals(null, actualResult);
 };
 
+DiscardAreaBuilderTest.prototype.testReturnsNullWhenNotCurrentPlayersTurn = function() {
+	this.currentPlayerId = "7890123";
+	
+	var actualResult = this.trigger();
+	assertEquals(null, actualResult);
+};
+
 DiscardAreaBuilderTest.prototype.testAddsClickHandlersAndClassToCardImages = function() {
 	var cardClickHandler = function() {};
 	this.testObj.buildCardClickHandler = mockFunction();
