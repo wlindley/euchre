@@ -246,7 +246,7 @@ class GetGameDataExecutable(AbstractExecutable):
 		roundData["trump"] = self._trumpRetriever.retrieveTrump(gameObj)
 		roundData["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
 		roundData["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
-		roundData["hand"] = self._convertHand(self._handRetriever.getHand(playerId, gameObj))
+		roundData["hand"] = self._convertHand(self._handRetriever.retrieveHand(playerId, gameObj))
 		roundData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj, playerId)
 		roundData["currentTrick"] = self._getCurrentTrickData(gameObj)
 		return roundData

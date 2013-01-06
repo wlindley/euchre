@@ -379,7 +379,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		when(self.trickLeaderRetriever).retrieveTrickLeader(self.gameObj).thenReturn(self.trickLeader)
 
 		self.hand = [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)), euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14))]
-		when(self.handRetriever).getHand(self.playerId, self.gameObj).thenReturn(self.hand)
+		when(self.handRetriever).retrieveHand(self.playerId, self.gameObj).thenReturn(self.hand)
 
 		when(self.turnRetriever).retrieveTurn(self.gameObj, self.playerId).thenReturn(self.playerId)
 

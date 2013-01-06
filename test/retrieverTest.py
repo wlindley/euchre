@@ -32,18 +32,18 @@ class HandRetrieverTest(testhelper.TestCase):
 		playerId = "2"
 		self.game.startGame()
 		expectedHand = self.game._curSequence._round._hands[playerId]
-		result = self.testObj.getHand(playerId, self.game)
+		result = self.testObj.retrieveHand(playerId, self.game)
 		self.assertEqual(expectedHand, result)
 
 	def testGetHandReturnsEmptyListWhenGameNotStarted(self):
 		playerId = "1"
-		result = self.testObj.getHand(playerId, self.game)
+		result = self.testObj.retrieveHand(playerId, self.game)
 		self.assertEqual([], result)
 
 	def testGetHandReturnsEmptyListWhenPlayerIdNotInGame(self):
 		playerId = "8"
 		self.game.startGame()
-		result = self.testObj.getHand(playerId, self.game)
+		result = self.testObj.retrieveHand(playerId, self.game)
 		self.assertEqual([], result)
 
 class TurnRetrieverTest(testhelper.TestCase):
@@ -97,14 +97,14 @@ class TurnRetrieverTest(testhelper.TestCase):
 		self.assertEqual(currentPlayer, result)
 
 	def testSaysItIsRequestingPlayersTurnIfInDiscardStateAndThatPlayerHasTooManyCards(self):
-		when(self.handRetriever).getHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(6))
+		when(self.handRetriever).retrieveHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(6))
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
 		self.game.startGame()
 		result = self._trigger()
 		self.assertEqual(self.requestingPlayerId, result)
 
 	def testSaysItIsNoOnesTurnIfInDiscardStateAndRequestingPlayerDoesNotHaveTooManyCards(self):
-		when(self.handRetriever).getHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(5))
+		when(self.handRetriever).retrieveHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(5))
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
 		self.game.startGame()
 		result = self._trigger()

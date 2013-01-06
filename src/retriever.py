@@ -25,7 +25,7 @@ class HandRetriever(object):
 	def __init__(self):
 		super(HandRetriever, self).__init__()
 
-	def getHand(self, playerId, gameObj):
+	def retrieveHand(self, playerId, gameObj):
 		sequenceObj = gameObj.getSequence()
 		if None == sequenceObj:
 			return []
@@ -57,7 +57,7 @@ class TurnRetriever(object):
 		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
 			return sequence.getRound().getTurnTracker().getCurrentPlayerId()
 		elif euchre.Sequence.STATE_DISCARD == sequenceState:
-			hand = self._handRetriever.getHand(requestingPlayerId, gameObj)
+			hand = self._handRetriever.retrieveHand(requestingPlayerId, gameObj)
 			if euchre.Round.MAX_HAND_SIZE < len(hand):
 				return requestingPlayerId
 		return None
