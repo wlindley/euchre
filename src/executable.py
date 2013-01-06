@@ -307,7 +307,7 @@ class SelectTrumpExecutable(AbstractExecutable):
 		dealerPlayer = game.Player.getInstance(self._dealerRetriever.retrieveDealer(gameObj))
 		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
 		try:
-			if euchre.Sequence.STATE_TRUMP_SELECTION == gameObj.getSequenceState():
+			if euchre.Sequence.STATE_TRUMP_SELECTION == gameObj.getSequenceState() and euchre.SUIT_NONE != suit:
 				gameObj.addCardToHand(dealerPlayer, upCard)
 			gameObj.selectTrump(game.Player.getInstance(playerId), suit)
 		except game.GameException as e:

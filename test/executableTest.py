@@ -512,13 +512,18 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 
 		self._verifyCorrectResponse(self.suit)
 
-	def testExecuteCorrectlySelectsSuitNoneWhenSelectedSuitIsNone(self):
+	def testExecuteCorrectlySelectsSuitNoneWhenSelectedSuitIsNoneAndDoesNotAddCard(self):
 		when(self.requestDataAccessor).get("suit").thenReturn(None)
 		self.gameModel.serializedGame = self.serializedGame
 
 		self.testObj.execute()
 
-		self._verifyCorrectResponse(euchre.SUIT_NONE)
+		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
+		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
+		inorder.verify(self.game).selectTrump(self.player, euchre.SUIT_NONE)
+		inorder.verify(self.gameModel).put()
+		verify(self.game, never).addCardToHand(any(), any())
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
 	def testExecuteDoeNotAddCardIfInTrumpSelection2(self):
 		self.sequenceState = euchre.Sequence.STATE_TRUMP_SELECTION_2
