@@ -162,6 +162,24 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 	this.verifyCorrectView();
 };
 
+GamePlayViewTest.prototype.testHandlesNullTurn = function() {
+	this.currentPlayerId = null;
+	this.expectedTurn = "";
+
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.ajax = new TEST.FakeAjax();
+
+	this.buildResponseObj();
+	this.doTraining();
+	this.buildTestObj();
+
+	this.ajax.callbackResponse = this.response;
+
+	this.testObj.show({"gameId" : this.gameId});
+
+	this.verifyCorrectView();
+};
+
 GamePlayViewTest.prototype.testSwapsScoresWhenPlayerIsOnSecondTeam = function() {
 	this.teams = [this.teams[1], this.teams[0]];
 

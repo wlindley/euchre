@@ -27,8 +27,10 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		}
 		var handHtml = templateRenderer.renderTemplate("hand", {"hand" : cardsHtml});
 
-		var turn = locStrings.yourTurn;
-		if (fbId != response.round.currentPlayerId) {
+		var turn = "";
+		if (fbId == response.round.currentPlayerId) {
+			turn = locStrings.yourTurn;
+		} else if (null != response.round.currentPlayerId) {
 			turn = locStrings.otherTurn.replace("%playerId%", response.round.currentPlayerId);
 		}
 

@@ -162,9 +162,13 @@ TrumpSelectionAreaBuilder.prototype.testBuildDoesNotIncludeActionsWhenNotCurrent
 	verify(this.dealerPicksUpButtonElement, never()).click(func());
 };
 
-
 TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {
 	this.status = "round_in_progress";
+	assertEquals(null, this.trigger(this.upCard));
+};
+
+TrumpSelectionAreaBuilder.prototype.testBuildReturnsNullWhenStatusIsDiscard = function() {
+	this.status = "discard";
 	assertEquals(null, this.trigger(this.upCard));
 };
 

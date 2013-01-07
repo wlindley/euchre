@@ -7,7 +7,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 	var SUITS = ["clubs", "diamonds", "spades", "hearts"];
 
 	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId, currentPlayerId, teams) {
-		if ("round_in_progress" == status) {
+		if ("trump_selection" != status && "trump_selection_2" != status) {
 			return null;
 		}
 
