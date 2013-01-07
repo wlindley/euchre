@@ -6,10 +6,11 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 	var self = this;
 	var SUITS = ["clubs", "diamonds", "spades", "hearts"];
 
-	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId, currentPlayerId) {
+	this.buildTrumpSelectionArea = function(upCard, status, gameId, dealerId, currentPlayerId, teams) {
 		if ("round_in_progress" == status) {
 			return null;
 		}
+
 		var trumpSelectionActionHtml = "";
 		if (playerId == currentPlayerId) {
 			if ("trump_selection_2" == status) {
@@ -18,12 +19,19 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
 			}
 		}
+
 		var dealerName = locStrings.player.replace("%playerId%", dealerId);
 		if (null == upCard) {
 			upCard = {"suit" : 0, "value" : 0};
 		}
+
+		var dealerTeam = locStrings.yourTeam;
+		if ((0 <= teams[0].indexOf(dealerId)) != (0 <= teams[0].indexOf(playerId))) {
+			dealerTeam = locStrings.otherTeam;
+		}
+
 		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
-		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerName" : dealerName, "trumpSelectionAction" : trumpSelectionActionHtml});
+		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerName" : dealerName, "dealerTeam" : dealerTeam, "trumpSelectionAction" : trumpSelectionActionHtml});
 		var trumpSelectionElement = jqueryWrapper.getElement(trumpSelectionHtml);
 		if (playerId == currentPlayerId) {
 			trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));

@@ -88,7 +88,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	}
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
-	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), equalTo(this.status), equalTo(this.gameId), equalTo(this.dealerId), equalTo(this.currentPlayerId)).thenReturn(this.trumpSelectionElement);
+	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams).thenReturn(this.trumpSelectionElement);
 	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.expectedTrumpText))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
