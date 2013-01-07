@@ -312,7 +312,7 @@ class TrumpSelector(object):
 		self._turnTracker.advanceTurn()
 
 	def isComplete(self):
-		return SUIT_NONE != self._selectedTrump or 1 <= self._turnTracker.getAllTurnCount()
+		return (SUIT_NONE != self._selectedTrump) or (1 <= self._turnTracker.getAllTurnCount())
 
 	def reset(self):
 		self._turnTracker.reset()
@@ -331,7 +331,6 @@ class Sequence(object):
 	STATE_PLAYING_ROUND = "STATE_PLAYING_ROUND"
 	STATE_COMPLETE = "STATE_COMPLETE"
 	STATE_INVALID = "STATE_INVALID"
-
 
 	instance = None
 	@classmethod
@@ -355,7 +354,7 @@ class Sequence(object):
 					return Sequence.STATE_TRUMP_SELECTION_FAILED
 				return Sequence.STATE_TRUMP_SELECTION_2
 			return Sequence.STATE_TRUMP_SELECTION
-		elif self._trumpSelector.isComplete:
+		elif self._trumpSelector.isComplete():
 			if not self._round.isComplete():
 				for playerId, hand in self._round.getHands().iteritems():
 					if Round.MAX_HAND_SIZE < len(hand):
@@ -371,7 +370,7 @@ class Sequence(object):
 		self._trumpSelector.selectTrump(player, trumpSuit)
 		if self._trumpSelector.isComplete():
 			selectedTrump = self._trumpSelector.getSelectedTrump()
-			if SUIT_NONE == selectedTrump:
+			if SUIT_NONE == selectedTrump and Sequence.STATE_TRUMP_SELECTION_FAILED != self.getState():
 				self._trumpSelector.reset()
 			else:
 				self._round.setTrump(selectedTrump)
@@ -477,6 +476,9 @@ class Game(object):
 
 	def selectTrump(self, player, suit):
 		self._curSequence.selectTrump(player, suit)
+		if Sequence.STATE_TRUMP_SELECTION_FAILED == self._curSequence.getState():
+			self._advanceDealer()
+			self._buildNextSequence()
 
 	def playCard(self, player, card):
 		self._curSequence.playCard(player, card)

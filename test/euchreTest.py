@@ -468,16 +468,17 @@ class SequenceTest(testhelper.TestCase):
 		for player in self.players:
 			self.hands[player.playerId] = self.deck.deal(euchre.HAND_SIZE)
 		self.upCard = self.deck.peekTop()
+		self.trump = random.randint(1, 4)
 
 	def _createSequence(self):
 		self.sequence = euchre.Sequence.getInstance(self.players, self.hands, self.upCard)
 
 	def _createSequenceWithRealObjects(self):
 		self._createPlayersAndHands()
-		self.trumpSelector = euchre.TrumpSelector(game.TurnTracker(self.players), self.players)
-		self.trickEvaluator = euchre.TrickEvaluator()
+		self.trumpSelector = euchre.TrumpSelector(game.TurnTracker(self.players), euchre.SUIT_NONE)
+		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
 		self.round = euchre.Round(game.TurnTracker(self.players), self.trickEvaluator, self.players, self.hands)
-		self._createSequence()
+		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.upCard)
 
 	def _createSequenceWithMocks(self):
 		self._createPlayersAndHands()
@@ -562,14 +563,26 @@ class SequenceTest(testhelper.TestCase):
 
 	def testAllPlayersPassingOnTrumpSelectionResetsTrumpSelector(self):
 		self._train(euchre.SUIT_SPADES, euchre.SUIT_NONE, True)
-		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_NONE)
+		self.sequence.selectTrump(self.players[-1], euchre.SUIT_NONE)
 		verify(self.trumpSelector).reset()
+
+	def testAllPlayersPassingOnTrumpSelection2DoesNotResetTrumpSelector(self):
+		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, True)
+		self.numCalls = 0
+		def tmpGetState():
+			if 0 == self.numCalls:
+				self.numCalls += 1
+				return euchre.Sequence.STATE_TRUMP_SELECTION_2
+			return euchre.Sequence.STATE_TRUMP_SELECTION_FAILED
+		self.sequence.getState = tmpGetState
+		self.sequence.selectTrump(self.players[0], euchre.SUIT_NONE)
+		verify(self.trumpSelector, never).reset()
 
 	def testTrumpSelectionNotResetIfTrumpSelected(self):
 		self._train(availableTrump=euchre.SUIT_SPADES)
 		when(self.trumpSelector).getSelectedTrump().thenReturn(euchre.SUIT_NONE).thenReturn(euchre.SUIT_SPADES)
 		self._train(trumpSelectorComplete=True)
-		self.sequence.selectTrump(self.players[-1].playerId, euchre.SUIT_SPADES)
+		self.sequence.selectTrump(self.players[-1], euchre.SUIT_SPADES)
 		verify(self.trumpSelector, never).reset()
 
 	def testFailingSecondTrumpSelectionMakesStateTrumpSelectionFailed(self):
@@ -580,7 +593,7 @@ class SequenceTest(testhelper.TestCase):
 		trump = euchre.SUIT_DIAMONDS
 		self._train(availableTrump=trump, trumpSelectorComplete=True)
 		when(self.trumpSelector).getSelectedTrump().thenReturn(euchre.SUIT_NONE).thenReturn(trump)
-		self.sequence.selectTrump(self.players[-1].playerId, trump)
+		self.sequence.selectTrump(self.players[-1], trump)
 		verify(self.round).setTrump(trump)
 
 	def testScoreCurrentRoundCallsIntoScoreTracker(self):
@@ -751,6 +764,28 @@ class GameTest(testhelper.TestCase):
 		verify(sequence).selectTrump(player, trumpSuit)
 		verify(sequence).playCard(player, card)
 		self.assertEqual(state, self.game.getSequenceState())
+
+	def testSelectTrumpCreatesANewSequenceShufflesDeckAndAdvancesDealerIfTrumpSelectionFailed(self):
+		initialPlayers = self.players[:]
+		secondSequencePlayers = self.players[1:] + [self.players[0]]
+		actualDeck = euchre.Deck.getInstance()
+		deck = testhelper.createSingletonMock(euchre.Deck)
+		when(deck).deal(5).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5)).thenReturn(actualDeck.deal(5))
+		when(deck).peekTop().thenReturn(actualDeck.peekTop())
+		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
+		firstSequence = testhelper.createMock(euchre.Sequence)
+		secondSequence = testhelper.createMock(euchre.Sequence)
+		when(sequenceFactory).buildSequence(any(), any(), actualDeck.peekTop()).thenReturn(firstSequence).thenReturn(secondSequence)
+		self._buildTestObj()
+		self.game.startGame()
+		sequence = self.game.getSequence()
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_FAILED)
+		self.game.selectTrump(self.players[0], euchre.SUIT_NONE)
+		self.assertNotEqual(sequence, self.game.getSequence())
+		verify(deck, times=2).shuffle()
+		verify(sequenceFactory).buildSequence(initialPlayers, any(), any())
+		verify(sequenceFactory).buildSequence(secondSequencePlayers, any(), any())
+
 
 	def testPlayCardCreatesANewSequenceShufflesDeckAndAdvancesDealerIfCurrentOneIsComplete(self):
 		initialPlayers = self.players[:]
