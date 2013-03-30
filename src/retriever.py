@@ -202,3 +202,28 @@ class TrickLeaderRetriever(object):
 			return None
 		self._trickEvaluator.setTrump(round.getTrump())
 		return self._trickEvaluator.evaluateTrick(trick)
+
+class PreviousTrickRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return PreviousTrickRetriever()
+
+	def __init__(self):
+		super(PreviousTrickRetriever, self).__init__()
+
+	def retrievePreviousTrick(self, gameObj):
+		sequence = gameObj.getSequence()
+		round = sequence.getRound()
+		tricks = round.getPreviousTricks()
+		if [] == tricks:
+			previousSequence = gameObj.getPreviousSequence()	
+			if None != previousSequence:
+				round = previousSequence.getRound()
+				tricks = round.getPreviousTricks()
+			else:
+				return {}
+		playedCards = tricks[-1].getPlayedCards()
+		return  {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}

@@ -342,3 +342,41 @@ class TrickLeaderRetrieverTest(testhelper.TestCase):
 	def testReturnsNoneIfCurrentTrickIsNull(self):
 		when(self.round).getCurrentTrick().thenReturn(None)
 		self.assertIsNone(self.testObj.retrieveTrickLeader(self.game))
+
+class PreviousTrickRetrieverTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = retriever.PreviousTrickRetriever.getInstance()
+
+	def setUp(self):
+		self.game = testhelper.createMock(euchre.Game)
+		self.sequence = testhelper.createMock(euchre.Sequence)
+		self.previousSequence = testhelper.createMock(euchre.Sequence)
+		self.round = testhelper.createMock(euchre.Round)
+		self.previousRound = testhelper.createMock(euchre.Round)
+		self.trick = testhelper.createMock(euchre.Trick)
+		self.cards = {"1234" : euchre.Card(euchre.SUIT_HEARTS, 10), "4567" : euchre.Card(euchre.SUIT_HEARTS, 12), "7890" : euchre.Card(euchre.SUIT_HEARTS, 11), "0123" : euchre.Card(euchre.SUIT_HEARTS, 14)}
+		self.expectedResult = {}
+		for playerId, card in self.cards.iteritems():
+			self.expectedResult[playerId] = {"suit" : card.suit, "value" : card.value}
+
+		when(self.game).getSequence().thenReturn(self.sequence)
+		when(self.game).getPreviousSequence().thenReturn(None)
+		when(self.sequence).getRound().thenReturn(self.round)
+		when(self.previousSequence).getRound().thenReturn(self.previousRound)
+		when(self.round).getPreviousTricks().thenReturn([{}, self.trick])
+		when(self.previousRound).getPreviousTricks().thenReturn([{}, {}, self.trick])
+		when(self.trick).getPlayedCards().thenReturn(self.cards)
+		
+		self._buildTestObj()
+
+	def testRetrievePreviousTrickReturnsExpectedResultWhenThereIsAPreviousTrickInCurrentRound(self):
+		self.assertEqual(self.expectedResult, self.testObj.retrievePreviousTrick(self.game))
+
+	def testRetrievePreviousTrickReturnsExpectedResultWhenThereIsAPreviousTrickInPreviousRound(self):
+		when(self.round).getPreviousTricks().thenReturn([])
+		when(self.game).getPreviousSequence().thenReturn(self.previousSequence)
+		self.assertEqual(self.expectedResult, self.testObj.retrievePreviousTrick(self.game))
+
+	def testRetrieveCurrentTrickReturnsEmptyDictionaryIfOnFirstTrickOfGame(self):
+		when(self.round).getPreviousTricks().thenReturn([])
+		self.assertEqual({}, self.testObj.retrievePreviousTrick(self.game))

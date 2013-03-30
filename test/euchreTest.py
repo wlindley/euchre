@@ -275,7 +275,7 @@ class RoundTest(testhelper.TestCase):
 		for player in self.players:
 			self.round.playCard(player, self.round._hands[player.playerId][0])
 		self.assertNotEqual(firstTrick, self.round.getCurrentTrick())
-		self.assertEqual(1, self.round.prevTricks.count(firstTrick))
+		self.assertEqual(1, self.round.getPreviousTricks().count(firstTrick))
 
 	def testCompletingTrickIncrementsScoreOfWinningPlayer(self):
 		initialScores = {}
@@ -283,7 +283,7 @@ class RoundTest(testhelper.TestCase):
 			initialScores[player.playerId] = self.round.getScore(player.playerId)
 		for player in self.players:
 			self.round.playCard(player, self.round._hands[player.playerId][0])
-		winner = self.round._trickEvaluator.evaluateTrick(self.round.prevTricks[0])
+		winner = self.round._trickEvaluator.evaluateTrick(self.round.getPreviousTricks()[0])
 		for player in self.players:
 			prevScore = initialScores[player.playerId]
 			curScore = self.round.getScore(player.playerId)
@@ -473,23 +473,13 @@ class SequenceTest(testhelper.TestCase):
 	def _createSequence(self):
 		self.sequence = euchre.Sequence.getInstance(self.players, self.hands, self.upCard)
 
-	def _createSequenceWithRealObjects(self):
-		self._createPlayersAndHands()
-		self.trumpSelector = euchre.TrumpSelector(game.TurnTracker(self.players), euchre.SUIT_NONE)
-		self.trickEvaluator = euchre.TrickEvaluator(self.trump)
-		self.round = euchre.Round(game.TurnTracker(self.players), self.trickEvaluator, self.players, self.hands)
-		self.sequence = euchre.Sequence(self.trumpSelector, self.round, self.upCard)
-
-	def _createSequenceWithMocks(self):
+	def setUp(self):
 		self._createPlayersAndHands()
 		self.trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
 		self.trickEvaluator = testhelper.createSingletonMock(euchre.TrickEvaluator)
 		self.round = testhelper.createSingletonMock(euchre.Round)
 		when(self.round).getHands().thenReturn(self.hands)
 		self._createSequence()
-
-	def setUp(self):
-		self._createSequenceWithMocks()
 
 	def _train(self, availableTrump=None, selectedTrump=None, trumpSelectorComplete=None, roundComplete=None):
 		if None != availableTrump:
@@ -786,7 +776,6 @@ class GameTest(testhelper.TestCase):
 		verify(sequenceFactory).buildSequence(initialPlayers, any(), any())
 		verify(sequenceFactory).buildSequence(secondSequencePlayers, any(), any())
 
-
 	def testPlayCardCreatesANewSequenceShufflesDeckAndAdvancesDealerIfCurrentOneIsComplete(self):
 		initialPlayers = self.players[:]
 		secondSequencePlayers = self.players[1:] + [self.players[0]]
@@ -856,6 +845,20 @@ class GameTest(testhelper.TestCase):
 		self.game.startGame()
 		self.game.discardCard(player, card)
 		verify(sequence).discardCard(player, card)
+
+	def testGetPreviousSequenceReturnsNoneWhenOnFirstSequence(self):
+		self.assertIsNone(self.game.getPreviousSequence())
+
+	def testGetPreviousSequenceReturnsPreviousSequenceIfAvailable(self):
+		sequenceFactory = testhelper.createSingletonMock(euchre.SequenceFactory)
+		firstSequence = testhelper.createMock(euchre.Sequence)
+		secondSequence = testhelper.createMock(euchre.Sequence)
+		when(firstSequence).getState().thenReturn(euchre.Sequence.STATE_COMPLETE)
+		when(sequenceFactory).buildSequence(any(), any(), any()).thenReturn(firstSequence).thenReturn(secondSequence)
+		self._buildTestObj()
+		self.game.startGame()
+		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_DIAMONDS, euchre.VALUE_JACK))
+		self.assertEqual(firstSequence, self.game.getPreviousSequence())
 
 if __name__ == "__main__":
 	unittest.main()
