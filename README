@@ -1,1 +1,9 @@
 An implementation of the card game euchre using Google App Engine.
+
+Required software:
+Java
+NoseTest (sudo easy_install fabric Nose trestle)
+
+Other steps:
+Copy or hard-link your google_appengine folder to /usr/local/google_appengine
+Add this to your .profile and your .bashrc: export PYTHONPATH=/usr/local/google_appengine:/usr/local/google_appengine/lib:/user/local/google_appengine/lib/yaml:$PYTHONPATH
