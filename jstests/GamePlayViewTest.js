@@ -16,6 +16,8 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.status = "awesome status";
 	this.ledSuit = Math.floor(Math.random() * 4) + 1;
 	this.trick = "a bunch of trick data";
+	this.previousTrick = "a previous trick's data";
+	this.winnerId = "54321";
 	this.cardHtmls = [];
 	this.completeCardHtml = "";
 	for (var i = 0; i < this.hand.length; i++) {
@@ -38,6 +40,8 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.leaderId = this.playerIds[Math.floor(Math.random() * this.playerIds.length)];
 	this.discardInsertionElement = mock(TEST.FakeJQueryElement);
 	this.discardElement = mock(TEST.FakeJQueryElement);
+	this.previousTrickElement = mock(TEST.FakeJQueryElement);
+	this.previousTrickInsertionElement = mock(TEST.FakeJQueryElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -46,6 +50,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.trumpSelectionAreaBuilder = mock(AVOCADO.TrumpSelectionAreaBuilder);
 	this.roundPlayingAreaBuilder = mock(AVOCADO.RoundPlayingAreaBuilder);
 	this.discardAreaBuilder = mock(AVOCADO.DiscardAreaBuilder);
+	this.previousTrickDisplayBuilder = mock(AVOCADO.PreviousTrickDisplayBuilder);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 
 	this.buildResponseObj();
@@ -73,6 +78,10 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 				"playedCards" : this.trick,
 				"leaderId" : this.leaderId
 			}
+		},
+		"previousTrick" : {
+			"playedCards" : this.previousTrick,
+			"winnerId" : this.winnerId
 		}
 	};
 }
@@ -94,9 +103,11 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
 	when(this.gameElement).find(".discard").thenReturn(this.discardInsertionElement);
+	when(this.gameElement).find(".previousTrick").thenReturn(this.previousTrickInsertionElement);
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
 	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams).thenReturn(this.roundPlayingElement);
 	when(this.discardAreaBuilder).buildDiscardArea(this.status, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.discardElement);
+	when(this.previousTrickDisplayBuilder).buildPreviousTrickDisplay(this.previousTrick, this.winnerId).thenReturn(this.previousTrickElement);
 
 	var yourTeamScore = this.gameScores[0];
 	var otherTeamScore = this.gameScores[1];
@@ -119,6 +130,7 @@ GamePlayViewTest.prototype.verifyCorrectView = function() {
 	verify(this.discardInsertionElement).append(this.discardElement);
 	verify(this.gamePlayDiv).append(this.gameElement);
 	verify(this.viewGameListElement).click(this.testObj.handleViewGameListClick);
+	verify(this.previousTrickInsertionElement).append(this.previousTrickElement);
 	verify(this.gamePlayDiv).show();
 };
 
@@ -225,5 +237,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder);
 };

@@ -53,7 +53,8 @@ class GameSerializer(AbstractSerializer):
 			return None
 		return {"players" : self._serializePlayers(obj._players),
 				"scoreTracker" : self.scoreTrackerSerializer.serialize(obj._scoreTracker),
-				"curSequence" : self.sequenceSerializer.serialize(obj._curSequence)}
+				"curSequence" : self.sequenceSerializer.serialize(obj._curSequence),
+				"prevSequence" : self.sequenceSerializer.serialize(obj._prevSequence)}
 
 	def _serializePlayers(self, players):
 		serializedPlayers = []
@@ -68,6 +69,7 @@ class GameSerializer(AbstractSerializer):
 		scoreTracker = self.scoreTrackerSerializer.deserialize(data["scoreTracker"], players)
 		game = euchre.Game(players, scoreTracker, euchre.SequenceFactory.getInstance())
 		game._curSequence = self.sequenceSerializer.deserialize(data["curSequence"], players)
+		game._prevSequence = self.sequenceSerializer.deserialize(data["prevSequence"], players)
 		return game
 
 	def _deserializePlayers(self, playersData):
@@ -180,7 +182,7 @@ class RoundSerializer(AbstractSerializer):
 				"trickEvaluator" : self.trickEvaluatorSerializer.serialize(obj._trickEvaluator),
 				"hands" : self._serializeHands(obj.getHands()),
 				"curTrick" : self.trickSerializer.serialize(obj.getCurrentTrick()),
-				"prevTricks" : self._serializeTricks(obj.prevTricks),
+				"prevTricks" : self._serializeTricks(obj.getPreviousTricks()),
 				"scores" : self._serializeScores(obj._scores)}
 
 	def _serializeHands(self, hands):
@@ -213,7 +215,7 @@ class RoundSerializer(AbstractSerializer):
 		hands = self._deserializeHands(data["hands"])
 		round = euchre.Round(turnTracker, trickEvaluator, hands, euchre.CardTranslator.getInstance(trumpSuit))
 		round._curTrick = self.trickSerializer.deserialize(data["curTrick"], trumpSuit)
-		round.prevTricks = self._deserializeTricks(data["prevTricks"], trumpSuit)
+		round._prevTricks = self._deserializeTricks(data["prevTricks"], trumpSuit)
 		round._scores = self._deserializeScores(data["scores"])
 		return round
 

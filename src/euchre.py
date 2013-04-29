@@ -191,7 +191,7 @@ class Round(object):
 	def __init__(self, turnTracker, trickEvaluator, hands, cardTranslator):
 		self._hands = hands
 		self._curTrick = Trick.getInstance(trickEvaluator.getTrump())
-		self.prevTricks = []
+		self._prevTricks = []
 		self._scores = {}
 		self._trickEvaluator = trickEvaluator
 		self._turnTracker = turnTracker
@@ -238,7 +238,7 @@ class Round(object):
 		return self._hands
 
 	def isComplete(self):
-		return HAND_SIZE <= len(self.prevTricks)
+		return HAND_SIZE <= len(self._prevTricks)
 
 	def getScore(self, playerId):
 		if playerId in self._scores:
@@ -257,10 +257,13 @@ class Round(object):
 	def getCurrentTrick(self):
 		return self._curTrick
 
+	def getPreviousTricks(self):
+		return self._prevTricks
+
 	def _nextTrick(self):
 		winner = self._trickEvaluator.evaluateTrick(self._curTrick)
 		self._incrementScore(winner)
-		self.prevTricks.append(self._curTrick)
+		self._prevTricks.append(self._curTrick)
 		self._curTrick = Trick.getInstance(self._trickEvaluator.getTrump())
 		self._setPlayerTurn(winner)
 
@@ -467,6 +470,7 @@ class Game(object):
 		self._scoreTracker = scoreTracker
 		self._sequenceFactory = sequenceFactory
 		self._curSequence = None
+		self._prevSequence = None
 
 	def startGame(self):
 		self._buildNextSequence()
@@ -508,6 +512,9 @@ class Game(object):
 	def getTeamLists(self):
 		return self._scoreTracker.getTeams()
 
+	def getPreviousSequence(self):
+		return self._prevSequence
+
 	def _dealHands(self, deck):
 		hands = {}
 		for player in self._players:
@@ -524,4 +531,5 @@ class Game(object):
 		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
 		deck.shuffle()
 		hands = self._dealHands(deck)
+		self._prevSequence = self._curSequence
 		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())

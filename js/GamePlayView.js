@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder) {
+AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -56,6 +56,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		var cardElements = gameElement.find(".card");
 		var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.round.currentTrick.ledSuit, response.round.currentTrick.playedCards, cardElements, response.gameId, response.round.currentPlayerId, response.round.currentTrick.leaderId, response.teams);
 		var discardElement = discardAreaBuilder.buildDiscardArea(response.status, cardElements, response.gameId, response.round.currentPlayerId);
+		var previousTrickElement = previousTrickDisplayBuilder.buildPreviousTrickDisplay(response.previousTrick.playedCards, response.previousTrick.winnerId);
 
 		var trumpSelectionInsertionPoint = gameElement.find(".trumpSelection");
 		trumpSelectionInsertionPoint.append(trumpSelectionElement);
@@ -63,6 +64,8 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		roundPlayingInsertionPoint.append(roundPlayingElement);
 		var discardInsertionPoint = gameElement.find(".discard");
 		discardInsertionPoint.append(discardElement);
+		var previousTrickInsertionPoint = gameElement.find(".previousTrick");
+		previousTrickInsertionPoint.append(previousTrickElement);
 
 		gamePlayDiv.append(gameElement);
 		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
@@ -78,5 +81,6 @@ AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePl
 	var trumpSelectionAreaBuilder = AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer, jqueryWrapper, ajax, fbId, locStrings, viewManager);
 	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, fbId, viewManager);
 	var discardAreaBuilder = AVOCADO.DiscardAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, fbId, viewManager);
-	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder);
+	var previousTrickDisplayBuilder = AVOCADO.PreviousTrickDisplayBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, fbId);
+	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder);
 };

@@ -383,6 +383,10 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 
 		when(self.turnRetriever).retrieveTurn(self.gameObj, self.playerId).thenReturn(self.playerId)
 
+		self.previousTrick = "the most previous of tricks"
+		self.previousTrickRetriever = testhelper.createSingletonMock(retriever.PreviousTrickRetriever)
+		when(self.previousTrickRetriever).retrievePreviousTrick(self.gameObj).thenReturn(self.previousTrick)
+
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self):
@@ -408,7 +412,8 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 					"playedCards" : self.currentTrick,
 					"leaderId" : self.trickLeader
 				}
-			}
+			},
+			"previousTrick" : self.previousTrick
 		}, sort_keys=True))
 
 	def testReturnsCorrectDataWhenCalledWithValidData(self):

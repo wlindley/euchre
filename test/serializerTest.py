@@ -38,22 +38,28 @@ class GameSerializerTest(testhelper.TestCase):
 		self.sequenceSerializer = testhelper.createSingletonMock(serializer.SequenceSerializer)
 		self.players = [game.Player("1"), game.Player("2"), game.Player("3"), game.Player("4")]
 		self.scoreTracker = testhelper.createSingletonMock(euchre.ScoreTracker)
-		self.sequence = testhelper.createSingletonMock(euchre.Sequence)
+		self.sequence = testhelper.createMock(euchre.Sequence)
+		self.prevSequence = testhelper.createMock(euchre.Sequence)
 		self.game = euchre.Game.getInstance(self.players, [["1", "2"], ["3", "4"]])
 		self.testObj = serializer.GameSerializer.getInstance()
 
 	def testSerializesGameCorrectly(self):
 		self.game.startGame()
+		self.game._curSequence = self.sequence
+		self.game._prevSequence = self.prevSequence
 		for player in self.players:
 			when(self.playerSerializer).serialize(player).thenReturn(player.playerId)
 		serializedScoreTracker = "serialized score tracker"
 		when(self.scoreTrackerSerializer).serialize(self.scoreTracker).thenReturn(serializedScoreTracker)
 		serializedSequence = "serialized sequence"
 		when(self.sequenceSerializer).serialize(self.sequence).thenReturn(serializedSequence)
+		serializedPrevSequence = "previous serialized sequence"
+		when(self.sequenceSerializer).serialize(self.prevSequence).thenReturn(serializedPrevSequence)
 		data = self.testObj.serialize(self.game)
 		self.assertEqual(["1", "2", "3", "4"], data["players"])
 		self.assertEqual(serializedScoreTracker, data["scoreTracker"])
 		self.assertEqual(serializedSequence, data["curSequence"])
+		self.assertEqual(serializedPrevSequence, data["prevSequence"])
 
 	def testDeserializesGameCorrectly(self):
 		for player in self.players:
@@ -62,11 +68,14 @@ class GameSerializerTest(testhelper.TestCase):
 		when(self.scoreTrackerSerializer).deserialize(serializedScoreTracker, self.players).thenReturn(self.scoreTracker)
 		serializedSequence = "a serialized sequence"
 		when(self.sequenceSerializer).deserialize(serializedSequence, self.players).thenReturn(self.sequence)
-		data = {"players" : ["1", "2", "3", "4"], "scoreTracker" : serializedScoreTracker, "curSequence" : serializedSequence}
+		serializedPrevSequence = "previously serialized sequence"
+		when(self.sequenceSerializer).deserialize(serializedPrevSequence, self.players).thenReturn(self.prevSequence)
+		data = {"players" : ["1", "2", "3", "4"], "scoreTracker" : serializedScoreTracker, "curSequence" : serializedSequence, "prevSequence" : serializedPrevSequence}
 		self.game = self.testObj.deserialize(data)
 		self.assertEqual(self.players, self.game._players)
 		self.assertEqual(self.scoreTracker, self.game._scoreTracker)
 		self.assertEqual(self.sequence, self.game._curSequence)
+		self.assertEqual(self.prevSequence, self.game._prevSequence)
 		verify(self.sequenceSerializer).deserialize(data["curSequence"], self.players)
 
 	def testHandlesNoneGracefully(self):
@@ -251,7 +260,7 @@ class RoundSerializerTest(testhelper.TestCase):
 		curTrick = testhelper.createMock(euchre.Trick)
 		self.round._curTrick = curTrick
 		prevTricks = [testhelper.createMock(euchre.Trick), testhelper.createMock(euchre.Trick)]
-		self.round.prevTricks = prevTricks
+		self.round._prevTricks = prevTricks
 		expectedTricks = {curTrick : "trick 1", prevTricks[0] : "trick 2", prevTricks[1] : "trick 3"}
 		when(self.trickSerializer).serialize(curTrick).thenReturn("trick 1")
 		when(self.trickSerializer).serialize(prevTricks[0]).thenReturn("trick 2")
@@ -321,7 +330,7 @@ class RoundSerializerTest(testhelper.TestCase):
 				self.assertEqual(expectedCards[hand[i]], obj._hands[playerId][i])
 		self.assertEqual(expectedTricks[curTrick], obj.getCurrentTrick())
 		for i in range(len(prevTricks)):
-			self.assertEqual(expectedTricks[prevTricks[i]], obj.prevTricks[i])
+			self.assertEqual(expectedTricks[prevTricks[i]], obj.getPreviousTricks()[i])
 		for playerId, score in scores.iteritems():
 			self.assertEqual(score, obj._scores[playerId])
 
