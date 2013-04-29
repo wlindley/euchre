@@ -10,5 +10,6 @@ js/GamePlayView.js
 js/ViewManager.js
 js/TrumpSelectionAreaBuilder.js
 js/RoundPlayingAreaBuilder.js
+js/PreviousTrickDisplayBuilder.js
 js/DiscardAreaBuilder.js
 js/init.js
