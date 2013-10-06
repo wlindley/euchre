@@ -15,10 +15,18 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", cardHtmls));
 
-		addClassToCard(element, playedCards[winnerId], "winningCard");
 		addClassToCard(element, playedCards[playerId], "playersCard");
+		addClassToCard(element, playedCards[winnerId], "winningCard");
+
+		element.find("button.continue").click(this.buildContinueClickHandler(element));
 
 		return element;
+	};
+
+	this.buildContinueClickHandler = function(rootElement) {
+		return function(event) {
+				rootElement.hide();
+		};
 	};
 
 	function addClassToCard(rootElement, targetCard, className) {

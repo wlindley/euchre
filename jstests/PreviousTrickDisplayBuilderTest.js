@@ -18,6 +18,8 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
 
+	this.buttonElement = mock(TEST.FakeJQueryElement);
+
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 
@@ -42,6 +44,41 @@ PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCard = function(
 	verify(this.cardElements[playerIndex]).addClass("playersCard");
 };
 
+PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
+	var playerIndex = this.players.indexOf(this.playerId);
+	var winnerIndex = this.players.indexOf(this.winnerId);
+	when(this.cardElements[playerIndex]).addClass("playerCard").thenThrow("First!");
+
+	try
+	{
+		this.trigger();
+	}
+	catch (ex)
+	{
+		//intentionally empty
+	}
+
+	verify(this.cardElements[winnerIndex], never()).addClass("winningCard");
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton = function() {
+	var continueClickHandler = function() {};
+	this.testObj.buildContinueClickHandler = mockFunction();
+	when(this.testObj.buildContinueClickHandler)(this.previousTrickElement).thenReturn(continueClickHandler);
+
+	this.trigger();
+
+	verify(this.buttonElement).click(continueClickHandler);
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerHidesElement = function() {
+	var event = {};
+
+	this.testObj.buildContinueClickHandler(this.previousTrickElement)(event);
+
+	verify(this.previousTrickElement).hide();
+};
+
 PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
 	return this.testObj.buildPreviousTrickDisplay(this.previousTrick, this.winnerId);
 };
@@ -58,6 +95,8 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 		when(cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
 		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.cardElements[i]);
 	}
+
+	when(this.previousTrickElement).find("button.continue").thenReturn(this.buttonElement);
 
 	when(this.templateRenderer).renderTemplate("previousTrick", allOf(
 		hasMember("card0", this.cardHtmls[0]),

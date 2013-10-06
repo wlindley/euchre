@@ -55,3 +55,15 @@
 .otherScore {
 	color: red;
 }
+
+.winningCard {
+	border-style: solid;
+	border-width: 3px;
+	border-color: gold;
+};
+
+.playersCard {
+	border-style: solid;
+	border-width: 3px;
+	border-color: #CCCCCC;
+;}
