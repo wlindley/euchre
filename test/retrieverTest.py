@@ -354,18 +354,24 @@ class PreviousTrickRetrieverTest(testhelper.TestCase):
 		self.round = testhelper.createMock(euchre.Round)
 		self.previousRound = testhelper.createMock(euchre.Round)
 		self.trick = testhelper.createMock(euchre.Trick)
+		self.trickLeaderRetriever = testhelper.createSingletonMock(retriever.TrickLeaderRetriever)
+		self.winnerId = "7890"
+		self.trump = euchre.SUIT_HEARTS
 		self.cards = {"1234" : euchre.Card(euchre.SUIT_HEARTS, 10), "4567" : euchre.Card(euchre.SUIT_HEARTS, 12), "7890" : euchre.Card(euchre.SUIT_HEARTS, 11), "0123" : euchre.Card(euchre.SUIT_HEARTS, 14)}
-		self.expectedResult = {}
+		self.expectedResult = {"playedCards" : {}, "winnerId" : self.winnerId}
 		for playerId, card in self.cards.iteritems():
-			self.expectedResult[playerId] = {"suit" : card.suit, "value" : card.value}
+			self.expectedResult["playedCards"][playerId] = {"suit" : card.suit, "value" : card.value}
 
 		when(self.game).getSequence().thenReturn(self.sequence)
 		when(self.game).getPreviousSequence().thenReturn(None)
 		when(self.sequence).getRound().thenReturn(self.round)
 		when(self.previousSequence).getRound().thenReturn(self.previousRound)
 		when(self.round).getPreviousTricks().thenReturn([{}, self.trick])
+		when(self.round).getTrump().thenReturn(self.trump)
 		when(self.previousRound).getPreviousTricks().thenReturn([{}, {}, self.trick])
+		when(self.previousRound).getTrump().thenReturn(self.trump)
 		when(self.trick).getPlayedCards().thenReturn(self.cards)
+		when(self.trickLeaderRetriever).getLeaderFromTrick(self.trick, self.trump).thenReturn(self.winnerId)
 		
 		self._buildTestObj()
 

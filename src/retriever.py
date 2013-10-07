@@ -198,9 +198,12 @@ class TrickLeaderRetriever(object):
 		sequence = gameObj.getSequence()
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
+		return self.getLeaderFromTrick(trick, round.getTrump())
+
+	def getLeaderFromTrick(self, trick, trump):
 		if None == trick:
 			return None
-		self._trickEvaluator.setTrump(round.getTrump())
+		self._trickEvaluator.setTrump(trump)
 		return self._trickEvaluator.evaluateTrick(trick)
 
 class PreviousTrickRetriever(object):
@@ -209,10 +212,11 @@ class PreviousTrickRetriever(object):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return PreviousTrickRetriever()
+		return PreviousTrickRetriever(TrickLeaderRetriever.getInstance())
 
-	def __init__(self):
+	def __init__(self, trickLeaderRetriever):
 		super(PreviousTrickRetriever, self).__init__()
+		self._trickLeaderRetriever = trickLeaderRetriever
 
 	def retrievePreviousTrick(self, gameObj):
 		sequence = gameObj.getSequence()
@@ -225,5 +229,9 @@ class PreviousTrickRetriever(object):
 				tricks = round.getPreviousTricks()
 			else:
 				return {}
-		playedCards = tricks[-1].getPlayedCards()
-		return  {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}
+		trick = tricks[-1]
+		playedCards = trick.getPlayedCards()
+		return {
+			"winnerId" : self._trickLeaderRetriever.getLeaderFromTrick(trick, round.getTrump()),
+			"playedCards" : {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}
+		}
