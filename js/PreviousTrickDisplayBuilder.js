@@ -6,6 +6,10 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	var self = this;
 
 	this.buildPreviousTrickDisplay = function(playedCards, winnerId) {
+		if (!isObjectValid(playedCards)) {
+			return jqueryWrapper.getElement("<div />");
+		}
+
 		var cardHtmls = {};
 		var index = 0;
 		for (var pid in playedCards) {
@@ -31,6 +35,18 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 	function addClassToCard(rootElement, targetCard, className) {
 		rootElement.find("div.card").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]").addClass(className);
+	}
+
+	function isObjectValid(obj) {
+		if (undefined == obj) {
+			return false;
+		} else {
+			for (var i in obj) {
+				return true;
+			}
+			return false;
+		}
+		return true;
 	}
 };
 

@@ -17,6 +17,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.previousTrickHtml = "some previous trick html";
 
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
+	this.errorElement = mock(TEST.FakeJQueryElement);
 
 	this.buttonElement = mock(TEST.FakeJQueryElement);
 
@@ -79,6 +80,22 @@ PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerRemovesElement
 	verify(this.previousTrickElement).remove();
 };
 
+PreviousTrickDisplayBuilderTest.prototype.testEmptyPlayedCardsFailsGracefully = function() {
+	this.previousTrick = {};
+
+	var result = this.trigger();
+
+	assertEquals(this.errorElement, result);
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testUndefinedPlayedCardsFailsGracefully = function() {
+	this.previousTrick = undefined;
+
+	var result = this.trigger();
+
+	assertEquals(this.errorElement, result);
+};
+
 PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
 	return this.testObj.buildPreviousTrickDisplay(this.previousTrick, this.winnerId);
 };
@@ -106,6 +123,7 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	)).thenReturn(this.previousTrickHtml);
 
 	when(this.jqueryWrapper).getElement(this.previousTrickHtml).thenReturn(this.previousTrickElement);
+	when(this.jqueryWrapper).getElement("<div />").thenReturn(this.errorElement);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.buildTestObj = function() {
