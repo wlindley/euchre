@@ -3,6 +3,7 @@
 	Game %gameId%:
 	%gameScores%
 	%roundScores%
+	<div class="previousTrick"></div>
 	%turn%
 	<div class="trumpDisplay">%trump%</div>
 	<div class="discard"></div>
