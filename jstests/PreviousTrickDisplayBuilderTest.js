@@ -47,7 +47,7 @@ PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCard = function(
 PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
 	var playerIndex = this.players.indexOf(this.playerId);
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	when(this.cardElements[playerIndex]).addClass("playerCard").thenThrow("First!");
+	when(this.cardElements[playerIndex]).addClass("playersCard").thenThrow("First!");
 
 	try
 	{
@@ -71,12 +71,12 @@ PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton =
 	verify(this.buttonElement).click(continueClickHandler);
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerHidesElement = function() {
+PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerRemovesElement = function() {
 	var event = {};
 
 	this.testObj.buildContinueClickHandler(this.previousTrickElement)(event);
 
-	verify(this.previousTrickElement).hide();
+	verify(this.previousTrickElement).remove();
 };
 
 PreviousTrickDisplayBuilderTest.prototype.trigger = function() {

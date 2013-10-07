@@ -16,4 +16,5 @@ TEST.FakeJQueryElement = function() {
 	this.removeClass = function() {};
 	this.append = function() {};
 	this.has = function() {};
+	this.remove = function() {};
 };
