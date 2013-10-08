@@ -15,6 +15,8 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 		this.cardElements[i] = mock(TEST.FakeJQueryElement);
 	}
 	this.previousTrickHtml = "some previous trick html";
+	this.winningCardHtml = "winning card html";
+	this.playersCardHtml = "players card html";
 
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
 	this.errorElement = mock(TEST.FakeJQueryElement);
@@ -33,16 +35,18 @@ PreviousTrickDisplayBuilderTest.prototype.testReturnsExpectedJQueryObject = func
 	assertEquals(this.previousTrickElement, actualResult);
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnWinningCard = function() {
+PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnWinningCardAndAppendsElement = function() {
 	this.trigger();
 	var winnerIndex = this.players.indexOf(this.winnerId);
 	verify(this.cardElements[winnerIndex]).addClass("winningCard");
+	verify(this.cardElements[winnerIndex]).append(this.winningCardHtml);
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCard = function() {
+PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCardAndAppendsElement = function() {
 	this.trigger();
 	var playerIndex = this.players.indexOf(this.playerId);
 	verify(this.cardElements[playerIndex]).addClass("playersCard");
+	verify(this.cardElements[playerIndex]).append(this.playersCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
@@ -60,6 +64,7 @@ PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinn
 	}
 
 	verify(this.cardElements[winnerIndex], never()).addClass("winningCard");
+	verify(this.cardElements[winnerIndex], never()).append(this.winningCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton = function() {
@@ -121,6 +126,9 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 		hasMember("card2", this.cardHtmls[2]),
 		hasMember("card3", this.cardHtmls[3])
 	)).thenReturn(this.previousTrickHtml);
+
+	when(this.templateRenderer).renderTemplate("playersCard").thenReturn(this.playersCardHtml);
+	when(this.templateRenderer).renderTemplate("winningCard").thenReturn(this.winningCardHtml);
 
 	when(this.jqueryWrapper).getElement(this.previousTrickHtml).thenReturn(this.previousTrickElement);
 	when(this.jqueryWrapper).getElement("<div />").thenReturn(this.errorElement);

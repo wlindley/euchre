@@ -57,15 +57,21 @@
 }
 
 .winningCard {
+	color: #DAA520;
+}
+
+div.winningCard {
 	border-style: solid;
 	border-width: 3px;
-	border-color: gold;
-	color: gold;
+	border-color: #DAA520;
 }
 
 .playersCard {
+	color: #444444;
+}
+
+div.playersCard {
 	border-style: solid;
 	border-width: 3px;
 	border-color: #444444;
-	color: #444444;
 }
