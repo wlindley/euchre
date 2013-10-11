@@ -9,6 +9,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.cards = [{"suit" : 0, "value" : 9}, {"suit" : 3, "value" : 12}, {"suit" : 1, "value" : 13}, {"suit" : 2, "value" : 10}]; //make sure all suits and values are different
 	this.cardHtmls = ["card 1", "card 2", "card 3", "card 4"];
 	this.cardElements = [];
+	this.cardParentElements = [];
 	this.previousTrick = {};
 	for (var i in this.players) {
 		this.previousTrick[this.players[i]] = this.cards[i];
@@ -38,33 +39,57 @@ PreviousTrickDisplayBuilderTest.prototype.testReturnsExpectedJQueryObject = func
 PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnWinningCardAndAppendsElement = function() {
 	this.trigger();
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	verify(this.cardElements[winnerIndex]).addClass("winningCard");
-	verify(this.cardElements[winnerIndex]).append(this.winningCardHtml);
+	verify(this.cardParentElements[winnerIndex]).addClass("winningCard");
+	verify(this.cardParentElements[winnerIndex]).append(this.winningCardHtml);
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testWrapCalledBeforeParentForWinningCard = function() {
+	var winnerIndex = this.players.indexOf(this.winnerId);
+	when(this.cardElements[winnerIndex]).wrap("<div></div>").thenThrow("Not second!");
+
+	try {
+		this.trigger();
+	} catch (ex) {
+		//intentionally empty
+	}
+	verify(this.cardElements[winnerIndex]).wrap("<div></div>");
+	verify(this.cardParentElements[winnerIndex], never()).append(this.winningCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCardAndAppendsElement = function() {
 	this.trigger();
 	var playerIndex = this.players.indexOf(this.playerId);
-	verify(this.cardElements[playerIndex]).addClass("playersCard");
-	verify(this.cardElements[playerIndex]).append(this.playersCardHtml);
+	verify(this.cardParentElements[playerIndex]).addClass("playersCard");
+	verify(this.cardParentElements[playerIndex]).append(this.playersCardHtml);
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testWrapCalledBeforeParentForPlayersCard = function() {
+	var playerIndex = this.players.indexOf(this.playerId);
+	when(this.cardElements[playerIndex]).wrap("<div></div>").thenThrow("Not second!");
+
+	try {
+		this.trigger();
+	} catch (ex) {
+		//intentionally empty
+	}
+	verify(this.cardElements[playerIndex]).wrap("<div></div>");
+	verify(this.cardParentElements[playerIndex], never()).append(this.playersCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
 	var playerIndex = this.players.indexOf(this.playerId);
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	when(this.cardElements[playerIndex]).addClass("playersCard").thenThrow("First!");
+	when(this.cardParentElements[winnerIndex]).addClass("winningCard").thenThrow("First!");
 
-	try
-	{
+	try {
 		this.trigger();
-	}
-	catch (ex)
-	{
+	} catch (ex) {
 		//intentionally empty
 	}
 
-	verify(this.cardElements[winnerIndex], never()).addClass("winningCard");
-	verify(this.cardElements[winnerIndex], never()).append(this.winningCardHtml);
+	verify(this.cardParentElements[winnerIndex]).addClass("winningCard");
+	verify(this.cardParentElements[playerIndex], never()).addClass("playersCard");
+	verify(this.cardParentElements[playerIndex], never()).append(this.playersCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton = function() {
@@ -110,7 +135,11 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	when(this.previousTrickElement).find("div.card").thenReturn(cardSelector);
 
 	for (var i in this.cards) {
+		this.cardParentElements.push(mock(TEST.FakeJQueryElement));
+
 		when(this.templateRenderer).renderTemplate("card", this.cards[i]).thenReturn(this.cardHtmls[i]);
+		when(this.cardElements[i]).wrap("<div></div>").thenReturn(this.cardParentElements[i]);
+		when(this.cardElements[i]).parent().thenReturn(this.cardParentElements[i]);
 
 		var suitSelector = mock(TEST.FakeJQueryElement);
 

@@ -19,8 +19,8 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", cardHtmls));
 
-		addClassAndTextToCard(element, playedCards[playerId], "playersCard", templateRenderer.renderTemplate("playersCard"));
-		addClassAndTextToCard(element, playedCards[winnerId], "winningCard", templateRenderer.renderTemplate("winningCard"));
+		wrapCard(element, playedCards[winnerId], "winningCard", templateRenderer.renderTemplate("winningCard"));
+		wrapCard(element, playedCards[playerId], "playersCard", templateRenderer.renderTemplate("playersCard"));
 
 		element.find("button.continue").click(this.buildContinueClickHandler(element));
 
@@ -33,10 +33,12 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		};
 	};
 
-	function addClassAndTextToCard(rootElement, targetCard, className, htmlText) {
+	function wrapCard(rootElement, targetCard, className, htmlText) {
 		var target = rootElement.find("div.card").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
-		target.addClass(className);
-		target.append(htmlText);
+		target.wrap("<div></div>");
+		var targetParent = target.parent();
+		targetParent.addClass(className);
+		targetParent.append(htmlText);
 	}
 
 	function isObjectValid(obj) {
