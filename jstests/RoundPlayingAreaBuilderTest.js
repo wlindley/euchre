@@ -116,8 +116,22 @@ RoundPlayingAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = fu
 };
 
 RoundPlayingAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectly = function() {
+	var origFunc = setTimeout;
+
+	var testHarness = this;
+
+	var hasCalledAsync = false;
+	setTimeout = function (func, time, lang) {
+		hasCalledAsync = true;
+		verify(testHarness.viewManager, never()).showView("gamePlay", allOf(hasMember("gameId", testHarness.gameId), hasMember("playerId", testHarness.playerId)));
+		func();
+		verify(testHarness.viewManager).showView("gamePlay", allOf(hasMember("gameId", testHarness.gameId), hasMember("playerId", testHarness.playerId)));
+	};
+
 	this.testObj.buildRefreshViewFunc(this.gameId)();
-	verify(this.viewManager).showView("gamePlay", allOf(hasMember("gameId", this.gameId), hasMember("playerId", this.playerId)));
+	assertTrue(hasCalledAsync);
+
+	setTimeout = origFunc;
 };
 
 RoundPlayingAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPlayersTurn = function() {

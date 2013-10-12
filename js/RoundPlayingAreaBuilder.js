@@ -58,7 +58,9 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 
 	this.buildRefreshViewFunc = function(gameId) {
 		return function() {
-			viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+			setTimeout(function() {
+				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+			}, 100);
 		};
 	};
 };
