@@ -1,7 +1,7 @@
 GameCreatorTest = TestCase("GameCreatorTest")
 
 GameCreatorTest.prototype.setUp = function() {
-	this.fbId = "12345";
+	this.playerId = "12345";
 	this.ajax = mock(AVOCADO.Ajax);
 	this.button = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
@@ -14,7 +14,7 @@ GameCreatorTest.prototype.testCreateGameCallsServerWithCorrectData = function() 
 		params = data;
 	});
 	this.testObj.createGame();
-	assertEquals(this.fbId, params["playerId"]);
+	assertEquals(this.playerId, params["playerId"]);
 	assertEquals(0, params["team"]);
 };
 
@@ -42,5 +42,5 @@ GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGam
 };
 
 GameCreatorTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreator.getInstance(this.fbId, this.ajax, this.button, this.viewManager);
+	this.testObj = AVOCADO.GameCreator.getInstance(this.playerId, this.ajax, this.button, this.viewManager);
 };

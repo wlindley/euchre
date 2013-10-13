@@ -5,6 +5,7 @@ if (AVOCADO == undefined) {
 AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
 	var self = this;
 	var gameCreator = null;
+	var gameJoiner = null;
 
 	this.init = function() {
 		viewManager.registerView("gameList", self);
@@ -20,7 +21,6 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 
 	function handleGameListResponse(response) {
 		gameListDiv.empty();
-		console.log(response);
 		for (var i = 0; i < response.games.length; i++) {
 			var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i])));
 			if (response.games[i].status != "waiting_for_more_players") {
@@ -38,6 +38,11 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		gameListDiv.append(gameCreatorElement);
 		gameCreator = AVOCADO.GameCreator.getInstance(playerId, ajax, gameCreatorElement.find("#btnCreateGame"), viewManager);
 		gameCreator.init();
+
+		var gameJoinerElement = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameJoiner"));
+		gameListDiv.append(gameJoinerElement);
+		gameJoiner = AVOCADO.GameJoiner.getInstance(playerId, ajax, gameJoinerElement.find("#txtGameId"), gameJoinerElement.find("#txtTeam"), gameJoinerElement.find("#btnJoinGame"), viewManager);
+		gameJoiner.init();
 
 		gameListDiv.show();
 	}

@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
+AVOCADO.GameJoiner = function(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
 	var self = this;
 
 	this.init = function() {
@@ -13,7 +13,7 @@ AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewM
 		var data = {
 			"gameId" : txtGameId.val(),
 			"team" : txtTeam.val(),
-			"playerId" : fbId
+			"playerId" : playerId
 		};
 
 		ajax.call("addPlayer", data, handleJoinGameResponse);
@@ -26,6 +26,6 @@ AVOCADO.GameJoiner = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewM
 	}
 };
 
-AVOCADO.GameJoiner.getInstance = function(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
-	return new AVOCADO.GameJoiner(fbId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager);
+AVOCADO.GameJoiner.getInstance = function(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
+	return new AVOCADO.GameJoiner(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager);
 };

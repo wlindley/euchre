@@ -7,10 +7,20 @@ GameListViewTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
+
 	this.gameCreator = mock(AVOCADO.GameCreator);
+	this.prevGameGreatorGetFunc = AVOCADO.GameCreator.getInstance;
+	this.gameJoiner = mock(AVOCADO.GameJoiner);
+	this.prevGameJoinerGetFunc = AVOCADO.GameJoiner.getInstance;
+
 	this.locStrings = {"yourTurn" : "your turn", "otherTurn" : "Player %playerId%'s turn", "noTurn" : "no turn"};
 	this.playerId = "3";
 	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId);
+};
+
+GameListViewTest.prototype.tearDown = function() {
+	AVOCADO.GameCreator.getInstance = this.prevGameGreatorGetFunc;
+	AVOCADO.GameJoiner.getInstance = this.prevGameJoinerGetFunc;
 };
 
 GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
@@ -19,6 +29,7 @@ GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
 };
 
 GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
+	//data
 	var gameEntryBase = "game ";
 	var gameIds = [1, 2, 3];
 	var statuses = ["round_in_progress", "waiting_for_more_players", "trump_selection"];
@@ -38,6 +49,8 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 		linkElements.push(mock(TEST.FakeJQueryElement));
 	}
 	this.ajax.callbackResponse = {"games" : gameList, "success" : true};
+
+	//training
 	for (var i = 0; i < gameList.length; i++) {
 		var expectedTurnString = this.locStrings.yourTurn;
 		if (null == currentPlayers[i]) {
@@ -56,6 +69,8 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 		when(this.jqueryWrapper).getElement(gameHtml).thenReturn(elements[i]);
 		when(elements[i]).find(".viewGameData").thenReturn(linkElements[i]);
 	}
+
+	//train game creator
 	var gameCreatorHtml = "game creator";
 	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(gameCreatorHtml);
 	var gameCreatorElement = mock(TEST.FakeJQueryElement);
@@ -65,8 +80,24 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	AVOCADO.GameCreator.getInstance = mockFunction();
 	when(AVOCADO.GameCreator.getInstance)(this.playerId, this.ajax, createGameButton, this.viewManager).thenReturn(this.gameCreator);
 
+	//train game joiner
+	var gameJoinHtml = "game joiner";
+	when(this.templateRenderer).renderTemplate("gameJoiner").thenReturn(gameJoinHtml);
+	var gameJoinerElement = mock(TEST.FakeJQueryElement);
+	when(this.jqueryWrapper).getElement(gameJoinHtml).thenReturn(gameJoinerElement);
+	var gameIdInput = mock(TEST.FakeJQueryElement);
+	var teamIdInput = mock(TEST.FakeJQueryElement);
+	var joinButton = mock(TEST.FakeJQueryElement);
+	when(gameJoinerElement).find("#txtGameId").thenReturn(gameIdInput);
+	when(gameJoinerElement).find("#txtTeam").thenReturn(teamIdInput);
+	when(gameJoinerElement).find("#btnJoinGame").thenReturn(joinButton);
+	AVOCADO.GameJoiner.getInstance = mockFunction();
+	when(AVOCADO.GameJoiner.getInstance)(this.playerId, this.ajax, gameIdInput, teamIdInput, joinButton, this.viewManager).thenReturn(this.gameJoiner);
+
+	//trigger
 	this.testObj.show();
 
+	//verification
 	verify(this.gameListDiv).empty();
 	for (var i = 0; i < gameList.length; i++) {
 		verify(elements[i]).appendTo(this.gameListDiv);
@@ -82,6 +113,8 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	}
 	verify(this.gameListDiv).append(gameCreatorElement);
 	verify(this.gameCreator).init();
+	verify(this.gameListDiv).append(gameJoinerElement);
+	verify(this.gameJoiner).init();
 
 	verify(this.gameListDiv).show();
 };

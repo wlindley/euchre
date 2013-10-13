@@ -6,12 +6,10 @@ $(function() {
 		window.viewManager = AVOCADO.ViewManager.getInstance();
 		window.gameLister = AVOCADO.GameLister.getInstance(EUCHRE.playerId, window.ajax);
 		window.gameListView = AVOCADO.GameListView.getInstance(window.gameLister, window.templateRenderer, $('#gameList'), window.jqueryWrapper, window.viewManager, window.ajax, EUCHRE.locStrings, EUCHRE.playerId);
-		window.gameJoiner = AVOCADO.GameJoiner.getInstance(EUCHRE.playerId, window.ajax, $("#txtGameId"), $("#txtTeam"), $("#btnJoinGame"), window.viewManager);
 		window.gamePlayView = AVOCADO.GamePlayView.getInstance(window.ajax, EUCHRE.playerId, window.templateRenderer, $('#gamePlay'), window.viewManager, EUCHRE.locStrings, window.jqueryWrapper);
 	}
 
 	function initObjects() {
-		window.gameJoiner.init();
 		window.gameListView.init();
 		window.gamePlayView.init();
 	}
