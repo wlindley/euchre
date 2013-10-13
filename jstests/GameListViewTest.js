@@ -7,9 +7,10 @@ GameListViewTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
+	this.gameCreator = mock(AVOCADO.GameCreator);
 	this.locStrings = {"yourTurn" : "your turn", "otherTurn" : "Player %playerId%'s turn", "noTurn" : "no turn"};
 	this.playerId = "3";
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.locStrings, this.playerId);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId);
 };
 
 GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
@@ -55,6 +56,14 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 		when(this.jqueryWrapper).getElement(gameHtml).thenReturn(elements[i]);
 		when(elements[i]).find(".viewGameData").thenReturn(linkElements[i]);
 	}
+	var gameCreatorHtml = "game creator";
+	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(gameCreatorHtml);
+	var gameCreatorElement = mock(TEST.FakeJQueryElement);
+	when(this.jqueryWrapper).getElement(gameCreatorHtml).thenReturn(gameCreatorElement);
+	var createGameButton = mock(TEST.FakeJQueryElement);
+	when(gameCreatorElement).find("#btnCreateGame").thenReturn(createGameButton);
+	AVOCADO.GameCreator.getInstance = mockFunction();
+	when(AVOCADO.GameCreator.getInstance)(this.playerId, this.ajax, createGameButton, this.viewManager).thenReturn(this.gameCreator);
 
 	this.testObj.show();
 
@@ -71,6 +80,8 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 			verify(elements[i]).removeClass("gameListEntryYourTurn");
 		}
 	}
+	verify(this.gameListDiv).append(gameCreatorElement);
+	verify(this.gameCreator).init();
 
 	verify(this.gameListDiv).show();
 };

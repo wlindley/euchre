@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreator = function(fbId, ajax, createGameButton, viewManager) {
+AVOCADO.GameCreator = function(playerId, ajax, createGameButton, viewManager) {
 	var self = this;
 
 	this.init = function() {
@@ -11,7 +11,7 @@ AVOCADO.GameCreator = function(fbId, ajax, createGameButton, viewManager) {
 
 	this.createGame = function() {
 		var params = {
-			"playerId" : fbId,
+			"playerId" : playerId,
 			"team" : 0
 		};
 		ajax.call("createGame", params, handleCreateGameResponse);
@@ -24,6 +24,6 @@ AVOCADO.GameCreator = function(fbId, ajax, createGameButton, viewManager) {
 	}
 };
 
-AVOCADO.GameCreator.getInstance = function(fbId, ajax, createGameButton, viewManager) {
-	return new AVOCADO.GameCreator(fbId, ajax, createGameButton, viewManager);
+AVOCADO.GameCreator.getInstance = function(playerId, ajax, createGameButton, viewManager) {
+	return new AVOCADO.GameCreator(playerId, ajax, createGameButton, viewManager);
 };

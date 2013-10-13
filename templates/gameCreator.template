@@ -1,0 +1,3 @@
+<div class="gameCreator">
+	<button id="btnCreateGame">Create Game</button>
+</div>

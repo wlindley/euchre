@@ -2,8 +2,9 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, locStrings, playerId) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
 	var self = this;
+	var gameCreator = null;
 
 	this.init = function() {
 		viewManager.registerView("gameList", self);
@@ -19,6 +20,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 
 	function handleGameListResponse(response) {
 		gameListDiv.empty();
+		console.log(response);
 		for (var i = 0; i < response.games.length; i++) {
 			var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i])));
 			if (response.games[i].status != "waiting_for_more_players") {
@@ -31,6 +33,12 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 			}
 			element.appendTo(gameListDiv);
 		}
+
+		var gameCreatorElement = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameCreator"));
+		gameListDiv.append(gameCreatorElement);
+		gameCreator = AVOCADO.GameCreator.getInstance(playerId, ajax, gameCreatorElement.find("#btnCreateGame"), viewManager);
+		gameCreator.init();
+
 		gameListDiv.show();
 	}
 
@@ -58,6 +66,6 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	};
 };
 
-AVOCADO.GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, locStrings, playerId) {
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, locStrings, playerId);
+AVOCADO.GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId);
 };
