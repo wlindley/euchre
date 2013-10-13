@@ -71,6 +71,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	};
 };
 
-AVOCADO.GameListView.getInstance = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
+AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
+	var gameLister = new AVOCADO.GameLister.getInstance(playerId, ajax);
 	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId);
 };
