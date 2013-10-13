@@ -10,14 +10,15 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 			return jqueryWrapper.getElement("<div />");
 		}
 
-		var cardHtmls = {};
+		var trickElementHtmls = {};
 		var index = 0;
 		for (var pid in playedCards) {
-			cardHtmls["card" + index] = templateRenderer.renderTemplate("card", playedCards[pid]);
+			var cardHtml = templateRenderer.renderTemplate("card", playedCards[pid]);
+			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"player" : pid, "card" : cardHtml});
 			index++;
 		}
 
-		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", cardHtmls));
+		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", trickElementHtmls));
 
 		wrapCard(element, playedCards[winnerId], "winningCard", templateRenderer.renderTemplate("winningCard"));
 		wrapCard(element, playedCards[playerId], "playersCard", templateRenderer.renderTemplate("playersCard"));
@@ -34,11 +35,9 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	};
 
 	function wrapCard(rootElement, targetCard, className, htmlText) {
-		var target = rootElement.find("div.card").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
-		target.wrap("<div></div>");
-		var targetParent = target.parent();
-		targetParent.addClass(className);
-		targetParent.append(htmlText);
+		var target = rootElement.find("div.trickElement").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
+		target.addClass(className);
+		target.append(htmlText);
 	}
 
 	function isObjectValid(obj) {

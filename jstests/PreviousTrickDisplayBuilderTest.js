@@ -8,12 +8,14 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.winnerId = this.playerId;
 	this.cards = [{"suit" : 0, "value" : 9}, {"suit" : 3, "value" : 12}, {"suit" : 1, "value" : 13}, {"suit" : 2, "value" : 10}]; //make sure all suits and values are different
 	this.cardHtmls = ["card 1", "card 2", "card 3", "card 4"];
+	this.trickElementHtmls = ["trick element 1", "trick element 2", "trick element 3", "trick element 4"];
 	this.cardElements = [];
-	this.cardParentElements = [];
+	this.trickElementElements = [];
 	this.previousTrick = {};
 	for (var i in this.players) {
 		this.previousTrick[this.players[i]] = this.cards[i];
 		this.cardElements[i] = mock(TEST.FakeJQueryElement);
+		this.trickElementElements[i] = mock(TEST.FakeJQueryElement);
 	}
 	this.previousTrickHtml = "some previous trick html";
 	this.winningCardHtml = "winning card html";
@@ -39,47 +41,21 @@ PreviousTrickDisplayBuilderTest.prototype.testReturnsExpectedJQueryObject = func
 PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnWinningCardAndAppendsElement = function() {
 	this.trigger();
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	verify(this.cardParentElements[winnerIndex]).addClass("winningCard");
-	verify(this.cardParentElements[winnerIndex]).append(this.winningCardHtml);
-};
-
-PreviousTrickDisplayBuilderTest.prototype.testWrapCalledBeforeParentForWinningCard = function() {
-	var winnerIndex = this.players.indexOf(this.winnerId);
-	when(this.cardElements[winnerIndex]).wrap("<div></div>").thenThrow("Not second!");
-
-	try {
-		this.trigger();
-	} catch (ex) {
-		//intentionally empty
-	}
-	verify(this.cardElements[winnerIndex]).wrap("<div></div>");
-	verify(this.cardParentElements[winnerIndex], never()).append(this.winningCardHtml);
+	verify(this.trickElementElements[winnerIndex]).addClass("winningCard");
+	verify(this.trickElementElements[winnerIndex]).append(this.winningCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnPlayersCardAndAppendsElement = function() {
 	this.trigger();
 	var playerIndex = this.players.indexOf(this.playerId);
-	verify(this.cardParentElements[playerIndex]).addClass("playersCard");
-	verify(this.cardParentElements[playerIndex]).append(this.playersCardHtml);
-};
-
-PreviousTrickDisplayBuilderTest.prototype.testWrapCalledBeforeParentForPlayersCard = function() {
-	var playerIndex = this.players.indexOf(this.playerId);
-	when(this.cardElements[playerIndex]).wrap("<div></div>").thenThrow("Not second!");
-
-	try {
-		this.trigger();
-	} catch (ex) {
-		//intentionally empty
-	}
-	verify(this.cardElements[playerIndex]).wrap("<div></div>");
-	verify(this.cardParentElements[playerIndex], never()).append(this.playersCardHtml);
+	verify(this.trickElementElements[playerIndex]).addClass("playersCard");
+	verify(this.trickElementElements[playerIndex]).append(this.playersCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
 	var playerIndex = this.players.indexOf(this.playerId);
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	when(this.cardParentElements[winnerIndex]).addClass("winningCard").thenThrow("First!");
+	when(this.trickElementElements[winnerIndex]).addClass("winningCard").thenThrow("First!");
 
 	try {
 		this.trigger();
@@ -87,9 +63,9 @@ PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinn
 		//intentionally empty
 	}
 
-	verify(this.cardParentElements[winnerIndex]).addClass("winningCard");
-	verify(this.cardParentElements[playerIndex], never()).addClass("playersCard");
-	verify(this.cardParentElements[playerIndex], never()).append(this.playersCardHtml);
+	verify(this.trickElementElements[winnerIndex]).addClass("winningCard");
+	verify(this.trickElementElements[playerIndex], never()).addClass("playersCard");
+	verify(this.trickElementElements[playerIndex], never()).append(this.playersCardHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton = function() {
@@ -132,28 +108,29 @@ PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
 
 PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	var cardSelector = mock(TEST.FakeJQueryElement);
-	when(this.previousTrickElement).find("div.card").thenReturn(cardSelector);
+	when(this.previousTrickElement).find("div.trickElement").thenReturn(cardSelector);
 
 	for (var i in this.cards) {
-		this.cardParentElements.push(mock(TEST.FakeJQueryElement));
-
 		when(this.templateRenderer).renderTemplate("card", this.cards[i]).thenReturn(this.cardHtmls[i]);
-		when(this.cardElements[i]).wrap("<div></div>").thenReturn(this.cardParentElements[i]);
-		when(this.cardElements[i]).parent().thenReturn(this.cardParentElements[i]);
 
 		var suitSelector = mock(TEST.FakeJQueryElement);
 
 		when(cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
-		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.cardElements[i]);
+		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.trickElementElements[i]);
+
+		when(this.templateRenderer).renderTemplate("trickElement", allOf(
+			hasMember("card", this.cardHtmls[i]),
+			hasMember("player", this.players[i])
+		)).thenReturn(this.trickElementHtmls[i]);
 	}
 
 	when(this.previousTrickElement).find("button.continue").thenReturn(this.buttonElement);
 
 	when(this.templateRenderer).renderTemplate("previousTrick", allOf(
-		hasMember("card0", this.cardHtmls[0]),
-		hasMember("card1", this.cardHtmls[1]),
-		hasMember("card2", this.cardHtmls[2]),
-		hasMember("card3", this.cardHtmls[3])
+		hasMember("card0", this.trickElementHtmls[0]),
+		hasMember("card1", this.trickElementHtmls[1]),
+		hasMember("card2", this.trickElementHtmls[2]),
+		hasMember("card3", this.trickElementHtmls[3])
 	)).thenReturn(this.previousTrickHtml);
 
 	when(this.templateRenderer).renderTemplate("playersCard").thenReturn(this.playersCardHtml);
