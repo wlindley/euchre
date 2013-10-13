@@ -1,7 +1,7 @@
 PreviousTrickDisplayBuilderTest = TestCase("PreviousTrickDisplayBuilderTest");
 
 PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
-	this.locStrings = {};
+	this.locStrings = {"player" : "foo %playerId%"};
 	this.playerId = "12345";
 
 	this.players = [this.playerId, "2", "3", "4"];
@@ -118,9 +118,10 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 		when(cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
 		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.trickElementElements[i]);
 
+		var playerName = this.locStrings["player"].replace("%playerId%", this.players[i]);
 		when(this.templateRenderer).renderTemplate("trickElement", allOf(
 			hasMember("card", this.cardHtmls[i]),
-			hasMember("player", this.players[i])
+			hasMember("player", playerName)
 		)).thenReturn(this.trickElementHtmls[i]);
 	}
 

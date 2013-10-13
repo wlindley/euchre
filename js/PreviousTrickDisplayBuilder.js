@@ -14,7 +14,8 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		var index = 0;
 		for (var pid in playedCards) {
 			var cardHtml = templateRenderer.renderTemplate("card", playedCards[pid]);
-			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"player" : pid, "card" : cardHtml});
+			var playerName = locStrings["player"].replace("%playerId%", pid);
+			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"player" : playerName, "card" : cardHtml});
 			index++;
 		}
 
