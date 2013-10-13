@@ -78,11 +78,20 @@ PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton =
 	verify(this.buttonElement).click(continueClickHandler);
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerRemovesElement = function() {
+PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerHidesElementAndCallsCompleteHandler = function() {
 	var event = {};
+	var hideCompleteHandler = function() {};
+	this.testObj.buildHideCompleteHandler = mockFunction();
+	when(this.testObj.buildHideCompleteHandler)(this.previousTrickElement).thenReturn(hideCompleteHandler);
 
 	this.testObj.buildContinueClickHandler(this.previousTrickElement)(event);
 
+	verify(this.previousTrickElement).hide(100, hideCompleteHandler);
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testHideCompleteHandlerRemovesElement = function() {
+	var event = {};
+	this.testObj.buildHideCompleteHandler(this.previousTrickElement)(event);
 	verify(this.previousTrickElement).remove();
 };
 

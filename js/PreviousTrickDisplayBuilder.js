@@ -30,6 +30,13 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	};
 
 	this.buildContinueClickHandler = function(rootElement) {
+		var self = this;
+		return function(event) {
+			rootElement.hide(100, self.buildHideCompleteHandler(rootElement));
+		};
+	};
+
+	this.buildHideCompleteHandler = function(rootElement) {
 		return function(event) {
 			rootElement.remove();
 		};
