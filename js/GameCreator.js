@@ -2,14 +2,16 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreator = function(playerId, ajax, createGameButton, viewManager) {
+AVOCADO.GameCreator = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
 	var self = this;
 
-	this.init = function() {
-		createGameButton.click(self.createGame);
+	this.buildGameCreator = function() {
+		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameCreator"));
+		element.find("#btnCreateGame").click(self.createGameClickHandler);
+		return element;
 	};
 
-	this.createGame = function() {
+	this.createGameClickHandler = function() {
 		var params = {
 			"playerId" : playerId,
 			"team" : 0
@@ -24,6 +26,6 @@ AVOCADO.GameCreator = function(playerId, ajax, createGameButton, viewManager) {
 	}
 };
 
-AVOCADO.GameCreator.getInstance = function(playerId, ajax, createGameButton, viewManager) {
-	return new AVOCADO.GameCreator(playerId, ajax, createGameButton, viewManager);
+AVOCADO.GameCreator.getInstance = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
+	return new AVOCADO.GameCreator(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
 };

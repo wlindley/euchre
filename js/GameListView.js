@@ -2,9 +2,8 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator) {
 	var self = this;
-	var gameCreator = null;
 	var gameJoiner = null;
 
 	this.init = function() {
@@ -34,10 +33,8 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 			element.appendTo(gameListDiv);
 		}
 
-		var gameCreatorElement = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameCreator"));
+		var gameCreatorElement = gameCreator.buildGameCreator();
 		gameListDiv.append(gameCreatorElement);
-		gameCreator = AVOCADO.GameCreator.getInstance(playerId, ajax, gameCreatorElement.find("#btnCreateGame"), viewManager);
-		gameCreator.init();
 
 		var gameJoinerElement = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameJoiner"));
 		gameListDiv.append(gameJoinerElement);
@@ -73,5 +70,6 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 
 AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
 	var gameLister = new AVOCADO.GameLister.getInstance(playerId, ajax);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId);
+	var gameCreator = new AVOCADO.GameCreator.getInstance(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator);
 };

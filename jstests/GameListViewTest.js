@@ -9,17 +9,15 @@ GameListViewTest.prototype.setUp = function() {
 	this.viewManager = mock(AVOCADO.ViewManager);
 
 	this.gameCreator = mock(AVOCADO.GameCreator);
-	this.prevGameGreatorGetFunc = AVOCADO.GameCreator.getInstance;
 	this.gameJoiner = mock(AVOCADO.GameJoiner);
 	this.prevGameJoinerGetFunc = AVOCADO.GameJoiner.getInstance;
 
 	this.locStrings = {"yourTurn" : "your turn", "otherTurn" : "Player %playerId%'s turn", "noTurn" : "no turn"};
 	this.playerId = "3";
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId, this.gameCreator);
 };
 
 GameListViewTest.prototype.tearDown = function() {
-	AVOCADO.GameCreator.getInstance = this.prevGameGreatorGetFunc;
 	AVOCADO.GameJoiner.getInstance = this.prevGameJoinerGetFunc;
 };
 
@@ -71,14 +69,16 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	}
 
 	//train game creator
-	var gameCreatorHtml = "game creator";
+	/*var gameCreatorHtml = "game creator";
 	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(gameCreatorHtml);
 	var gameCreatorElement = mock(TEST.FakeJQueryElement);
 	when(this.jqueryWrapper).getElement(gameCreatorHtml).thenReturn(gameCreatorElement);
 	var createGameButton = mock(TEST.FakeJQueryElement);
 	when(gameCreatorElement).find("#btnCreateGame").thenReturn(createGameButton);
 	AVOCADO.GameCreator.getInstance = mockFunction();
-	when(AVOCADO.GameCreator.getInstance)(this.playerId, this.ajax, createGameButton, this.viewManager).thenReturn(this.gameCreator);
+	when(AVOCADO.GameCreator.getInstance)(this.playerId, this.ajax, createGameButton, this.viewManager).thenReturn(this.gameCreator);*/
+	var gameCreatorElement = mock(TEST.FakeJQueryElement);
+	when(this.gameCreator).buildGameCreator().thenReturn(gameCreatorElement);
 
 	//train game joiner
 	var gameJoinHtml = "game joiner";
@@ -112,7 +112,6 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 		}
 	}
 	verify(this.gameListDiv).append(gameCreatorElement);
-	verify(this.gameCreator).init();
 	verify(this.gameListDiv).append(gameJoinerElement);
 	verify(this.gameJoiner).init();
 
