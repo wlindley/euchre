@@ -2,21 +2,25 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameJoiner = function(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
+AVOCADO.GameJoiner = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
 	var self = this;
 
-	this.init = function() {
-		btnJoinGame.click(self.joinGameFromTextFields);
+	this.buildGameJoiner = function() {
+		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameJoiner"));
+		element.find("#btnJoinGame").click(self.buildJoinGameClickHandler(element.find("#txtGameId"), element.find("#txtTeam")));
+		return element;
 	};
 
-	this.joinGameFromTextFields = function() {
-		var data = {
+	this.buildJoinGameClickHandler = function(txtGameId, txtTeamId) {
+		return function() {
+			var data = {
 			"gameId" : txtGameId.val(),
-			"team" : txtTeam.val(),
+			"team" : txtTeamId.val(),
 			"playerId" : playerId
 		};
 
 		ajax.call("addPlayer", data, handleJoinGameResponse);
+		};
 	};
 
 	function handleJoinGameResponse(response) {
@@ -26,6 +30,6 @@ AVOCADO.GameJoiner = function(playerId, ajax, txtGameId, txtTeam, btnJoinGame, v
 	}
 };
 
-AVOCADO.GameJoiner.getInstance = function(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager) {
-	return new AVOCADO.GameJoiner(playerId, ajax, txtGameId, txtTeam, btnJoinGame, viewManager);
+AVOCADO.GameJoiner.getInstance = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
+	return new AVOCADO.GameJoiner(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
 };
