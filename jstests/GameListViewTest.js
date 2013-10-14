@@ -68,18 +68,6 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	when(this.gameCreator).buildGameCreator().thenReturn(gameCreatorElement);
 
 	//train game joiner
-	/*var gameJoinHtml = "game joiner";
-	when(this.templateRenderer).renderTemplate("gameJoiner").thenReturn(gameJoinHtml);
-	var gameJoinerElement = mock(TEST.FakeJQueryElement);
-	when(this.jqueryWrapper).getElement(gameJoinHtml).thenReturn(gameJoinerElement);
-	var gameIdInput = mock(TEST.FakeJQueryElement);
-	var teamIdInput = mock(TEST.FakeJQueryElement);
-	var joinButton = mock(TEST.FakeJQueryElement);
-	when(gameJoinerElement).find("#txtGameId").thenReturn(gameIdInput);
-	when(gameJoinerElement).find("#txtTeam").thenReturn(teamIdInput);
-	when(gameJoinerElement).find("#btnJoinGame").thenReturn(joinButton);
-	AVOCADO.GameJoiner.getInstance = mockFunction();
-	when(AVOCADO.GameJoiner.getInstance)(this.playerId, this.ajax, gameIdInput, teamIdInput, joinButton, this.viewManager).thenReturn(this.gameJoiner);*/
 	var gameJoinerElement = mock(TEST.FakeJQueryElement);
 	when(this.gameJoiner).buildGameJoiner().thenReturn(gameJoinerElement);
 

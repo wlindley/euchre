@@ -30,6 +30,8 @@ GameJoinerTest.prototype.testBuildGameJoinerBindsClickHandler = function() {
 
 	this.trigger();
 	verify(this.btnJoinGame).click(clickHandler);
+
+	this.testObj.buildJoinGameClickHandler = prevBuilderFunc;
 };
 
 GameJoinerTest.prototype.testJoinGameFromTextFieldsCallsAjaxWithCorrectData = function() {
