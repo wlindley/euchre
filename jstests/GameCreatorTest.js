@@ -6,6 +6,10 @@ GameCreatorTest.prototype.setUp = function() {
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.origSetTimeout = setTimeout;
+	this.origSetTimeout = function(func, time, lang) {
+		func();
+	};
 
 	this.gameCreatorHtml = "game creator";
 	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
@@ -13,6 +17,10 @@ GameCreatorTest.prototype.setUp = function() {
 
 	this.buildTestObj();
 	this.doTraining();
+};
+
+GameCreatorTest.prototype.tearDown = function() {
+	setTimeout = this.origSetTimeout;
 };
 
 GameCreatorTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
@@ -37,12 +45,21 @@ GameCreatorTest.prototype.testCreateGameCallsServerWithCorrectData = function() 
 };
 
 GameCreatorTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView = function() {
+	var testHarness = this;
+	var hasCalledAsync = false;
+	setTimeout = function(func, time, lang) {
+		verify(testHarness.viewManager, never()).showView("gameList");
+		hasCalledAsync = true;
+		func();
+		verify(testHarness.viewManager).showView("gameList");
+	};
+
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = {"success" : true};
 	this.buildTestObj();
 
 	this.testObj.createGameClickHandler();
-	verify(this.viewManager).showView("gameList");
+	assertTrue(hasCalledAsync);
 };
 
 GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
