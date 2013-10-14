@@ -9,6 +9,7 @@
 .gameListEntry {
 	background-color: #AAAAFF;
 	font-weight: bold;
+	width: 400px;
 }
 
 .gameListEntryClickable {
@@ -80,4 +81,17 @@ div.winningCard {
 	font-size: 35pt;
 	font-weight: bold;
 	text-decoration: underline;
+}
+
+.gameCreator {
+	position: relative;
+}
+
+.gameJoiner {
+	position: relative;
+	top: -24px;
+	left: 98px;
+	border-left-style: solid;
+	border-left-width: 2px;
+	border-left-color: #888888;
 }
