@@ -25,7 +25,9 @@ AVOCADO.GameJoiner = function(playerId, ajax, viewManager, templateRenderer, jqu
 
 	function handleJoinGameResponse(response) {
 		if (response.success) {
-			viewManager.showView("gameList");
+			setTimeout(function() {
+				viewManager.showView("gameList");
+			}, 100);
 		}
 	}
 };
