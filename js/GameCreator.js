@@ -12,13 +12,11 @@ AVOCADO.GameCreator = function(playerId, ajax, viewManager, templateRenderer, jq
 	};
 
 	this.createGameClickHandler = function() {
-		setTimeout(function() {
-			var params = {
-				"playerId" : playerId,
-				"team" : 0
-			};
-			ajax.call("createGame", params, handleCreateGameResponse);
-		}, 100);
+		var params = {
+			"playerId" : playerId,
+			"team" : 0
+		};
+		ajax.call("createGame", params, handleCreateGameResponse);
 	};
 
 	function handleCreateGameResponse(response) {

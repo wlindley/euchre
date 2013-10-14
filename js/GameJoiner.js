@@ -13,15 +13,13 @@ AVOCADO.GameJoiner = function(playerId, ajax, viewManager, templateRenderer, jqu
 
 	this.buildJoinGameClickHandler = function(txtGameId, txtTeamId) {
 		return function() {
-			setTimeout(function() {
-				var data = {
-					"gameId" : txtGameId.val(),
-					"team" : txtTeamId.val(),
-					"playerId" : playerId
-				};
+			var data = {
+				"gameId" : txtGameId.val(),
+				"team" : txtTeamId.val(),
+				"playerId" : playerId
+			};
 
-				ajax.call("addPlayer", data, handleJoinGameResponse);
-			}, 100);
+			ajax.call("addPlayer", data, handleJoinGameResponse);
 		};
 	};
 

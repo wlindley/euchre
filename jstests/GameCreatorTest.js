@@ -45,21 +45,12 @@ GameCreatorTest.prototype.testCreateGameCallsServerWithCorrectData = function() 
 };
 
 GameCreatorTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView = function() {
-	var testHarness = this;
-	var hasCalledAsync = false;
-	setTimeout = function(func, time, lang) {
-		verify(testHarness.viewManager, never()).showView("gameList");
-		hasCalledAsync = true;
-		func();
-		verify(testHarness.viewManager).showView("gameList");
-	};
-
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = {"success" : true};
 	this.buildTestObj();
 
 	this.testObj.createGameClickHandler();
-	assertTrue(hasCalledAsync);
+	verify(this.viewManager).showView("gameList");
 };
 
 GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {

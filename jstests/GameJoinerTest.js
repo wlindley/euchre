@@ -54,22 +54,13 @@ GameJoinerTest.prototype.testJoinGameFromTextFieldsCallsAjaxWithCorrectData = fu
 };
 
 GameJoinerTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
-	var testHarness = this;
-	var hasCalledAsync = false;
-	setTimeout = function(func, time, land) {
-		verify(testHarness.viewManager, never()).showView("gameList");
-		hasCalledAsync = true;
-		func();
-		verify(testHarness.viewManager).showView("gameList");
-	};
-
 	this.ajax = new TEST.FakeAjax();
 	this.ajax.callbackResponse = {"success" : true};
 	this.buildTestObj();
 
 	this.testObj.buildJoinGameClickHandler(this.txtGameId, this.txtTeamId)();
 
-	assertTrue(hasCalledAsync);
+	verify(this.viewManager).showView("gameList");
 };
 
 GameJoinerTest.prototype.testUnsuccessfulJoinGameResponseDoesNotRefreshesGameListView = function() {
