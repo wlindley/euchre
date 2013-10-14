@@ -21,7 +21,9 @@ AVOCADO.GameCreator = function(playerId, ajax, viewManager, templateRenderer, jq
 
 	function handleCreateGameResponse(response) {
 		if (response.success) {
-			viewManager.showView("gameList");
+			setTimeout(function() {
+				viewManager.showView("gameList");
+			}, 100);
 		}
 	}
 };
