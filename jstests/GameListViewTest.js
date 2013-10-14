@@ -43,6 +43,10 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 	}
 	this.ajax.callbackResponse = {"games" : gameList, "success" : true};
 
+	//header training
+	var listHeaderHtml = "list header";
+	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(listHeaderHtml);
+
 	//training
 	for (var i = 0; i < gameList.length; i++) {
 		var expectedTurnString = this.locStrings.yourTurn;
@@ -76,6 +80,7 @@ GameListViewTest.prototype.testShowDisplaysCorrectHtml = function() {
 
 	//verification
 	verify(this.gameListDiv).empty();
+	verify(this.gameListDiv).append(listHeaderHtml);
 	for (var i = 0; i < gameList.length; i++) {
 		verify(elements[i]).appendTo(this.gameListDiv);
 		if (gameList[i].status != "waiting_for_more_players") {

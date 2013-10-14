@@ -75,3 +75,9 @@ div.winningCard {
 	border-width: 3px;
 	border-color: #DAA520;
 }
+
+.gameListHeader {
+	font-size: 35pt;
+	font-weight: bold;
+	text-decoration: underline;
+}
