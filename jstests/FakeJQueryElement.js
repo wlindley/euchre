@@ -19,4 +19,5 @@ TEST.FakeJQueryElement = function() {
 	this.remove = function() {};
 	this.wrap = function() {};
 	this.parent = function() {};
+	this.each = function() {};
 };

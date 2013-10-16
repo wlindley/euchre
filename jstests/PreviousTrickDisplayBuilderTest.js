@@ -12,6 +12,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.cardElements = [];
 	this.trickElementElements = [];
 	this.previousTrick = {};
+	this.cardSelector = mock(TEST.FakeJQueryElement);
 	for (var i in this.players) {
 		this.previousTrick[this.players[i]] = this.cards[i];
 		this.cardElements[i] = mock(TEST.FakeJQueryElement);
@@ -116,15 +117,14 @@ PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
 };
 
 PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
-	var cardSelector = mock(TEST.FakeJQueryElement);
-	when(this.previousTrickElement).find("div.trickElement").thenReturn(cardSelector);
+	when(this.previousTrickElement).find("div.trickElement").thenReturn(this.cardSelector);
 
 	for (var i in this.cards) {
 		when(this.templateRenderer).renderTemplate("card", this.cards[i]).thenReturn(this.cardHtmls[i]);
 
 		var suitSelector = mock(TEST.FakeJQueryElement);
 
-		when(cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
+		when(this.cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
 		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.trickElementElements[i]);
 
 		var playerName = this.locStrings["player"].replace("%playerId%", this.players[i]);

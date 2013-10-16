@@ -1,5 +1,5 @@
 <div class="previousTrick">
-	<span class="previousTrick">Previous Trick:</span>
+	<span class="previousTrickTitle">Previous Trick:</span><br />
 	<span>%card0% %card1% %card2% %card3%</span>
 
 	<button class="continue">Continue</button>
