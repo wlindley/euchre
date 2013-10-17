@@ -81,6 +81,11 @@
 	width: 500px;
 }
 
+.currentTrick {
+	height: 200px;
+	width: 500px;
+}
+
 .playersCard {
 	color: #DDDDDD;
 }
