@@ -23,6 +23,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.playersCardHtml = "players card html";
 
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
+	this.previousTrickElementParent = mock(TEST.FakeJQueryElement);
 	this.errorElement = mock(TEST.FakeJQueryElement);
 
 	this.buttonElement = mock(TEST.FakeJQueryElement);
@@ -87,13 +88,13 @@ PreviousTrickDisplayBuilderTest.prototype.testContinueClickHandlerHidesElementAn
 
 	this.testObj.buildContinueClickHandler(this.previousTrickElement)(event);
 
-	verify(this.previousTrickElement).hide(100, hideCompleteHandler);
+	verify(this.previousTrickElementParent).fadeOut(100, hideCompleteHandler);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testHideCompleteHandlerRemovesElement = function() {
 	var event = {};
 	this.testObj.buildHideCompleteHandler(this.previousTrickElement)(event);
-	verify(this.previousTrickElement).remove();
+	verify(this.previousTrickElementParent).remove();
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testEmptyPlayedCardsFailsGracefully = function() {
@@ -118,6 +119,7 @@ PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
 
 PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	when(this.previousTrickElement).find("div.trickElement").thenReturn(this.cardSelector);
+	when(this.previousTrickElement).parent().thenReturn(this.previousTrickElementParent);
 
 	for (var i in this.cards) {
 		when(this.templateRenderer).renderTemplate("card", this.cards[i]).thenReturn(this.cardHtmls[i]);
