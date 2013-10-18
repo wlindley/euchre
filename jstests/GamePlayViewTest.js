@@ -19,6 +19,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.previousTrick = "a previous trick's data";
 	this.winnerId = "54321";
 	this.cardHtmls = [];
+	this.cardsElement = mock(TEST.FakeJQueryElement);
 	this.completeCardHtml = "";
 	for (var i = 0; i < this.hand.length; i++) {
 		var curHtml = "card " + i;
@@ -92,6 +93,9 @@ GamePlayViewTest.prototype.doTraining = function() {
 		this.expectedTrumpText = this.locStrings.trumpDisplay.replace("%trumpSuit%", this.locStrings["suit_" + this.trumpSuit]);
 	}
 
+	var handElement = mock(TEST.FakeJQueryElement);
+	when(this.gameElement).find(".hand").thenReturn(handElement);
+	when(handElement).find(".card").thenReturn(this.cardsElement);
 	for (var i = 0; i < this.hand.length; i++) {
 		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.hand[i].suit), hasMember("value", this.hand[i].value))).thenReturn(this.cardHtmls[i]);
 	}
@@ -132,6 +136,7 @@ GamePlayViewTest.prototype.verifyCorrectView = function() {
 	verify(this.viewGameListElement).click(this.testObj.handleViewGameListClick);
 	verify(this.previousTrickInsertionElement).append(this.previousTrickElement);
 	verify(this.gamePlayDiv).show();
+	verify(this.cardsElement).addClass("handElement");
 };
 
 GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
