@@ -9,7 +9,7 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 	this.setName = function(name) {
 		playerName = name;
 		for (var i in elementsToUpdate) {
-			elementsToUpdate[i].text(playerName);
+			updateElement(elementsToUpdate[i], playerName);
 		}
 	};
 
@@ -28,7 +28,11 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 		elementsToUpdate.push(element);
 
 		if (undefined !== playerName) {
-			element.text(playerName);
+			updateElement(element, playerName);
 		}
 	};
+
+	function updateElement(element, playerName) {
+		element.text(playerName);
+	}
 };
