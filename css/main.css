@@ -29,6 +29,7 @@
 .game {
 	font-weight: bold;
 	background-color: #DDDDDD;
+	width: 1000px;
 }
 
 .hand {
