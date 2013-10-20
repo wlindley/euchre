@@ -10,6 +10,11 @@ DiscardAreaBuilderTest.prototype.setUp = function() {
 
 	this.status = "discard";
 
+	this.origSetTimeout = setTimeout;
+	setTimeout = function(func, time, lang) {
+		func();
+	};
+
 	this.discardHtml = "some HTML for discarding";
 	this.trainAreaTemplate(this.leaderHtml);
 
@@ -23,6 +28,10 @@ DiscardAreaBuilderTest.prototype.setUp = function() {
 	this.viewManager = mock(AVOCADO.ViewManager);
 
 	this.buildTestObj();
+};
+
+DiscardAreaBuilderTest.prototype.tearDown = function() {
+	setTimeout = this.origSetTimeout;
 };
 
 DiscardAreaBuilderTest.prototype.testReturnsExpectedJQueryElement = function() {
@@ -83,9 +92,17 @@ DiscardAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = functio
 	), refreshViewFunc);
 };
 
-DiscardAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectly = function() {
+DiscardAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectlyAfterDelay = function() {
+	var testHarness = this;
+	var hasCalledAsync = false;
+	setTimeout = function(func, time, lang) {
+		verify(testHarness.viewManager, never()).showView("gamePlay", allOf(hasMember("gameId", testHarness.gameId), hasMember("playerId", testHarness.playerId)));
+		func();
+		verify(testHarness.viewManager).showView("gamePlay", allOf(hasMember("gameId", testHarness.gameId), hasMember("playerId", testHarness.playerId)));
+		hasCalledAsync = true;
+	};
 	this.testObj.buildRefreshViewFunc(this.gameId)();
-	verify(this.viewManager).showView("gamePlay", allOf(hasMember("gameId", this.gameId), hasMember("playerId", this.playerId)));
+	assertTrue(hasCalledAsync);
 };
 
 DiscardAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPlayersTurn = function() {

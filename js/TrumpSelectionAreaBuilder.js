@@ -77,7 +77,9 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 
 	this.buildRefreshViewFunc = function(gameId) {
 		return function(event) {
-			viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+			setTimeout(function() {
+				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+			}, 100);
 		};
 	};
 };
