@@ -3,16 +3,7 @@ PlayerNamePromiseTest = TestCase("PlayerNamePromiseTest");
 PlayerNamePromiseTest.prototype.setUp = function() {
 	this.playerId = "12345abc";
 
-	this.doTraining();
 	this.buildTestObj();
-};
-
-PlayerNamePromiseTest.prototype.tearDown = function() {
-
-};
-
-PlayerNamePromiseTest.prototype.doTraining = function() {
-
 };
 
 PlayerNamePromiseTest.prototype.buildTestObj = function() {
