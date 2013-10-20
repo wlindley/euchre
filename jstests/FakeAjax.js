@@ -7,7 +7,7 @@ TEST.FakeAjax = function() {
 
 	this.callbackResponse = null;
 
-	this.call = function(action, data, callback) {
+	this.call = function(action, data, callback, delay) {
 		callback(self.callbackResponse);
 	};
 };  
