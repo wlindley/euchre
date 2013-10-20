@@ -21,4 +21,5 @@ TEST.FakeJQueryElement = function() {
 	this.parent = function() {};
 	this.each = function() {};
 	this.fadeOut = function() {};
+	this.text = function() {};
 };
