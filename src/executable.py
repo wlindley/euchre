@@ -32,7 +32,8 @@ class ExecutableFactory(object):
 			"getGameData" : GetGameDataExecutable,
 			"selectTrump" : SelectTrumpExecutable,
 			"playCard" : PlayCardExecutable,
-			"discard" : DiscardExecutable
+			"discard" : DiscardExecutable,
+			"getName" : GetNameExecutable
 		}
 
 	def createExecutable(self):
@@ -425,3 +426,21 @@ class DiscardExecutable(AbstractExecutable):
 		gameModel.put()
 
 		self._writeResponse({"success" : True})
+
+class GetNameExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return GetNameExecutable(requestDataAccessor, responseWriter)
+
+	def __init__(self, requestDataAccessor, responseWriter):
+		super(GetNameExecutable, self).__init__(requestDataAccessor, responseWriter)
+
+	def execute(self):
+		playerId = self._requestDataAccessor.get("playerId")
+		if None == playerId:
+			self._writeResponse({"success" : False})
+		else:
+			self._writeResponse({"success" : True, "playerId" : playerId, "name" : "Player " + playerId})

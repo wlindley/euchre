@@ -50,6 +50,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsDiscardExecutableWhenActionIsDiscard(self):
 		self._runTestForAction("discard", "DiscardExecutable")
 
+	def testCallsGetNameExecutableWhenActionIsGetName(self):
+		self._runTestForAction("getName", "GetNameExecutable")
+
 class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerId = "1"
@@ -797,4 +800,27 @@ class DiscardExecutableTest(testhelper.TestCase):
 		when(self.game).discardCard(self.player, self.card).thenRaise(game.GameException("some exception"))
 		self.testObj.execute()
 		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+class GetNameExecutableTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = executable.GetNameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+
+		self.playerId = "123456"
+		when(self.requestDataAccessor).get("playerId").thenReturn(str(self.playerId))
+
+		self._buildTestObj();
+
+	def testExecuteReturnsExpectedData(self):
+		expectedName = "Player " + self.playerId
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : True, "playerId" : self.playerId, "name" : expectedName}, sort_keys=True))
+
+	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
+		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
