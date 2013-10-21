@@ -36,3 +36,7 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 		element.text(playerName);
 	}
 };
+
+AVOCADO.PlayerNamePromise.getInstance = function(playerId) {
+	return new AVOCADO.PlayerNamePromise(playerId);
+};
