@@ -2,6 +2,7 @@ js/jquery.js
 js/JQueryWrapper.js
 js/Ajax.js
 js/PlayerNamePromise.js
+js/PlayerNameDirectory.js
 js/GameLister.js
 js/GameListView.js
 js/GameCreator.js
