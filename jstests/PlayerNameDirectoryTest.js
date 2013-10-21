@@ -4,6 +4,11 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 	this.origPromiseFactory = AVOCADO.PlayerNamePromise.getInstance;
 
 	this.playerId = "2345bcd";
+	this.localPlayerId = "mno4567";
+	this.expectedYouString = "you string";
+	this.locStrings = {
+		"you" : this.expectedYouString
+	};
 
 	this.ajax = mock(AVOCADO.Ajax);
 
@@ -15,7 +20,7 @@ PlayerNameDirectoryTest.prototype.tearDown = function() {
 };
 
 PlayerNameDirectoryTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.PlayerNameDirectory(this.ajax);
+	this.testObj = new AVOCADO.PlayerNameDirectory(this.ajax, this.locStrings, this.localPlayerId);
 };
 
 PlayerNameDirectoryTest.prototype.trigger = function(playerId) {
@@ -74,4 +79,15 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 
 	verify(promise, never()).setName(anything());
 	//verify no exceptions thrown
+};
+
+PlayerNameDirectoryTest.prototype.testLocalPlayerIdImmediatelyGetsExpectedName = function() {
+	AVOCADO.PlayerNamePromise.getInstance = function(pid) {
+		return mock(AVOCADO.PlayerNamePromise);
+	};
+
+	var promise = this.trigger(this.localPlayerId);
+
+	verify(this.ajax, never()).call("getName", allOf(hasMember("playerId", this.localPlayerId)), this.testObj.handleResponse);
+	verify(promise).setName(this.expectedYouString);
 };

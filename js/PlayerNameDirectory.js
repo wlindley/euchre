@@ -2,13 +2,17 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.PlayerNameDirectory = function(ajax) {
+AVOCADO.PlayerNameDirectory = function(ajax, locStrings, playerId) {
 	var promises = {};
 
 	this.getNamePromise = function(pid) {
 		if (!(pid in promises)) {
 			promises[pid] = AVOCADO.PlayerNamePromise.getInstance(pid);
-			ajax.call("getName", {"playerId" : pid}, this.handleResponse);
+			if (playerId == pid) {
+				promises[pid].setName(locStrings["you"]);
+			} else {
+				ajax.call("getName", {"playerId" : pid}, this.handleResponse);
+			}
 		}
 		return promises[pid];
 	};
