@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, locStrings, playerId) {
+AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, playerId) {
 	var self = this;
 
 	this.buildPreviousTrickDisplay = function(playedCards, winnerId) {
@@ -14,15 +14,19 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		var index = 0;
 		for (var pid in playedCards) {
 			var cardHtml = templateRenderer.renderTemplate("card", playedCards[pid]);
-			var playerName = locStrings["player"].replace("%playerId%", pid);
-			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"player" : playerName, "card" : cardHtml});
+			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"card" : cardHtml});
 			index++;
 		}
 
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", trickElementHtmls));
 
+		for (pid in playedCards) {
+			var trickElementElement = getTrickElementByCard(element, playedCards[pid]);
+			var namePromise = playerNameDirectory.getNamePromise(pid);
+			namePromise.registerForUpdates(trickElementElement.find(".playerName"));
+		}
+
 		updateElement(element, playedCards[winnerId], "winningCard", templateRenderer.renderTemplate("winningCard"));
-		updateElement(element, playedCards[playerId], "playersCard", templateRenderer.renderTemplate("playersCard"));
 
 		element.find("button.continue").click(this.buildContinueClickHandler(element));
 
@@ -42,8 +46,12 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		};
 	};
 
+	function getTrickElementByCard(rootElement, targetCard) {
+		return rootElement.find("div.trickElement").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
+	}
+
 	function updateElement(rootElement, targetCard, className, htmlText) {
-		var target = rootElement.find("div.trickElement").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
+		var target = getTrickElementByCard(rootElement, targetCard);
 		target.addClass(className);
 		target.append(htmlText);
 	}
@@ -61,6 +69,6 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	}
 };
 
-AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, playerId) {
-	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, locStrings, playerId);
+AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, playerId) {
+	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, playerId);
 };

@@ -1,4 +1,4 @@
 <div class="trickElement">
-	<div>%player%</div>
+	<div class="playerName"></div>
 	<div>%card%</div>
 </div>
