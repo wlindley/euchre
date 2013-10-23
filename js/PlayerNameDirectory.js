@@ -25,6 +25,6 @@ AVOCADO.PlayerNameDirectory = function(ajax, locStrings, playerId) {
 	};
 };
 
-AVOCADO.PlayerNameDirectory.getInstance = function(ajax) {
-	return new AVOCADO.PlayerNameDirectory(ajax);
+AVOCADO.PlayerNameDirectory.getInstance = function(ajax, locStrings, playerId) {
+	return new AVOCADO.PlayerNameDirectory(ajax, locStrings, playerId);
 };
