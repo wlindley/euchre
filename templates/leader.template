@@ -1,3 +1,3 @@
 <div class="leader">
-	%leaderName% (%team%) is currently leading this trick
+	Trick Leader: <span class="playerName"></span> (%team%)
 </div>

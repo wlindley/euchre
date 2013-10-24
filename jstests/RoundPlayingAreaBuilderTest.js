@@ -11,6 +11,8 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.teams = [[this.playerId, "1234"], ["5678", "9012"]];
 	this.leaderId = this.teams[Math.floor(Math.random() * 2)][Math.floor(Math.random() * 2)];
 	this.leaderHtml = "some leader html";
+	this.leaderElement = mock(TEST.FakeJQueryElement);
+	this.leaderNameElement = mock(TEST.FakeJQueryElement);
 	this.leaderTeamString = this.locStrings.yourTeam;
 	if (this.teams[1].indexOf(this.leaderId) >= 0) {
 		this.leaderTeamString = this.locStrings.otherTeam;
@@ -19,7 +21,7 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.status = "round_in_progress";
 	this.ledSuit = Math.floor(Math.random() * 4) + 1;
 	this.expectedLedSuitString = this.locStrings["suit_" + this.ledSuit];
-	this.players = ["1234", "5678", "9012", "3456"];
+	this.players = ["1234", "5678", "9012", this.playerId];
 	this.cards = [{"suit" : 4, "value" : 11}, {"suit" : 4, "value" : 13}, {"suit" : 4, "value" : 9}, {"suit" : 4, "value" : 12}];
 	this.cardHtmls = ["card html 1", "card html 2", "card html 3", "card html 4"];
 	this.trickElementHtml = ["trick element 1", "trick element 2", "trick element 3", "trick element 4"];
@@ -31,6 +33,8 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 		this.nameElements[i] = mock(TEST.FakeJQueryElement);
 		this.playerNamePromises[i] = mock(AVOCADO.PlayerNamePromise);
 	}
+	var leaderIndex = this.players.indexOf(this.leaderId);
+	this.leaderNamePromise = this.playerNamePromises[leaderIndex];
 	
 	this.playingRoundHtml = "some HTML for playing the round";
 
@@ -88,6 +92,7 @@ RoundPlayingAreaBuilderTest.prototype.testHooksUpNamePromises = function() {
 	for (var i in this.nameElements) {
 		verify(this.playerNamePromises[i]).registerForUpdates(this.nameElements[i]);
 	}
+	verify(this.leaderNamePromise).registerForUpdates(this.leaderNameElement);
 };
 
 RoundPlayingAreaBuilderTest.prototype.testAddsClickHandlersAndClassToCardImages = function() {
@@ -202,4 +207,7 @@ RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function(expectedLeade
 		when(this.trickElementElements[i]).find(".playerName").thenReturn(this.nameElements[i]);
 		when(this.playerNameDirectory).getNamePromise(this.players[i]).thenReturn(this.playerNamePromises[i]);
 	}
+
+	when(this.playingRoundElement).find(".leader").thenReturn(this.leaderElement);
+	when(this.leaderElement).find(".playerName").thenReturn(this.leaderNameElement);
 };

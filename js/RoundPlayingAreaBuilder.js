@@ -22,7 +22,6 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 
 		var leaderHtml = "";
 		if (null != leaderId) {
-			//var leaderName = locStrings["player"].replace("%playerId%", leaderId);
 			var teamString = locStrings.yourTeam;
 			if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
 				teamString = locStrings.otherTeam;
@@ -45,6 +44,13 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			var nameElement = trickElement.find(".playerName");
 			var namePromise = playerNameDirectory.getNamePromise(pid);
 			namePromise.registerForUpdates(nameElement);
+		}
+		if (null != leaderId) {
+			var card = trick[leaderId];
+			var leaderElement = roundPlayingElement.find(".leader");
+			var leaderNameElement = leaderElement.find(".playerName");
+			var leaderNamePromise = playerNameDirectory.getNamePromise(leaderId);
+			leaderNamePromise.registerForUpdates(leaderNameElement);
 		}
 
 		return roundPlayingElement;
