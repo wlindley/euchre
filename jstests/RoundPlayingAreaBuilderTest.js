@@ -6,11 +6,11 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.gameId = 908234;
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
-	this.locStrings = {"suit_1" : "clubs", "suit_2" : "diamonds", "suit_3" : "spades", "suit_4" : "hearts", "player" : "Player %playerId%", "noCardsPlayed" : "blah blah blah", "yourTeam" : "team 1", "otherTeam" : "team 2"};
+	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.locStrings = {"suit_1" : "clubs", "suit_2" : "diamonds", "suit_3" : "spades", "suit_4" : "hearts", "noCardsPlayed" : "blah blah blah", "yourTeam" : "team 1", "otherTeam" : "team 2"};
 	this.teams = [[this.playerId, "1234"], ["5678", "9012"]];
 	this.leaderId = this.teams[Math.floor(Math.random() * 2)][Math.floor(Math.random() * 2)];
 	this.leaderHtml = "some leader html";
-	this.leaderName = this.locStrings.player.replace("%playerId%", this.leaderId);
 	this.leaderTeamString = this.locStrings.yourTeam;
 	if (this.teams[1].indexOf(this.leaderId) >= 0) {
 		this.leaderTeamString = this.locStrings.otherTeam;
@@ -23,13 +23,18 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 	this.cards = [{"suit" : 4, "value" : 11}, {"suit" : 4, "value" : 13}, {"suit" : 4, "value" : 9}, {"suit" : 4, "value" : 12}];
 	this.cardHtmls = ["card html 1", "card html 2", "card html 3", "card html 4"];
 	this.trickElementHtml = ["trick element 1", "trick element 2", "trick element 3", "trick element 4"];
-	this.trainCardAndTrickElementTemplates();
-
+	this.trickElementElements = [];
+	this.nameElements = [];
+	this.playerNamePromises = [];
+	for (var i in this.trickElementHtml) {
+		this.trickElementElements[i] = mock(TEST.FakeJQueryElement);
+		this.nameElements[i] = mock(TEST.FakeJQueryElement);
+		this.playerNamePromises[i] = mock(AVOCADO.PlayerNamePromise);
+	}
+	
 	this.playingRoundHtml = "some HTML for playing the round";
-	this.trainAreaTemplate(this.leaderHtml);
 
 	this.playingRoundElement = mock(TEST.FakeJQueryElement);
-	when(this.jqueryWrapper).getElement(this.playingRoundHtml).thenReturn(this.playingRoundElement);
 
 	this.cardElements = mock(TEST.FakeJQueryElement);
 
@@ -37,6 +42,8 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 
 	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.trainCardAndTrickElementTemplates();
+	this.trainAreaTemplate(this.leaderHtml);
 	this.buildTestObj();
 };
 
@@ -74,6 +81,13 @@ RoundPlayingAreaBuilderTest.prototype.testUsesEmptyStringForTrickLeaderWhenTrick
 
 	var actualResult = this.trigger();
 	assertEquals(this.playingRoundElement, actualResult);
+};
+
+RoundPlayingAreaBuilderTest.prototype.testHooksUpNamePromises = function() {
+	this.trigger();
+	for (var i in this.nameElements) {
+		verify(this.playerNamePromises[i]).registerForUpdates(this.nameElements[i]);
+	}
 };
 
 RoundPlayingAreaBuilderTest.prototype.testAddsClickHandlersAndClassToCardImages = function() {
@@ -142,7 +156,7 @@ RoundPlayingAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPl
 };
 
 RoundPlayingAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.RoundPlayingAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.playerId, this.viewManager);
+	this.testObj = AVOCADO.RoundPlayingAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.playerId, this.viewManager, this.playerNameDirectory);
 };
 
 RoundPlayingAreaBuilderTest.prototype.trigger = function() {
@@ -158,22 +172,34 @@ RoundPlayingAreaBuilderTest.prototype.trainCardAndTrickElementTemplates = functi
 			hasMember("value", this.cards[i].value)
 		)).thenReturn(this.cardHtmls[i]);
 		this.trick[this.players[i]] = this.cards[i];
-		when(this.templateRenderer).renderTemplate("trickElement", allOf(
-			hasMember("player", "Player " + this.players[i]),
-			hasMember("card", this.cardHtmls[i])
-		)).thenReturn(this.trickElementHtml[i]);
+		when(this.templateRenderer).renderTemplate("trickElement", hasMember("card", this.cardHtmls[i])).thenReturn(this.trickElementHtml[i]);
 		this.trickHtml += this.trickElementHtml[i];
 	}
 };
 
 RoundPlayingAreaBuilderTest.prototype.trainAreaTemplate = function(expectedLeaderHtml) {
-	when(this.templateRenderer).renderTemplate("leader", allOf(
-		hasMember("leaderName", this.leaderName),
-		hasMember("team", this.leaderTeamString)
-	)).thenReturn(this.leaderHtml);
+	when(this.templateRenderer).renderTemplate("leader", hasMember("team", this.leaderTeamString)).thenReturn(this.leaderHtml);
 	when(this.templateRenderer).renderTemplate("playingRound", allOf(
 		hasMember("ledSuit", this.expectedLedSuitString),
 		hasMember("currentTrick", this.trickHtml),
 		hasMember("leader", expectedLeaderHtml)
 	)).thenReturn(this.playingRoundHtml);
+	when(this.jqueryWrapper).getElement(this.playingRoundHtml).thenReturn(this.playingRoundElement);
+
+	var trickElementSelector = mock(TEST.FakeJQueryElement);
+	when(this.playingRoundElement).find(".trickElement").thenReturn(trickElementSelector);
+	var suitSelectors = {};
+	for (var i = 0; i < this.players.length; i++) {
+		var card = this.cards[i];
+		if (!(card.suit in suitSelectors)) {
+			suitSelectors[card.suit] = mock(TEST.FakeJQueryElement);
+		}
+
+		var suitSelector = suitSelectors[card.suit];
+		when(trickElementSelector).has("input.cardSuit[value=" + card.suit + "]").thenReturn(suitSelector);
+		when(suitSelector).has("input.cardValue[value=" + card.value + "]").thenReturn(this.trickElementElements[i]);
+
+		when(this.trickElementElements[i]).find(".playerName").thenReturn(this.nameElements[i]);
+		when(this.playerNameDirectory).getNamePromise(this.players[i]).thenReturn(this.playerNamePromises[i]);
+	}
 };

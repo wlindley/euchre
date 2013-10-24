@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
+AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory) {
 	var self = this;
 
 	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId, leaderId, teams) {
@@ -22,23 +22,31 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 
 		var leaderHtml = "";
 		if (null != leaderId) {
-			var leaderName = locStrings["player"].replace("%playerId%", leaderId);
+			//var leaderName = locStrings["player"].replace("%playerId%", leaderId);
 			var teamString = locStrings.yourTeam;
 			if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
 				teamString = locStrings.otherTeam;
 			}
-			leaderHtml = templateRenderer.renderTemplate("leader", {"leaderName" : leaderName, "team" : teamString});
+			leaderHtml = templateRenderer.renderTemplate("leader", {"team" : teamString});
 		}
 
 		var trickHtml = "";
 		for (var pid in trick) {
-			var playerName = locStrings["player"].replace("%playerId%", pid);
 			var cardHtml = templateRenderer.renderTemplate("card", {"suit" : trick[pid].suit, value : trick[pid].value});
-			trickHtml += templateRenderer.renderTemplate("trickElement", {"player" : playerName, "card" : cardHtml});
+			trickHtml += templateRenderer.renderTemplate("trickElement", {"card" : cardHtml});
 		}
 
 		var roundPlayingAreaHtml = templateRenderer.renderTemplate("playingRound", {"ledSuit" : ledSuitString, "currentTrick" : trickHtml, "leader" : leaderHtml});
 		var roundPlayingElement = jqueryWrapper.getElement(roundPlayingAreaHtml);
+
+		for (var pid in trick) {
+			var card = trick[pid];
+			var trickElement = roundPlayingElement.find(".trickElement").has("input.cardSuit[value=" + card.suit + "]").has("input.cardValue[value=" + card.value + "]");
+			var nameElement = trickElement.find(".playerName");
+			var namePromise = playerNameDirectory.getNamePromise(pid);
+			namePromise.registerForUpdates(nameElement);
+		}
+
 		return roundPlayingElement;
 	};
 
@@ -65,6 +73,6 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 	};
 };
 
-AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
-	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager);
+AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory) {
+	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory);
 };
