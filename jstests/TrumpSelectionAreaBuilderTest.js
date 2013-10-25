@@ -1,17 +1,20 @@
 TrumpSelectionAreaBuilderTest = TestCase("TrumpSelectionAreaBuilderTest");
 
 TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
-	this.locStrings = {"player" : "player %playerId%", "yourTeam" : "your team", "otherTeam" : "other team"};
+	this.locStrings = {"yourTeam" : "your team", "otherTeam" : "other team"};
 	this.playerId = "030480983";
 	this.currentPlayerId = this.playerId;
 	this.gameId = 34987234;
 	this.dealerId = "092380213";
-	this.dealerName = this.locStrings["player"].replace("%playerId%", this.dealerId);
 	this.status = "trump_selection";
 	this.teams = [[this.playerId, this.dealerId], ["3", "4"]];
 	this.dealerTeamString = this.locStrings.yourTeam;
 
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+
+	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.dealerNamePromise = mock(AVOCADO.PlayerNamePromise);
+	when(this.playerNameDirectory).getNamePromise(this.dealerId).thenReturn(this.dealerNamePromise);
 
 	this.upCard = {"suit" : 1, "value" : 10};
 	this.upCardHtml = "up card html";
@@ -32,6 +35,10 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 	when(this.trumpSelectionElement).find(".selectTrumpSuitButton").thenReturn(this.selectTrumpSuitButtonElement);
 	this.selectTrumpSuitInputElement = mock(TEST.FakeJQueryElement);
 	when(this.trumpSelectionElement).find(".selectTrumpSuitInput").thenReturn(this.selectTrumpSuitInputElement);
+	this.dealerElement = mock(TEST.FakeJQueryElement);
+	when(this.trumpSelectionElement).find(".dealer").thenReturn(this.dealerElement);
+	this.dealerNameElement = mock(TEST.FakeJQueryElement);
+	when(this.dealerElement).find(".playerName").thenReturn(this.dealerNameElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
 
@@ -54,12 +61,12 @@ TrumpSelectionAreaBuilderTest.prototype.tearDown = function() {
 };
 
 TrumpSelectionAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings, this.viewManager);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings, this.viewManager, this.playerNameDirectory);
 };
 
 TrumpSelectionAreaBuilderTest.prototype.train = function(trumpSelectionActionHtml) {
 	this.trumpSelectionHtml = "trump selection section";
-	when(this.templateRenderer).renderTemplate("trumpSelection", allOf(hasMember("card", this.upCardHtml), hasMember("dealerName", this.dealerName), hasMember("dealerTeam", this.dealerTeamString), hasMember("trumpSelectionAction", trumpSelectionActionHtml))).thenReturn(this.trumpSelectionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection", allOf(hasMember("card", this.upCardHtml), hasMember("dealerTeam", this.dealerTeamString), hasMember("trumpSelectionAction", trumpSelectionActionHtml))).thenReturn(this.trumpSelectionHtml);
 	when(this.jqueryWrapper).getElement(this.trumpSelectionHtml).thenReturn(this.trumpSelectionElement);
 
 	if (null != this.upCard) {
@@ -96,6 +103,12 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenDealer
 	this.train(this.trumpSelection1ActionHtml);
 
 	assertEquals(this.trumpSelectionElement, this.trigger(this.upCard));
+};
+
+TrumpSelectionAreaBuilderTest.prototype.testBuildHooksUpDealerNamePromise = function() {
+	this.train(this.trumpSelectionActionHtml);
+	this.trigger(this.upCard);
+	verify(this.dealerNamePromise).registerForUpdates(this.dealerNameElement);
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2 = function() {

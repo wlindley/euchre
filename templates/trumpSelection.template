@@ -1,5 +1,5 @@
 <div>
-	<div class="dealer">Dealer: %dealerName% (%dealerTeam%)</div>
+	<div class="dealer">Dealer: <span class="playerName"></span> (%dealerTeam%)</div>
 	<div class="upCared">Up card: <div>%card%</div></div>
 	%trumpSelectionAction%
 	<div class="trumpSelectionPass">
