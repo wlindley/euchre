@@ -7,7 +7,7 @@ AVOCADO.PlayerNameDirectory = function(ajax, locStrings, playerId) {
 
 	this.getNamePromise = function(pid) {
 		if (!(pid in promises)) {
-			promises[pid] = AVOCADO.PlayerNamePromise.getInstance(pid);
+			promises[pid] = AVOCADO.PlayerNamePromise.getInstance(pid, locStrings);
 			if (playerId == pid) {
 				promises[pid].setName(locStrings["you"]);
 			} else {

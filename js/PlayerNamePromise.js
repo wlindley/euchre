@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.PlayerNamePromise = function (playerId) {
+AVOCADO.PlayerNamePromise = function (playerId, locStrings) {
 	var playerName = undefined;
 	var elementsToUpdate = [];
 
@@ -15,7 +15,7 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 
 	this.getName = function() {
 		if (undefined === playerName) {
-			return "";
+			return locStrings["someone"];
 		}
 		return playerName;
 	};
@@ -27,7 +27,9 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 	this.registerForUpdates = function(element) {
 		elementsToUpdate.push(element);
 
-		if (undefined !== playerName) {
+		if (undefined === playerName) {
+			updateElement(element, locStrings["someone"]);
+		} else {
 			updateElement(element, playerName);
 		}
 	};
@@ -37,6 +39,6 @@ AVOCADO.PlayerNamePromise = function (playerId) {
 	}
 };
 
-AVOCADO.PlayerNamePromise.getInstance = function(playerId) {
-	return new AVOCADO.PlayerNamePromise(playerId);
+AVOCADO.PlayerNamePromise.getInstance = function(playerId, locStrings) {
+	return new AVOCADO.PlayerNamePromise(playerId, locStrings);
 };

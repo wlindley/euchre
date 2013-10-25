@@ -7,7 +7,8 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 	this.localPlayerId = "mno4567";
 	this.expectedYouString = "you string";
 	this.locStrings = {
-		"you" : this.expectedYouString
+		"you" : this.expectedYouString,
+		"someone" : "freeb"
 	};
 
 	this.ajax = mock(AVOCADO.Ajax);
@@ -50,7 +51,7 @@ PlayerNameDirectoryTest.prototype.testMultipleCallsToGetNamePromiseOnlyMakeOneSe
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = function() {
-	AVOCADO.PlayerNamePromise.getInstance = function(pid) {
+	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
@@ -65,7 +66,7 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = functio
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPlayerId = function() {
-	AVOCADO.PlayerNamePromise.getInstance = function(pid) {
+	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
@@ -82,7 +83,7 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 };
 
 PlayerNameDirectoryTest.prototype.testLocalPlayerIdImmediatelyGetsExpectedName = function() {
-	AVOCADO.PlayerNamePromise.getInstance = function(pid) {
+	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 

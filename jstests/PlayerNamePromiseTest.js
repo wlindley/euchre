@@ -2,20 +2,21 @@ PlayerNamePromiseTest = TestCase("PlayerNamePromiseTest");
 
 PlayerNamePromiseTest.prototype.setUp = function() {
 	this.playerId = "12345abc";
+	this.locStrings = {"someone" : "Foobar"};
 
 	this.buildTestObj();
 };
 
 PlayerNamePromiseTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.PlayerNamePromise(this.playerId);
+	this.testObj = new AVOCADO.PlayerNamePromise(this.playerId, this.locStrings);
 };
 
 PlayerNamePromiseTest.prototype.testGetPlayerIdReturnsExpectedPlayerId = function() {
 	assertEquals(this.playerId, this.testObj.getPlayerId());
 };
 
-PlayerNamePromiseTest.prototype.testGetNameReturnsEmptyStringByDefault = function() {
-	assertEquals("", this.testObj.getName());
+PlayerNamePromiseTest.prototype.testGetNameReturnsSomeoneByDefault = function() {
+	assertEquals(this.locStrings["someone"], this.testObj.getName());
 };
 
 PlayerNamePromiseTest.prototype.testGetNameReturnsExpectedValueAfterSetNameIsCalled = function() {
@@ -47,10 +48,10 @@ PlayerNamePromiseTest.prototype.testRegisterForUpdatesUpdatesElementIfAlreadyHas
 	verify(element).text(expectedName);	
 };
 
-PlayerNamePromiseTest.prototype.testRegisterForUpdatesDoesNotUpdateElementIfDoesNotHaveName = function() {
+PlayerNamePromiseTest.prototype.testRegisterForUpdatesUpdatesElementIfDoesNotHaveName = function() {
 	var element = mock(TEST.FakeJQueryElement);
 
 	this.testObj.registerForUpdates(element);
 
-	verify(element, never()).text(anything());
+	verify(element).text(this.locStrings["someone"]);
 };
