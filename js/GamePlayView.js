@@ -65,7 +65,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		roundPlayingInsertionPoint.append(roundPlayingElement);
 		var discardInsertionPoint = gameElement.find(".discard");
 		discardInsertionPoint.append(discardElement);
-		var previousTrickInsertionPoint = gameElement.find(".previousTrick");
+		var previousTrickInsertionPoint = gameElement.find(".previousTrickWrapper");
 		previousTrickInsertionPoint.append(previousTrickElement);
 
 		gamePlayDiv.append(gameElement);

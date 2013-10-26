@@ -61,7 +61,8 @@
 	position: relative;
 	vertical-align: bottom;
 	text-align: center;
-	left: 180px;
+	left: -40px;
+	bottom: -4px;
 }
 
 .trumpSelection {

@@ -107,7 +107,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
 	when(this.gameElement).find(".discard").thenReturn(this.discardInsertionElement);
-	when(this.gameElement).find(".previousTrick").thenReturn(this.previousTrickInsertionElement);
+	when(this.gameElement).find(".previousTrickWrapper").thenReturn(this.previousTrickInsertionElement);
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
 	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams).thenReturn(this.roundPlayingElement);
 	when(this.discardAreaBuilder).buildDiscardArea(this.status, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.discardElement);
