@@ -59,22 +59,6 @@ PreviousTrickDisplayBuilderTest.prototype.testHooksUpPlayerNamesToPromises = fun
 	}
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testPlayersCardClassSetAddedBeforeWinningCardClass = function() {
-	var playerIndex = this.players.indexOf(this.playerId);
-	var winnerIndex = this.players.indexOf(this.winnerId);
-	when(this.trickElementElements[winnerIndex]).addClass("winningCard").thenThrow("First!");
-
-	try {
-		this.trigger();
-	} catch (ex) {
-		//intentionally empty
-	}
-
-	verify(this.trickElementElements[winnerIndex]).addClass("winningCard");
-	verify(this.trickElementElements[playerIndex], never()).addClass("playersCard");
-	verify(this.trickElementElements[playerIndex], never()).append(this.playersCardHtml);
-};
-
 PreviousTrickDisplayBuilderTest.prototype.testAddsClickHandlerToContinueButton = function() {
 	var continueClickHandler = function() {};
 	this.testObj.buildContinueClickHandler = mockFunction();
