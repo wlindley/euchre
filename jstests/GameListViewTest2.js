@@ -126,17 +126,56 @@ GameListViewTest2.prototype.testShowCallsShowOnContainerDiv = function() {
 
 GameListViewTest2.prototype.testShowEmptiesContainerDivBeforeAppendingHeader = function() {
 	when(this.gameListDiv).empty().thenThrow("expected exception");
-	var hadException = false;
 
 	try {
 		this.trigger();
 	} catch (ex) {
-		hadException = true;
+		//intentionally empty
 	}
 
-	assertTrue(hadException);
 	verify(this.gameListDiv).empty();
 	verify(this.gameListDiv, never()).append(anything());
+};
+
+GameListViewTest2.prototype.testShowAppendsHeaderBeforeListElements = function() {
+	when(this.gameListDiv).append(this.listHeaderHtml).thenThrow("expected exception");
+
+	try {
+		this.trigger();
+	} catch (ex) {
+		//intentionally empty
+	}
+
+	verify(this.gameListDiv).append(this.listHeaderHtml);
+	for (var i in this.elements) {
+		verify(this.elements[i], never()).appendTo(anything());
+	}
+};
+
+GameListViewTest2.prototype.testShowAppendsListElementsBeforeGameCreator = function() {
+	when(this.elements[this.elements.length - 1]).appendTo(this.gameListDiv).thenThrow("expected exception");
+
+	try {
+		this.trigger();
+	} catch (ex) {
+		//intentionally empty
+	}
+
+	verify(this.elements[this.elements.length - 1]).appendTo(this.gameListDiv);
+	verify(this.gameListDiv, never()).append(this.gameCreatorElement);
+};
+
+GameListViewTest2.prototype.testShowAppendsGameCreatorBeforeGameJoiner = function() {
+	when(this.gameListDiv).append(this.gameCreatorElement).thenThrow("expected exception");
+
+	try {
+		this.trigger();
+	} catch (ex) {
+		//intentionally empty
+	}
+
+	verify(this.gameListDiv).append(this.gameCreatorElement);
+	verify(this.gameListDiv, never()).append(this.gameJoinerElement);
 };
 
 GameListViewTest2.prototype.testShowHooksUpCorrectClickHandlers = function() {
