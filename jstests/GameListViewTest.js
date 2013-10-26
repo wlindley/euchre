@@ -1,6 +1,6 @@
-GameListViewTest2 = TestCase("GameListViewTest2");
+GameListViewTest = TestCase("GameListViewTest");
 
-GameListViewTest2.prototype.setUp = function() {
+GameListViewTest.prototype.setUp = function() {
 	this.playerId = "45678ghi";
 	this.locStrings = {
 		"yourTurn" : "your turn",
@@ -49,11 +49,11 @@ GameListViewTest2.prototype.setUp = function() {
 	this.doTraining();
 };
 
-GameListViewTest2.prototype.buildTestObj = function() {
+GameListViewTest.prototype.buildTestObj = function() {
 	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId, this.gameCreatorBuilder, this.gameJoinerBuilder);
 };
 
-GameListViewTest2.prototype.doTraining = function() {
+GameListViewTest.prototype.doTraining = function() {
 	this.ajax.callbackResponse = {"games" : this.gameList, "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
@@ -83,48 +83,48 @@ GameListViewTest2.prototype.doTraining = function() {
 	when(this.clickTargetElement).attr("id").thenReturn("gameId_" + this.clickTargetGameId);
 };
 
-GameListViewTest2.prototype.trigger = function() {
+GameListViewTest.prototype.trigger = function() {
 	this.testObj.show();
 };
 
-GameListViewTest2.prototype.testInitRegistersWithViewManager = function() {
+GameListViewTest.prototype.testInitRegistersWithViewManager = function() {
 	this.testObj.init();
 	verify(this.viewManager).registerView("gameList", this.testObj);
 };
 
-GameListViewTest2.prototype.testShowEmptiesContainerDiv = function() {
+GameListViewTest.prototype.testShowEmptiesContainerDiv = function() {
 	this.trigger();
 	verify(this.gameListDiv).empty();
 };
 
-GameListViewTest2.prototype.testShowAppendsHeader = function() {
+GameListViewTest.prototype.testShowAppendsHeader = function() {
 	this.trigger();
 	verify(this.gameListDiv).append(this.listHeaderHtml);
 };
 
-GameListViewTest2.prototype.testShowAppendsGameListElements = function() {
+GameListViewTest.prototype.testShowAppendsGameListElements = function() {
 	this.trigger();
 	for (var i in this.elements) {
 		verify(this.elements[i]).appendTo(this.gameListDiv);
 	}
 };
 
-GameListViewTest2.prototype.testShowAppendsGameCreator = function() {
+GameListViewTest.prototype.testShowAppendsGameCreator = function() {
 	this.trigger();
 	verify(this.gameListDiv).append(this.gameCreatorElement);
 };
 
-GameListViewTest2.prototype.testShowAppendsGameJoiner = function() {
+GameListViewTest.prototype.testShowAppendsGameJoiner = function() {
 	this.trigger();
 	verify(this.gameListDiv).append(this.gameJoinerElement);
 };
 
-GameListViewTest2.prototype.testShowCallsShowOnContainerDiv = function() {
+GameListViewTest.prototype.testShowCallsShowOnContainerDiv = function() {
 	this.trigger();
 	verify(this.gameListDiv).show();
 };
 
-GameListViewTest2.prototype.testShowEmptiesContainerDivBeforeAppendingHeader = function() {
+GameListViewTest.prototype.testShowEmptiesContainerDivBeforeAppendingHeader = function() {
 	when(this.gameListDiv).empty().thenThrow("expected exception");
 
 	try {
@@ -137,7 +137,7 @@ GameListViewTest2.prototype.testShowEmptiesContainerDivBeforeAppendingHeader = f
 	verify(this.gameListDiv, never()).append(anything());
 };
 
-GameListViewTest2.prototype.testShowAppendsHeaderBeforeListElements = function() {
+GameListViewTest.prototype.testShowAppendsHeaderBeforeListElements = function() {
 	when(this.gameListDiv).append(this.listHeaderHtml).thenThrow("expected exception");
 
 	try {
@@ -152,7 +152,7 @@ GameListViewTest2.prototype.testShowAppendsHeaderBeforeListElements = function()
 	}
 };
 
-GameListViewTest2.prototype.testShowAppendsListElementsBeforeGameCreator = function() {
+GameListViewTest.prototype.testShowAppendsListElementsBeforeGameCreator = function() {
 	when(this.elements[this.elements.length - 1]).appendTo(this.gameListDiv).thenThrow("expected exception");
 
 	try {
@@ -165,7 +165,7 @@ GameListViewTest2.prototype.testShowAppendsListElementsBeforeGameCreator = funct
 	verify(this.gameListDiv, never()).append(this.gameCreatorElement);
 };
 
-GameListViewTest2.prototype.testShowAppendsGameCreatorBeforeGameJoiner = function() {
+GameListViewTest.prototype.testShowAppendsGameCreatorBeforeGameJoiner = function() {
 	when(this.gameListDiv).append(this.gameCreatorElement).thenThrow("expected exception");
 
 	try {
@@ -178,7 +178,7 @@ GameListViewTest2.prototype.testShowAppendsGameCreatorBeforeGameJoiner = functio
 	verify(this.gameListDiv, never()).append(this.gameJoinerElement);
 };
 
-GameListViewTest2.prototype.testShowHooksUpCorrectClickHandlers = function() {
+GameListViewTest.prototype.testShowHooksUpCorrectClickHandlers = function() {
 	this.trigger();
 	for (var i in this.statuses) {
 		if ("waiting_for_more_players" != this.statuses[i]) {
@@ -189,7 +189,7 @@ GameListViewTest2.prototype.testShowHooksUpCorrectClickHandlers = function() {
 	}
 };
 
-GameListViewTest2.prototype.testShowRemovesClassesFromListEntries = function() {
+GameListViewTest.prototype.testShowRemovesClassesFromListEntries = function() {
 	this.trigger();
 	for (var i in this.statuses) {
 		if ("waiting_for_more_players" == this.statuses[i]) {
@@ -201,17 +201,17 @@ GameListViewTest2.prototype.testShowRemovesClassesFromListEntries = function() {
 	}
 };
 
-GameListViewTest2.prototype.testShowGameDataHidesSelf = function() {
+GameListViewTest.prototype.testShowGameDataHidesSelf = function() {
 	this.testObj.showGameData(this.clickEvent);
 	verify(this.gameListDiv).hide();
 }
 
-GameListViewTest2.prototype.testShowGameDataCallsGamePlayView = function() {
+GameListViewTest.prototype.testShowGameDataCallsGamePlayView = function() {
 	this.testObj.showGameData(this.clickEvent);
 	verify(this.viewManager).showView("gamePlay", hasMember("gameId", this.clickTargetGameId));
 };
 
-GameListViewTest2.prototype.testHideHidesContainerDiv = function() {
+GameListViewTest.prototype.testHideHidesContainerDiv = function() {
 	this.testObj.hide();
 	verify(this.gameListDiv).hide();
 };
