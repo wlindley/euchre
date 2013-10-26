@@ -8,8 +8,8 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
 
-	this.gameCreator = mock(AVOCADO.GameCreator);
-	this.gameJoiner = mock(AVOCADO.GameJoiner);
+	this.gameCreator = mock(AVOCADO.GameCreatorBuilder);
+	this.gameJoiner = mock(AVOCADO.GameJoinerBuilder);
 
 	this.locStrings = {"yourTurn" : "your turn", "otherTurn" : "Player %playerId%'s turn", "noTurn" : "no turn"};
 	this.playerId = "3";

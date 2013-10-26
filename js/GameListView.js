@@ -21,7 +21,8 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		gameListDiv.empty();
 		gameListDiv.append(templateRenderer.renderTemplate("gameListHeader"));
 		for (var i = 0; i < response.games.length; i++) {
-			var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i])));
+			var gameHtml = templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i]));
+			var element = jqueryWrapper.getElement(gameHtml);
 			if (response.games[i].status != "waiting_for_more_players") {
 				element.find(".viewGameData").click(self.showGameData);
 			} else {
