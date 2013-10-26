@@ -1,6 +1,6 @@
-GameCreatorTest = TestCase("GameCreatorTest")
+GameCreatorBuilderTest = TestCase("GameCreatorBuilderTest")
 
-GameCreatorTest.prototype.setUp = function() {
+GameCreatorBuilderTest.prototype.setUp = function() {
 	this.playerId = "12345";
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
@@ -19,22 +19,22 @@ GameCreatorTest.prototype.setUp = function() {
 	this.doTraining();
 };
 
-GameCreatorTest.prototype.tearDown = function() {
+GameCreatorBuilderTest.prototype.tearDown = function() {
 	setTimeout = this.origSetTimeout;
 };
 
-GameCreatorTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
+GameCreatorBuilderTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
 	var element = this.trigger();
 	assertEquals(this.gameCreatorElement, element);
 };
 
-GameCreatorTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
+GameCreatorBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
 	this.trigger();
 
 	verify(this.createGameButton).click(this.testObj.createGameClickHandler);
 };
 
-GameCreatorTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
+GameCreatorBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
 	var params = null;
 	when(this.ajax).call("createGame", anything(), anything()).then(function(action, data, callback) {
 		params = data;
@@ -44,7 +44,7 @@ GameCreatorTest.prototype.testCreateGameCallsServerWithCorrectData = function() 
 	assertEquals(0, params["team"]);
 };
 
-GameCreatorTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView = function() {
+GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -62,7 +62,7 @@ GameCreatorTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView
 	assertTrue(hasCalledAsync);
 };
 
-GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
+GameCreatorBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
 		hasCalledAsync = true;
@@ -78,16 +78,16 @@ GameCreatorTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGam
 	assertFalse(hasCalledAsync);
 };
 
-GameCreatorTest.prototype.doTraining = function() {
+GameCreatorBuilderTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(this.gameCreatorHtml);
 	when(this.jqueryWrapper).getElement(this.gameCreatorHtml).thenReturn(this.gameCreatorElement);
 	when(this.gameCreatorElement).find("#btnCreateGame").thenReturn(this.createGameButton);
 };
 
-GameCreatorTest.prototype.trigger = function() {
+GameCreatorBuilderTest.prototype.trigger = function() {
 	return this.testObj.buildGameCreator();
 };
 
-GameCreatorTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreator.getInstance(this.playerId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
+GameCreatorBuilderTest.prototype.buildTestObj = function() {
+	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.playerId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
 };

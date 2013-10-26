@@ -5,9 +5,9 @@ js/PlayerNamePromise.js
 js/PlayerNameDirectory.js
 js/GameLister.js
 js/GameListView.js
-js/GameCreator.js
+js/GameCreatorBuilder.js
 js/TemplateRenderer.js
-js/GameJoiner.js
+js/GameJoinerBuilder.js
 js/GamePlayView.js
 js/ViewManager.js
 js/TrumpSelectionAreaBuilder.js

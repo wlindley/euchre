@@ -1,6 +1,6 @@
-GameJoinerTest = TestCase("GameJoinerTest");
+GameJoinerBuilderTest = TestCase("GameJoinerBuilderTest");
 
-GameJoinerTest.prototype.setUp = function() {
+GameJoinerBuilderTest.prototype.setUp = function() {
 	this.fbId = "1234567";
 	this.ajax = mock(AVOCADO.Ajax);
 	this.txtGameId = mock(TEST.FakeJQueryElement);
@@ -21,16 +21,16 @@ GameJoinerTest.prototype.setUp = function() {
 	this.doTraining();
 };
 
-GameJoinerTest.prototype.tearDown = function() {
+GameJoinerBuilderTest.prototype.tearDown = function() {
 	setTimeout = this.origSetTimeout;
 };
 
-GameJoinerTest.prototype.testBuildGameJoinerReturnsExpectedElement = function() {
+GameJoinerBuilderTest.prototype.testBuildGameJoinerReturnsExpectedElement = function() {
 	var result = this.trigger();
 	assertEquals(this.gameJoinerElement, result);
 };
 
-GameJoinerTest.prototype.testBuildGameJoinerBindsClickHandler = function() {
+GameJoinerBuilderTest.prototype.testBuildGameJoinerBindsClickHandler = function() {
 	var clickHandler = function() {};
 	var prevBuilderFunc = this.testObj.buildJoinGameClickHandler;
 	this.testObj.buildJoinGameClickHandler = mockFunction();
@@ -42,7 +42,7 @@ GameJoinerTest.prototype.testBuildGameJoinerBindsClickHandler = function() {
 	this.testObj.buildJoinGameClickHandler = prevBuilderFunc;
 };
 
-GameJoinerTest.prototype.testJoinGameFromTextFieldsCallsAjaxWithCorrectData = function() {
+GameJoinerBuilderTest.prototype.testJoinGameFromTextFieldsCallsAjaxWithCorrectData = function() {
 	var gameId = "1384";
 	var teamId = "1";
 	when(this.txtGameId).val().thenReturn(gameId);
@@ -53,7 +53,7 @@ GameJoinerTest.prototype.testJoinGameFromTextFieldsCallsAjaxWithCorrectData = fu
 	verify(this.ajax).call("addPlayer", allOf(hasMember("gameId", gameId), hasMember("team", teamId), hasMember("playerId", this.fbId)), func());
 };
 
-GameJoinerTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
+GameJoinerBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -72,7 +72,7 @@ GameJoinerTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = f
 	assertTrue(hasCalledAsync);
 };
 
-GameJoinerTest.prototype.testUnsuccessfulJoinGameResponseDoesNotRefreshesGameListView = function() {
+GameJoinerBuilderTest.prototype.testUnsuccessfulJoinGameResponseDoesNotRefreshesGameListView = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -90,7 +90,7 @@ GameJoinerTest.prototype.testUnsuccessfulJoinGameResponseDoesNotRefreshesGameLis
 	assertFalse(hasCalledAsync);
 };
 
-GameJoinerTest.prototype.doTraining = function() {
+GameJoinerBuilderTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("gameJoiner").thenReturn(this.gameJoinerHtml);
 	when(this.jqueryWrapper).getElement(this.gameJoinerHtml).thenReturn(this.gameJoinerElement);
 	when(this.gameJoinerElement).find("#btnJoinGame").thenReturn(this.btnJoinGame);
@@ -98,10 +98,10 @@ GameJoinerTest.prototype.doTraining = function() {
 	when(this.gameJoinerElement).find("#txtTeam").thenReturn(this.txtTeamId);
 };
 
-GameJoinerTest.prototype.trigger = function() {
+GameJoinerBuilderTest.prototype.trigger = function() {
 	return this.testObj.buildGameJoiner();
 };
 
-GameJoinerTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameJoiner(this.fbId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
+GameJoinerBuilderTest.prototype.buildTestObj = function() {
+	this.testObj = new AVOCADO.GameJoinerBuilder(this.fbId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
 };

@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameJoiner = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
+AVOCADO.GameJoinerBuilder = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
 	var self = this;
 
 	this.buildGameJoiner = function() {
@@ -32,6 +32,6 @@ AVOCADO.GameJoiner = function(playerId, ajax, viewManager, templateRenderer, jqu
 	}
 };
 
-AVOCADO.GameJoiner.getInstance = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
-	return new AVOCADO.GameJoiner(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
+AVOCADO.GameJoinerBuilder.getInstance = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
+	return new AVOCADO.GameJoinerBuilder(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
 };
