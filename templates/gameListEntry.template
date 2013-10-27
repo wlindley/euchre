@@ -1,6 +1,5 @@
 <div class="gameListEntry gameListEntryClickable gameListEntryYourTurn">
 	<a class="viewGameData" id="gameId_%gameId%">
-	<div>Game id: %gameId%</div>
 	<table class="gameListElementTeams">
 		<tr>
 			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></td>
@@ -12,8 +11,9 @@
 			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></td>
 		</tr>
 	</table>
-	<div>Status: %status%</div>
 	<div class="turn">Turn: <span class="playerName"></span></div>
+	<div>Status: %status%</div>
+	<div>Game id: %gameId%</div>
 	</a>
 </div>
 <div class="gameListEntrySpacer"></div>
