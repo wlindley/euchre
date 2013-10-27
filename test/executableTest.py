@@ -111,6 +111,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		playerId = "2854"
 		when(self.requestDataAccessor).get("playerId").thenReturn(playerId)
 		participatingPlayerIds = [playerId, "54321", "8976", "12345"]
+		teams = [[playerId, "54321"], ["8976", "12345"]]
 
 		serializedGames = []
 		gameIds = []
@@ -133,6 +134,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 
 		for i in range(NUM_GAMES):
 			gameModels[i].playerId = participatingPlayerIds
+			gameModels[i].teams = json.dumps(teams)
 			gameModels[i].gameId = gameIds[i]
 			gameModels[i].serializedGame = serializedGames[i]
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
@@ -140,6 +142,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			when(sequences[i]).getState().thenReturn(sequenceStates[i])
 			when(self.turnRetriever).retrieveTurn(games[i], playerId).thenReturn(currentTurns[i])
 		gameModels[3].playerId = gameModels[3].playerId[:2]
+		gameModels[3].teams = json.dumps([teams[0]])
 		gameModels[3].serializedGame = ""
 		
 		self.testObj.execute()
@@ -152,11 +155,11 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		for i in range(NUM_GAMES):
 			expectedResponse["games"].append({
 				"gameId" : gameModels[i].gameId,
+				"teams" : teams,
 				"status" : statuses[i],
-				"currentPlayerId" : currentTurns[i],
-				"playerIds" : participatingPlayerIds
+				"currentPlayerId" : currentTurns[i]
 			})
-		expectedResponse["games"][3]["playerIds"] = participatingPlayerIds[:2]
+		expectedResponse["games"][3]["teams"] = [teams[0]]
 
 		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
 

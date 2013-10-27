@@ -108,7 +108,7 @@ class ListGamesExecutable(AbstractExecutable):
 	def _buildGameData(self, playerId, gameModel):
 		gameData = {
 			"gameId" : gameModel.gameId,
-			"playerIds" : gameModel.playerId
+			"teams" : json.loads(gameModel.teams)
 		}
 		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
 			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(None)

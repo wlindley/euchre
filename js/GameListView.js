@@ -41,6 +41,20 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 				namePromise.registerForUpdates(nameElement);
 			}
 
+			var playerTable = element.find(".gameListElementTeams");
+			for (var teamId = 0; teamId < 2; teamId++) {
+				for (var index = 0; index < 2; index++) {
+					var dataElement = playerTable.find("td").has("input.team[value=" + teamId + "]").has("input.index[value=" + index + "]");
+					var dataNameElement = dataElement.find(".playerName");
+					if ((teamId in response.games[i].teams) && (index in response.games[i].teams[teamId])) {
+						var namePromise = playerNameDirectory.getNamePromise(response.games[i].teams[teamId][index]);
+						namePromise.registerForUpdates(dataNameElement);
+					} else {
+						dataNameElement.text(locStrings["inviteCTA"]);
+					}
+				}
+			}
+
 			element.appendTo(gameListDiv);
 		}
 
@@ -56,8 +70,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	function buildTemplateValues(gameData) {
 		var values = {
 			"gameId" : gameData.gameId,
-			"status" : gameData.status,
-			"playerIds" : gameData.playerIds
+			"status" : gameData.status
 		};
 		return values;
 	}
