@@ -12,12 +12,25 @@
 	width: 400px;
 }
 
+.gameListElementTeams {
+	border-spacing: 5px;
+}
+
+table.gameListElementTeams {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+td.gameListTableData {
+	text-align: center;
+}
+
 .playerName {
 	font-weight: bold;
 }
 
 .vs {
-	font-weight: bold;
+	
 }
 
 .gameListEntryClickable {

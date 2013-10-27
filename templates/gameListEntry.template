@@ -3,13 +3,13 @@
 	<div>Game id: %gameId%</div>
 	<table class="gameListElementTeams">
 		<tr>
-			<td><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></td>
-			<td rowspan="2"><span class="vs">%vs%</span></td>
-			<td><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="0" class="index"/></td>
+			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></td>
+			<td rowspan="2" class="gameListTableData"><span class="vs">%vs%</span></td>
+			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="0" class="index"/></td>
 		</tr>
 		<tr>
-			<td><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="1" class="index"/></td>
-			<td><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></td>
+			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="1" class="index"/></td>
+			<td class="gameListTableData"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></td>
 		</tr>
 	</table>
 	<div>Status: %status%</div>
