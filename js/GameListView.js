@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner, playerNameDirectory) {
 	var self = this;
 
 	this.init = function() {
@@ -23,6 +23,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		for (var i = 0; i < response.games.length; i++) {
 			var gameHtml = templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i]));
 			var element = jqueryWrapper.getElement(gameHtml);
+
 			if (response.games[i].status != "waiting_for_more_players") {
 				element.find(".viewGameData").click(self.showGameData);
 			} else {
@@ -31,6 +32,15 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 			if (response.games[i].currentPlayerId != playerId) {
 				element.removeClass("gameListEntryYourTurn");
 			}
+
+			var nameElement = element.find(".playerName");
+			if (null == response.games[i].currentPlayerId) {
+				nameElement.text(locStrings["n/a"]);
+			} else {
+				var namePromise = playerNameDirectory.getNamePromise(response.games[i].currentPlayerId);
+				namePromise.registerForUpdates(nameElement);
+			}
+
 			element.appendTo(gameListDiv);
 		}
 
@@ -44,17 +54,10 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	}
 
 	function buildTemplateValues(gameData) {
-		var turnString = locStrings.yourTurn;
-		if (null == gameData.currentPlayerId) {
-			turnString = locStrings.noTurn;
-		} else if (gameData.currentPlayerId != playerId) {
-			turnString = locStrings.otherTurn.replace("%playerId%", gameData.currentPlayerId);
-		}
 		var values = {
 			"gameId" : gameData.gameId,
 			"status" : gameData.status,
-			"playerIds" : gameData.playerIds,
-			"turn" : turnString
+			"playerIds" : gameData.playerIds
 		};
 		return values;
 	}
@@ -67,9 +70,9 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	};
 };
 
-AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId) {
+AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, playerNameDirectory) {
 	var gameLister = new AVOCADO.GameLister.getInstance(playerId, ajax);
 	var gameCreator = new AVOCADO.GameCreatorBuilder.getInstance(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
 	var gameJoiner = new AVOCADO.GameJoinerBuilder.getInstance(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner, playerNameDirectory);
 };

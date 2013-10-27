@@ -1,7 +1,6 @@
 {
 	"yourTurn" : "Your turn",
 	"otherTurn" : "Player %playerId%'s turn",
-	"noTurn" : "No turn",
 	"player" : "Player %playerId%",
 	"suit_1" : "clubs",
 	"suit_2" : "diamonds",
@@ -13,5 +12,6 @@
 	"otherTeam" : "Other team",
 	"discardMessage" : "As dealer, you picked up a card when you or someone else called trump. Now you must discard one of the cards in your hand.",
 	"you" : "You",
-	"someone" : "Someone"
+	"someone" : "Someone",
+	"n/a" : "N/A"
 }

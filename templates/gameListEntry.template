@@ -3,7 +3,7 @@
 	<div>Game id: %gameId%</div>
 	<div>Player IDs: %playerIds%</div>
 	<div>Status: %status%</div>
-	<div>Turn: %turn%</div>
+	<div>Turn: <span class="playerName"></span></div>
 	</a>
 </div>
 <div class="gameListEntrySpacer"></div>
