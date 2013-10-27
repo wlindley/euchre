@@ -2,8 +2,19 @@
 	<a class="viewGameData" id="gameId_%gameId%">
 	<div>Game id: %gameId%</div>
 	<div>Player IDs: %playerIds%</div>
+	<table class="gameListElementPlayers">
+		<tr>
+			<td><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></td>
+			<td rowspan="2"><span class="vs">%vs%</span></td>
+			<td><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="0" class="index"/></td>
+		</tr>
+		<tr>
+			<td><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="1" class="index"/></td>
+			<td><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></td>
+		</tr>
+	</table>
 	<div>Status: %status%</div>
-	<div>Turn: <span class="playerName"></span></div>
+	<div class="turn">Turn: <span class="playerName"></span></div>
 	</a>
 </div>
 <div class="gameListEntrySpacer"></div>

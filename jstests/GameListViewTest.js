@@ -25,8 +25,16 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameList = [];
 	this.elements = [];
 	this.linkElements = [];
-	this.namePromises = [];
-	this.nameElements = [];
+	this.namePromises = {};
+	this.turnNameElements = [];
+	this.turnElements = [];
+	this.tableElements = [];
+	for (var i in this.playerIdLists) {
+		for (var j in this.playerIdLists[i]) {
+			var pid = this.playerIdLists[i][j];
+			this.namePromises[pid] = mock(AVOCADO.PlayerNamePromise);
+		}
+	}
 	for (var i in this.gameIds) {
 		this.gameList.push({
 			"gameId" : this.gameIds[i],
@@ -36,8 +44,8 @@ GameListViewTest.prototype.setUp = function() {
 		});
 		this.elements.push(mock(TEST.FakeJQueryElement));
 		this.linkElements.push(mock(TEST.FakeJQueryElement));
-		this.namePromises.push(mock(AVOCADO.PlayerNamePromise));
-		this.nameElements.push(mock(TEST.FakeJQueryElement));
+		this.turnNameElements.push(mock(TEST.FakeJQueryElement));
+		this.turnElements.push(mock(TEST.FakeJQueryElement));
 	}
 	this.listHeaderHtml = "list header";
 	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
@@ -60,6 +68,9 @@ GameListViewTest.prototype.doTraining = function() {
 	this.ajax.callbackResponse = {"games" : this.gameList, "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
+	for (var pid in this.namePromises) {
+		when(this.playerNameDirectory).getNamePromise(pid).thenReturn(this.namePromises[pid]);
+	}
 	for (var i in this.gameList) {
 		var gameHtml = "game " + this.gameIds[i];
 		var expectedValues = allOf(
@@ -70,10 +81,8 @@ GameListViewTest.prototype.doTraining = function() {
 		when(this.templateRenderer).renderTemplate("gameListEntry", expectedValues).thenReturn(gameHtml);
 		when(this.jqueryWrapper).getElement(gameHtml).thenReturn(this.elements[i]);
 		when(this.elements[i]).find(".viewGameData").thenReturn(this.linkElements[i]);
-		when(this.elements[i]).find(".playerName").thenReturn(this.nameElements[i]);
-		if (null != this.currentPlayerIds[i]) {
-			when(this.playerNameDirectory).getNamePromise(this.currentPlayerIds[i]).thenReturn(this.namePromises[i]);
-		}
+		when(this.elements[i]).find(".turn").thenReturn(this.turnElements[i]);
+		when(this.turnElements[i]).find(".playerName").thenReturn(this.turnNameElements[i]);
 	}
 
 	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
@@ -111,11 +120,12 @@ GameListViewTest.prototype.testShowAppendsGameListElements = function() {
 
 GameListViewTest.prototype.testHooksUpNamePromises = function() {
 	this.trigger();
-	for (var i in this.nameElements) {
-		if (null != this.currentPlayerIds[i]) {
-			verify(this.namePromises[i]).registerForUpdates(this.nameElements[i]);
+	for (var i in this.turnNameElements) {
+		var pid = this.currentPlayerIds[i];
+		if (null != pid) {
+			verify(this.namePromises[pid]).registerForUpdates(this.turnNameElements[i]);
 		} else {
-			verify(this.nameElements[i]).text(this.locStrings["n/a"]);
+			verify(this.turnNameElements[i]).text(this.locStrings["n/a"]);
 		}
 	}
 };

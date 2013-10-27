@@ -33,7 +33,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 				element.removeClass("gameListEntryYourTurn");
 			}
 
-			var nameElement = element.find(".playerName");
+			var nameElement = element.find(".turn").find(".playerName");
 			if (null == response.games[i].currentPlayerId) {
 				nameElement.text(locStrings["n/a"]);
 			} else {

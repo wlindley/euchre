@@ -13,5 +13,6 @@
 	"discardMessage" : "As dealer, you picked up a card when you or someone else called trump. Now you must discard one of the cards in your hand.",
 	"you" : "You",
 	"someone" : "Someone",
-	"n/a" : "N/A"
+	"n/a" : "N/A",
+	"vs" : "VS."
 }
