@@ -1,6 +1,4 @@
 {
-	"yourTurn" : "Your turn",
-	"otherTurn" : "Player %playerId%'s turn",
 	"player" : "Player %playerId%",
 	"suit_1" : "clubs",
 	"suit_2" : "diamonds",
