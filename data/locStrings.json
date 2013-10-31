@@ -13,5 +13,8 @@
 	"someone" : "Someone",
 	"n/a" : "N/A",
 	"vs" : "VS",
-	"inviteCTA" : "Invite more..."
+	"inviteCTA" : "Invite more...",
+	"trump_selection" : "Selecting trump",
+	"round_in_progress" : "Playing hand",
+	"waiting_for_more_players" : "Waiting for more players"
 }

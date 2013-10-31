@@ -70,7 +70,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	function buildTemplateValues(gameData) {
 		var values = {
 			"gameId" : gameData.gameId,
-			"status" : gameData.status,
+			"status" : locStrings[gameData.status],
 			"vs" : locStrings["vs"]
 		};
 		return values;

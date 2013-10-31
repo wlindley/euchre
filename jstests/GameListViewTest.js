@@ -4,7 +4,10 @@ GameListViewTest.prototype.setUp = function() {
 	this.playerId = "45678ghi";
 	this.locStrings = {
 		"n/a" : "N/A",
-		"inviteCTA" : "invite"
+		"inviteCTA" : "invite",
+		"round_in_progress" : "foo",
+		"waiting_for_more_players" : "bar",
+		"trump_selection" : "baz"
 	};
 
 	this.ajax = TEST.FakeAjax.getInstance();
@@ -93,7 +96,7 @@ GameListViewTest.prototype.doTraining = function() {
 		var gameHtml = "game " + this.gameIds[i];
 		var expectedValues = allOf(
 			hasMember("gameId", equalTo(this.gameIds[i])),
-			hasMember("status", equalTo(this.statuses[i])),
+			hasMember("status", equalTo(this.locStrings[this.statuses[i]])),
 			hasMember("vs", equalTo(this.locStrings["vs"]))
 		);
 		when(this.templateRenderer).renderTemplate("gameListEntry", expectedValues).thenReturn(gameHtml);
