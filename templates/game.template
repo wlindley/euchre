@@ -4,7 +4,9 @@
 	%gameScores%
 	%roundScores%
 	<div class="previousTrickWrapper"></div>
-	%turn%
+	<div class="turn">
+		Turn: <span class="playerName"/>
+	</div>
 	<div class="trumpDisplay">%trump%</div>
 	<div class="discard"></div>
 	%hand%

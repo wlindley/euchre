@@ -1,11 +1,15 @@
 GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
-	this.locStrings = {"yourTurn" : "Your turn", "otherTurn" : "Other turn %playerId%", "trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c"};
+	this.locStrings = {"trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c"};
 	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
 	this.playerIds = [this.playerId, "2", "3", "4"];
+	this.playerNamePromises = [];
+	for (var i = 0; i < this.playerIds.length; i++) {
+		this.playerNamePromises.push(mock(AVOCADO.PlayerNamePromise));
+	}
 	this.teams = [[this.playerId, "2"], ["3", "4"]];
 	this.gameScores = [Math.floor(Math.random() * 11), Math.floor(Math.random() * 11)];
 	this.roundScores = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
@@ -29,7 +33,6 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.handHtml = "the whole hand";
 	this.viewGameListElement = mock(TEST.FakeJQueryElement);
 	this.trumpSelectionElement = mock(TEST.FakeJQueryElement);
-	this.expectedTurn = this.locStrings.yourTurn;
 	this.gameHtml = "the whole game";
 	this.gameElement = mock(TEST.FakeJQueryElement);
 	this.trumpSelectionInsertionElement = mock(TEST.FakeJQueryElement);
@@ -43,6 +46,8 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.discardElement = mock(TEST.FakeJQueryElement);
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
 	this.previousTrickInsertionElement = mock(TEST.FakeJQueryElement);
+	this.turnElement = mock(TEST.FakeJQueryElement);
+	this.turnNameElement = mock(TEST.FakeJQueryElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -53,6 +58,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.discardAreaBuilder = mock(AVOCADO.DiscardAreaBuilder);
 	this.previousTrickDisplayBuilder = mock(AVOCADO.PreviousTrickDisplayBuilder);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 
 	this.buildResponseObj();
 	this.doTraining();
@@ -93,6 +99,10 @@ GamePlayViewTest.prototype.doTraining = function() {
 		this.expectedTrumpText = this.locStrings.trumpDisplay.replace("%trumpSuit%", this.locStrings["suit_" + this.trumpSuit]);
 	}
 
+	for (var i = 0; i < this.playerIds.length; i++) {
+		when(this.playerNameDirectory).getNamePromise(this.playerIds[i]).thenReturn(this.playerNamePromises[i]);
+	}
+
 	var handElement = mock(TEST.FakeJQueryElement);
 	when(this.gameElement).find(".hand").thenReturn(handElement);
 	when(handElement).find(".card").thenReturn(this.cardsElement);
@@ -102,7 +112,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams).thenReturn(this.trumpSelectionElement);
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("turn", this.expectedTurn), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.expectedTrumpText))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.expectedTrumpText))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
@@ -125,6 +135,8 @@ GamePlayViewTest.prototype.doTraining = function() {
 	}
 	when(this.templateRenderer).renderTemplate("gameScores", allOf(hasMember("yourScore", yourTeamScore), hasMember("otherScore", otherTeamScore))).thenReturn(this.gameScoresHtml);
 	when(this.templateRenderer).renderTemplate("roundScores", allOf(hasMember("yourScore", yourTeamRoundScore), hasMember("otherScore", otherTeamRoundScore))).thenReturn(this.roundScoresHtml);
+	when(this.gameElement).find(".turn").thenReturn(this.turnElement);
+	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 };
 
 GamePlayViewTest.prototype.verifyCorrectView = function() {
@@ -161,9 +173,8 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 };
 
 GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
-	var otherPlayerId = "4320987";
+	var otherPlayerId = this.playerIds[1];
 	this.currentPlayerId = otherPlayerId;
-	this.expectedTurn = this.locStrings.otherTurn.replace("%playerId%", otherPlayerId);
 
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.ajax = new TEST.FakeAjax();
@@ -181,7 +192,6 @@ GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 
 GamePlayViewTest.prototype.testHandlesNullTurn = function() {
 	this.currentPlayerId = null;
-	this.expectedTurn = "";
 
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.ajax = new TEST.FakeAjax();
@@ -196,6 +206,24 @@ GamePlayViewTest.prototype.testHandlesNullTurn = function() {
 
 	this.verifyCorrectView();
 };
+
+GamePlayViewTest.prototype.testHooksUpNamePromiseForTurn = function() {
+	for (var i = 0; i < this.playerIds.length; i++) {
+		this.currentPlayerId = this.playerIds[i];
+
+		this.ajax = new TEST.FakeAjax();
+
+		this.buildResponseObj();
+		this.doTraining();
+		this.buildTestObj();
+
+		this.ajax.callbackResponse = this.response;
+
+		this.testObj.show({"gameId" : this.gameId});
+
+		verify(this.playerNamePromises[i]).registerForUpdates(this.turnNameElement);
+	}
+}
 
 GamePlayViewTest.prototype.testSwapsScoresWhenPlayerIsOnSecondTeam = function() {
 	this.teams = [this.teams[1], this.teams[0]];
@@ -242,5 +270,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder, this.playerNameDirectory);
 };
