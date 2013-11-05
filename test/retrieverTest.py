@@ -154,8 +154,11 @@ class GameStatusRetrieverTest(testhelper.TestCase):
 	def setUp(self):
 		self.game = testhelper.createMock(euchre.Game)
 		self.sequence = testhelper.createMock(euchre.Sequence)
+		self.targetScore = euchre.WINNING_SCORE
 		when(self.game).getSequence().thenReturn(self.sequence)
-		self.testObj = retriever.GameStatusRetriever.getInstance()
+		when(self.game).getTeamScore(0).thenReturn(0)
+		when(self.game).getTeamScore(1).thenReturn(0)
+		self.testObj = retriever.GameStatusRetriever.getInstance(self.targetScore)
 
 	def testRetrieveStatusReturnsCorrectValueWhenGameIsNull(self):
 		self.assertEqual("waiting_for_more_players", self.testObj.retrieveGameStatus(None))
@@ -175,6 +178,12 @@ class GameStatusRetrieverTest(testhelper.TestCase):
 	def testRetrieveStatusReturnsDiscardWhenSequenceIsInDiscard(self):
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
 		self.assertEqual("discard", self.testObj.retrieveGameStatus(self.game))
+
+	def testRetrieveStatusReturnsCompleteWhenATeamsScoreIsHighEnough(self):
+		statuses = [euchre.Sequence.STATE_TRUMP_SELECTION, euchre.Sequence.STATE_TRUMP_SELECTION_2, euchre.Sequence.STATE_PLAYING_ROUND, euchre.Sequence.STATE_DISCARD]
+		when(self.sequence).getState().thenReturn(statuses[random.randint(0, len(statuses) - 1)])
+		when(self.game).getTeamScore(0).thenReturn(self.targetScore)
+		self.assertEqual("complete", self.testObj.retrieveGameStatus(self.game))
 
 class LedSuitRetrieverTest(testhelper.TestCase):
 	def setUp(self):

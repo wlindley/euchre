@@ -79,14 +79,20 @@ class UpCardRetriever(object):
 class GameStatusRetriever(object):
 	instance = None
 	@classmethod
-	def getInstance(cls):
+	def getInstance(cls, winningScore):
 		if None != cls.instance:
 			return cls.instance
-		return GameStatusRetriever()
+		return GameStatusRetriever(winningScore)
+
+	def __init__(self, winningScore):
+		super(GameStatusRetriever, self).__init__()
+		self._winningScore = winningScore
 
 	def retrieveGameStatus(self, gameObj):
 		if None == gameObj:
 			return "waiting_for_more_players"
+		if self._winningScore <= gameObj.getTeamScore(0) or self._winningScore <= gameObj.getTeamScore(1):
+			return "complete"
 		sequenceState = gameObj.getSequence().getState()
 		if euchre.Sequence.STATE_TRUMP_SELECTION == sequenceState:
 			return "trump_selection"

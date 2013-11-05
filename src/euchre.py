@@ -27,6 +27,8 @@ NUM_PLAYERS = 4
 HAND_SIZE = 5
 MIN_4_PLAYER_CARD_VALUE = 9
 
+WINNING_SCORE = 10
+
 class Card(object):
 	instance = None
 	@classmethod
