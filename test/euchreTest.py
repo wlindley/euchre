@@ -711,6 +711,7 @@ class GameTest(testhelper.TestCase):
 		for teamId in range(len(self.teams)):
 			for playerId in self.teams[teamId]:
 				when(self.scoreTracker).getTeamIdFromPlayerId(playerId).thenReturn(teamId)
+			when(self.scoreTracker).getTeamScore(teamId).thenReturn(0)
 		when(self.scoreTracker).getTeams().thenReturn(self.teams)
 
 		self._buildTestObj()
@@ -807,6 +808,19 @@ class GameTest(testhelper.TestCase):
 		self.game.startGame()
 		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_JACK))
 		verify(sequence).scoreCurrentRound(self.scoreTracker)
+
+	def testPlayCardDoesNotCreateANewSequenceIfATeamHasWon(self):
+		callingPlayerId = self.players[1].playerId
+		sequence = testhelper.createSingletonMock(euchre.Sequence)
+		trumpSelector = testhelper.createSingletonMock(euchre.TrumpSelector)
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_COMPLETE)
+		when(trumpSelector).getSelectingPlayerId().thenReturn(callingPlayerId)
+		self._buildTestObj()
+		self.game.startGame()
+		when(self.scoreTracker).getTeamScore(0).thenReturn(euchre.WINNING_SCORE)
+		when(self.scoreTracker).getTeamScore(1).thenReturn(3)
+		self.game.playCard(self.players[0], euchre.Card(euchre.SUIT_HEARTS, euchre.VALUE_JACK))
+		self.assertEqual(None, self.game.getSequence())
 
 	def testGetPlayersReturnsPlayers(self):
 		self.assertEqual(self.players, self.game.getPlayers())

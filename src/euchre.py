@@ -530,8 +530,13 @@ class Game(object):
 		self._curSequence.scoreCurrentRound(self._scoreTracker)
 
 	def _buildNextSequence(self):
-		deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
-		deck.shuffle()
-		hands = self._dealHands(deck)
 		self._prevSequence = self._curSequence
-		self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())
+		self._curSequence = None
+		if not self._someTeamWon():
+			deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
+			deck.shuffle()
+			hands = self._dealHands(deck)
+			self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())
+
+	def _someTeamWon(self):
+		return WINNING_SCORE <= self.getTeamScore(0) or WINNING_SCORE <= self.getTeamScore(1)
