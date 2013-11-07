@@ -235,10 +235,10 @@ class PreviousTrickRetriever(object):
 
 	def retrievePreviousTrick(self, gameObj):
 		sequence = gameObj.getSequence()
-		if None == sequence:
-			return {}
-		round = sequence.getRound()
-		tricks = round.getPreviousTricks()
+		tricks = []
+		if None != sequence:
+			round = sequence.getRound()
+			tricks = round.getPreviousTricks()
 		if [] == tricks:
 			previousSequence = gameObj.getPreviousSequence()	
 			if None != previousSequence:

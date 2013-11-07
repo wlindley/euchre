@@ -423,6 +423,7 @@ class PreviousTrickRetrieverTest(testhelper.TestCase):
 		when(self.round).getPreviousTricks().thenReturn([])
 		self.assertEqual({}, self.testObj.retrievePreviousTrick(self.game))
 
-	def testRetireveCurrentTrickReturnsEmptyDictionaryIfSequenceIsNone(self):
+	def testRetireveCurrentTrickFallsBackToPreviousSequenceIfSequenceIsNone(self):
 		when(self.game).getSequence().thenReturn(None)
-		self.assertEqual({}, self.testObj.retrievePreviousTrick(self.game))
+		when(self.game).getPreviousSequence().thenReturn(self.previousSequence)
+		self.assertEqual(self.expectedResult, self.testObj.retrievePreviousTrick(self.game))
