@@ -150,6 +150,12 @@ class UpCardRetrieverTest(testhelper.TestCase):
 		result = self.testObj.retrieveUpCard(gameObj)
 		self.assertEqual(None, result)
 
+	def testRetrieveUpCardReturnsNoneIfSequenceIsNone(self):
+		gameObj = testhelper.createMock(euchre.Game)
+		when(gameObj).getSequence().thenReturn(None)
+		result = self.testObj.retrieveUpCard(gameObj)
+		self.assertEqual(None, result)
+
 class GameStatusRetrieverTest(testhelper.TestCase):
 	def setUp(self):
 		self.game = testhelper.createMock(euchre.Game)
@@ -207,6 +213,10 @@ class LedSuitRetrieverTest(testhelper.TestCase):
 		when(self.round).getCurrentTrick().thenReturn(None)
 		self.assertEqual(None, self.testObj.retrieveLedSuit(self.game))
 
+	def testRetrieveLedSuitReturnsNoneWhenSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
+		self.assertEqual(None, self.testObj.retrieveLedSuit(self.game))
+
 class CurrentTrickRetrieverTest(testhelper.TestCase):
 	def setUp(self):
 		self.game = testhelper.createMock(euchre.Game)
@@ -232,6 +242,10 @@ class CurrentTrickRetrieverTest(testhelper.TestCase):
 		when(self.round).getCurrentTrick().thenReturn(None)
 		self.assertEqual({}, self.testObj.retrieveCurrentTrick(self.game))
 
+	def testRetrieveCurrentTrickReturnsEmptyDictionaryIfSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
+		self.assertEqual({}, self.testObj.retrieveCurrentTrick(self.game))
+
 class TrumpRetrieverTest(testhelper.TestCase):
 	def _buildTestObj(self):
 		self.testObj = retriever.TrumpRetriever.getInstance()
@@ -251,6 +265,10 @@ class TrumpRetrieverTest(testhelper.TestCase):
 	def testRetrieveTrumpReturnsExpectedResult(self):
 		actualResult = self.testObj.retrieveTrump(self.game)
 		self.assertEqual(self.trumpSuit, actualResult)
+
+	def testRetrieveTrumpReturnsSuitNoneIfSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
+		self.assertEqual(euchre.SUIT_NONE, self.testObj.retrieveTrump(self.game))
 
 class ScoreRetrieverTest(testhelper.TestCase):
 	def _buildTestObj(self):
@@ -290,6 +308,11 @@ class ScoreRetrieverTest(testhelper.TestCase):
 		for i in range(len(self.playerIds)):
 			expectedScores[int(i / 2)] += self.roundScores[self.playerIds[i]]
 		self.assertEqual(expectedScores, self.testObj.retrieveRoundScores(self.game))
+
+	def testRetrieveRoundScoresReturnsZeroesIfSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
+		self._buildTestObj()
+		self.assertEqual([0, 0], self.testObj.retrieveRoundScores(self.game))
 
 class TeamRetrieverTest(testhelper.TestCase):
 	def _buildTestObj(self):
@@ -352,6 +375,10 @@ class TrickLeaderRetrieverTest(testhelper.TestCase):
 		when(self.round).getCurrentTrick().thenReturn(None)
 		self.assertIsNone(self.testObj.retrieveTrickLeader(self.game))
 
+	def testReturnsNoneIfSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
+		self.assertIsNone(self.testObj.retrieveTrickLeader(self.game))
+
 class PreviousTrickRetrieverTest(testhelper.TestCase):
 	def _buildTestObj(self):
 		self.testObj = retriever.PreviousTrickRetriever.getInstance()
@@ -394,4 +421,8 @@ class PreviousTrickRetrieverTest(testhelper.TestCase):
 
 	def testRetrieveCurrentTrickReturnsEmptyDictionaryIfOnFirstTrickOfGame(self):
 		when(self.round).getPreviousTricks().thenReturn([])
+		self.assertEqual({}, self.testObj.retrievePreviousTrick(self.game))
+
+	def testRetireveCurrentTrickReturnsEmptyDictionaryIfSequenceIsNone(self):
+		when(self.game).getSequence().thenReturn(None)
 		self.assertEqual({}, self.testObj.retrievePreviousTrick(self.game))

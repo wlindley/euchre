@@ -72,7 +72,7 @@ class UpCardRetriever(object):
 
 	def retrieveUpCard(self, gameObj):
 		sequence = gameObj.getSequence()
-		if euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
+		if None != sequence and euchre.Sequence.STATE_TRUMP_SELECTION == sequence.getState():
 			return sequence.getUpCard()
 		return None
 
@@ -114,6 +114,8 @@ class LedSuitRetriever(object):
 
 	def retrieveLedSuit(self, gameObj):
 		sequence = gameObj.getSequence()
+		if None == sequence:
+			return None
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
 		if None == trick:
@@ -130,6 +132,8 @@ class CurrentTrickRetriever(object):
 
 	def retrieveCurrentTrick(self, gameObj):
 		sequence = gameObj.getSequence()
+		if None == sequence:
+			return {}
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
 		if None == trick:
@@ -147,6 +151,8 @@ class TrumpRetriever(object):
 
 	def retrieveTrump(self, gameObj):
 		sequence = gameObj.getSequence()
+		if None == sequence:
+			return euchre.SUIT_NONE
 		round = sequence.getRound()
 		return round.getTrump()
 
@@ -166,12 +172,13 @@ class ScoreRetriever(object):
 		return [gameObj.getTeamScore(0), gameObj.getTeamScore(1)]
 
 	def retrieveRoundScores(self, gameObj):
-		sequence = gameObj.getSequence()
-		round = sequence.getRound()
 		scores = [0, 0]
-		for player in gameObj.getPlayers():
-			playerTeam = self._teamRetriever.retrieveTeamByPlayerId(gameObj, player.playerId)
-			scores[playerTeam] += round.getScore(player.playerId)
+		sequence = gameObj.getSequence()
+		if None != sequence:
+			round = sequence.getRound()
+			for player in gameObj.getPlayers():
+				playerTeam = self._teamRetriever.retrieveTeamByPlayerId(gameObj, player.playerId)
+				scores[playerTeam] += round.getScore(player.playerId)
 		return scores
 
 class TeamRetriever(object):
@@ -202,6 +209,8 @@ class TrickLeaderRetriever(object):
 
 	def retrieveTrickLeader(self, gameObj):
 		sequence = gameObj.getSequence()
+		if None == sequence:
+			return None
 		round = sequence.getRound()
 		trick = round.getCurrentTrick()
 		return self.getLeaderFromTrick(trick, round.getTrump())
@@ -226,6 +235,8 @@ class PreviousTrickRetriever(object):
 
 	def retrievePreviousTrick(self, gameObj):
 		sequence = gameObj.getSequence()
+		if None == sequence:
+			return {}
 		round = sequence.getRound()
 		tricks = round.getPreviousTricks()
 		if [] == tricks:
