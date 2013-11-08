@@ -3,14 +3,15 @@
 	Game %gameId%:
 	%gameScores%
 	%roundScores%
-	<div class="previousTrickWrapper"></div>
+	<div class="previousTrickWrapper"/>
+	<div class="gameCompleteWrapper"/>
 	<div class="turn">
 		Turn: <span class="playerName"/>
 	</div>
 	<div class="trumpDisplay">%trump%</div>
-	<div class="discard"></div>
+	<div class="discard"/>
 	%hand%
-	<div class="trumpSelection"></div>
-	<div class="playingRound"></div>
+	<div class="trumpSelection"/>
+	<div class="playingRound"/>
 </div>
 <a class="viewGameList" href="javascript:void(0)">Back to list</a>
