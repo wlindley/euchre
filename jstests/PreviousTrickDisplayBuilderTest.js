@@ -1,7 +1,6 @@
 PreviousTrickDisplayBuilderTest = TestCase("PreviousTrickDisplayBuilderTest");
 
 PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
-	this.locStrings = {"player" : "foo %playerId%"};
 	this.playerId = "12345";
 
 	this.players = [this.playerId, "2", "3", "4"];
