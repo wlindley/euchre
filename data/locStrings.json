@@ -17,5 +17,6 @@
 	"trump_selection" : "Selecting trump",
 	"round_in_progress" : "Playing hand",
 	"waiting_for_more_players" : "Waiting for more players",
-	"complete" : "Game Over"
+	"complete" : "Game Over",
+	"and" : "and"
 }

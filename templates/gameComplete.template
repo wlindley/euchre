@@ -1,0 +1,6 @@
+<div class="gameComplete">
+	<div>
+		<span class="winner0 playerName"/> %and% <span class="winner1 playerName"/>
+	</div>
+	<div>%won%</div>
+</div>

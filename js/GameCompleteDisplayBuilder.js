@@ -9,13 +9,21 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 		var localPlayerTeamId = getTeamIndexByPlayerId(teams, localPlayerId);
 		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
 
-		var winningTeamString = locStrings["yourTeam"];
+		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {"won" : locStrings["won"], "and" : locStrings["and"]});
+		var gameCompleteElement = jqueryWrapper.getElement(gameCompleteHtml);
+
+		var winningTeamId = localPlayerTeamId;
 		if (scores[otherTeamId] > scores[localPlayerTeamId]) {
-			winningTeamString = locStrings["otherTeam"];
+			winningTeamId = otherTeamId;
+			gameCompleteElement.addClass("gameLost");
+		} else {
+			gameCompleteElement.addClass("gameWon");
+		}
+		for (var i in teams[winningTeamId]) {
+			var namePromise = playerNameDirectory.getNamePromise(teams[winningTeamId][i]);
+			namePromise.registerForUpdates(gameCompleteElement.find(".winner" + i));
 		}
 
-		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {"winningTeam" : winningTeamString, "won" : locStrings["won"]});
-		var gameCompleteElement = jqueryWrapper.getElement(gameCompleteHtml);
 		return gameCompleteElement;
 	};
 
