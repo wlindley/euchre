@@ -9,7 +9,11 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 		var localPlayerTeamId = getTeamIndexByPlayerId(teams, localPlayerId);
 		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
 
-		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {"won" : locStrings["won"], "and" : locStrings["and"]});
+		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {
+			"won" : locStrings["won"],
+			"and" : locStrings["and"],
+			"dismiss" : locStrings["dismiss"]
+		});
 		var gameCompleteElement = jqueryWrapper.getElement(gameCompleteHtml);
 
 		var winningTeamId = localPlayerTeamId;

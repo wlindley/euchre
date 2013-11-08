@@ -19,5 +19,6 @@
 	"waiting_for_more_players" : "Waiting for more players",
 	"complete" : "Game Over",
 	"won" : "won!",
-	"and" : "and"
+	"and" : "and",
+	"dismiss" : "Dismiss"
 }

@@ -3,4 +3,5 @@
 		<span class="winner0 playerName"/> %and% <span class="winner1 playerName"/>
 	</div>
 	<div>%won%</div>
+	<button class="dismiss">%dismiss%</button>
 </div>
