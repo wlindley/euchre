@@ -1,9 +1,18 @@
 GameCompleteDisplayBuilderTest = TestCase("GameCompleteDisplayBuilderTest");
 
 GameCompleteDisplayBuilderTest.prototype.setUp = function() {
+	this.origSetTimeout = setTimeout;
+	this.setTimeout = function(func, time, lang) {
+		func();
+	};
+
 	this.buildObjects();
 	this.doTraining();
 	this.buildTestObj();
+};
+
+GameCompleteDisplayBuilderTest.prototype.tearDown = function() {
+	setTimeout = this.origSetTimeout;
 };
 
 GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
@@ -12,7 +21,10 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 	this.locStrings = {"won" : "won!", "and" : "foo and", "dismiss" : "diss that miss"};
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.localPlayerId = "3452cba";
+	this.ajax = mock(AVOCADO.Ajax);
+	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.gameId = 4;
 	this.teams = [[this.localPlayerId, "2b"], ["3c", "4d"]];
 	this.scores = [0, 0];
 	this.playerNamePromises = {};
@@ -27,6 +39,8 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 	this.gameCompleteElement = mock(TEST.FakeJQueryElement);
 
 	this.winnerNameElements = [mock(TEST.FakeJQueryElement), mock(TEST.FakeJQueryElement)];
+
+	this.dismissButtonElement = mock(TEST.FakeJQueryElement);
 };
 
 GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamWon) {
@@ -44,14 +58,16 @@ GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamW
 	for (var i in this.winnerNameElements) {
 		when(this.gameCompleteElement).find(".winner" + i).thenReturn(this.winnerNameElements[i]);
 	}
+
+	when(this.gameCompleteElement).find("button.dismiss").thenReturn(this.dismissButtonElement);
 };
 
 GameCompleteDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.localPlayerId);
+	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.localPlayerId, this.ajax, this.viewManager);
 };
 
 GameCompleteDisplayBuilderTest.prototype.trigger = function() {
-	return this.testObj.buildGameCompleteDisplay(this.teams, this.scores);
+	return this.testObj.buildGameCompleteDisplay(this.teams, this.scores, this.gameId);
 };
 
 GameCompleteDisplayBuilderTest.prototype.testReturnsExpectedJqueryObject = function() {
@@ -89,4 +105,37 @@ GameCompleteDisplayBuilderTest.prototype.testAddsWonClassToElementIfLocalPlayers
 	this.trigger();
 	verify(this.gameCompleteElement).addClass("gameLost");
 	verify(this.gameCompleteElement, never()).addClass("gameWon");
+};
+
+GameCompleteDisplayBuilderTest.prototype.testAddClickHandlerToDismissButton = function() {
+	var clickHandlerFunc = function(event) {};
+	this.testObj.buildDismissClickHandler = mockFunction();
+	when(this.testObj.buildDismissClickHandler)(this.gameId).thenReturn(clickHandlerFunc);
+
+	this.trigger();
+
+	verify(this.dismissButtonElement).click(clickHandlerFunc);
+};
+
+GameCompleteDisplayBuilderTest.prototype.testClickHandlerCallsAjax = function() {
+	this.testObj.buildDismissClickHandler(this.gameId)();
+	verify(this.ajax).call("dismissCompletedGame", hasMember("gameId", this.gameId));
+};
+
+GameCompleteDisplayBuilderTest.prototype.testClickHandlerCallsViewManagerAfterAjaxResponseAndDelay = function() {
+	var testHarness = this;
+	var hasCalledAsync = false;
+	setTimeout = function(func, time, lang) {
+		verify(testHarness.viewManager, never()).showView("gameList");
+		func();
+		hasCalledAsync = true;
+		verify(testHarness.viewManager).showView("gameList");
+	};
+
+	this.ajax = new TEST.FakeAjax();
+	this.ajax.callbackResponse = {"success" : true};
+	this.buildTestObj();
+
+	this.testObj.buildDismissClickHandler(this.gameId)();
+	assertTrue(hasCalledAsync);
 };
