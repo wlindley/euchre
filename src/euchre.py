@@ -517,6 +517,9 @@ class Game(object):
 	def getPreviousSequence(self):
 		return self._prevSequence
 
+	def isGameComplete(self):
+		return WINNING_SCORE <= self.getTeamScore(0) or WINNING_SCORE <= self.getTeamScore(1)
+
 	def _dealHands(self, deck):
 		hands = {}
 		for player in self._players:
@@ -532,11 +535,8 @@ class Game(object):
 	def _buildNextSequence(self):
 		self._prevSequence = self._curSequence
 		self._curSequence = None
-		if not self._someTeamWon():
+		if not self.isGameComplete():
 			deck = Deck.getInstance(MIN_4_PLAYER_CARD_VALUE, VALUE_ACE)
 			deck.shuffle()
 			hands = self._dealHands(deck)
 			self._curSequence = self._sequenceFactory.buildSequence(self._players, hands, deck.peekTop())
-
-	def _someTeamWon(self):
-		return WINNING_SCORE <= self.getTeamScore(0) or WINNING_SCORE <= self.getTeamScore(1)

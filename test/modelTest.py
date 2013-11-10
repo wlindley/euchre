@@ -36,3 +36,27 @@ class GameModelFinderTest(testhelper.TestCase):
 		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
 		result = self.testObj.getGameByGameId(gameId)
 		self.assertEqual(gameModel, result)
+
+	def testDeleteGameReturnsFalseAndDoesNothingElseIfCannotFindGameModel(self):
+		gameId = 8237
+		query = testhelper.createMock(ndb.Query)
+		when(query).get().thenReturn(None)
+		when(query).get(keys_only=True).thenReturn(None)
+		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+		result = self.testObj.deleteGame(gameId)
+		self.assertFalse(result)
+
+	def testDeleteGameDeletesSpecifiedGameAndReturnsTrue(self):
+		gameId = 8237
+		gameModel = testhelper.createMock(model.GameModel)
+		key = testhelper.createMock(ndb.Key)
+		gameModel.key = key
+		query = testhelper.createMock(ndb.Query)
+		when(query).get().thenReturn(gameModel)
+		when(query).get(keys_only=True).thenReturn(key)
+		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+
+		result = self.testObj.deleteGame(gameId)
+
+		verify(key).delete()
+		self.assertTrue(result)

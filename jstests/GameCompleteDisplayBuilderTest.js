@@ -119,7 +119,7 @@ GameCompleteDisplayBuilderTest.prototype.testAddClickHandlerToDismissButton = fu
 
 GameCompleteDisplayBuilderTest.prototype.testClickHandlerCallsAjax = function() {
 	this.testObj.buildDismissClickHandler(this.gameId)();
-	verify(this.ajax).call("dismissCompletedGame", hasMember("gameId", this.gameId));
+	verify(this.ajax).call("dismissCompletedGame", allOf(hasMember("gameId", this.gameId), hasMember("playerId", this.localPlayerId)));
 };
 
 GameCompleteDisplayBuilderTest.prototype.testClickHandlerCallsViewManagerAfterAjaxResponseAndDelay = function() {

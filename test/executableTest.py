@@ -53,6 +53,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsGetNameExecutableWhenActionIsGetName(self):
 		self._runTestForAction("getName", "GetNameExecutable")
 
+	def testCallsRemoveCompletedGameExecutableWhenActionIsDismissCompletedGame(self):
+		self._runTestForAction("dismissCompletedGame", "RemoveCompletedGameExecutable")
+
 class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerId = "1"
@@ -826,4 +829,96 @@ class GetNameExecutableTest(testhelper.TestCase):
 	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
 		when(self.requestDataAccessor).get("playerId").thenReturn(None)
 		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+class RemoveCompletedGameExecutableTest(testhelper.TestCase):
+	def _buildTestObj(self):
+		self.testObj = executable.RemoveCompletedGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+
+	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+
+		self.gameId = 15
+		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
+
+		self.playerId = "a2bc345"
+		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+
+		self.playerIds = [self.playerId, "432sb", "ad938", "23amr9"]
+
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameModel = testhelper.createMock(model.GameModel)
+		self.gameModel.playerId = self.playerIds
+		self.gameModel.readyToRemove = []
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+
+		self.game = testhelper.createSingletonMock(euchre.Game)
+		self.serializedGame = "a super serialized game"
+		self.gameModel.serializedGame = self.serializedGame
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.game)
+		when(self.game).isGameComplete().thenReturn(True)
+
+		self._buildTestObj()
+
+	def _verifyReadyToRemoveDidNotChange(self):
+		self.assertEqual([], self.gameModel.readyToRemove)
+		verify(self.gameModel, never).put()
+
+	def testExecuteWritesFailureIfGameIsNotComplete(self):
+		when(self.game).isGameComplete().thenReturn(False)
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteAddsIdToRemoveListIfGameIsComplete(self):
+		self.assertFalse(self.playerId in self.gameModel.readyToRemove)
+		self.testObj.execute()
+		self.assertTrue(self.playerId in self.gameModel.readyToRemove)
+		verify(self.gameModel).put()
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+
+	def testExecuteDeletesGameIfEveryInGameIsReadyToRemoveIt(self):
+		self.gameModel.readyToRemove = self.playerIds[1:]
+		self.testObj.execute()
+		verify(self.gameModelFinder).deleteGame(self.gameId)
+		verify(self.gameModel, never).put()
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+
+	def testExecuteDoesNotAddIdIfItIsAlreadyPresent(self):
+		expectedReadyToRemove = [self.playerId]
+		self.gameModel.readyToRemove = expectedReadyToRemove
+		self.testObj.execute()
+		self.assertEqual(expectedReadyToRemove, self.gameModel.readyToRemove)
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteDoesNotAddIdIfItIsNotAPlayer(self):
+		self.gameModel.playerId = self.playerIds[1:] + ["dali324"]
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfGameModelNotFound(self):
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(None)
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfGameIdIsMissing(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn(None)
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
+		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
+		self.testObj.execute()
+		self._verifyReadyToRemoveDidNotChange()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))

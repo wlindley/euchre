@@ -1,5 +1,7 @@
 from google.appengine.ext import ndb
 
+CURRENT_GAME_MODEL_VERSION = 2
+
 class PlayerModel(ndb.Model):
 	playerId = ndb.StringProperty(required=True)
 
@@ -9,6 +11,7 @@ class GameModel(ndb.Model):
 	playerId = ndb.StringProperty(repeated=True)
 	teams = ndb.JsonProperty()
 	version = ndb.IntegerProperty(default=1)
+	readyToRemove = ndb.StringProperty(repeated=True)
 
 class GameIdModel(ndb.Model):
 	nextGameId = ndb.IntegerProperty(default=0)
@@ -22,7 +25,7 @@ class GameModelFactory(object):
 		return GameModelFactory()
 
 	def create(self, gameId):
-		return GameModel(gameId=gameId)
+		return GameModel(gameId=gameId, version=CURRENT_GAME_MODEL_VERSION)
 
 class GameModelFinder(object):
 	instance = None
@@ -47,3 +50,10 @@ class GameModelFinder(object):
 
 	def _getGameIdQuery(self, gameId):
 		return GameModel.query(GameModel.gameId == gameId)
+
+	def deleteGame(self, gameId):
+		key = self._getGameIdQuery(gameId).get(keys_only=True)
+		if None == key:
+			return False
+		key.delete()
+		return True

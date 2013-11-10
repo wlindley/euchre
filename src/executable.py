@@ -33,7 +33,8 @@ class ExecutableFactory(object):
 			"selectTrump" : SelectTrumpExecutable,
 			"playCard" : PlayCardExecutable,
 			"discard" : DiscardExecutable,
-			"getName" : GetNameExecutable
+			"getName" : GetNameExecutable,
+			"dismissCompletedGame" : RemoveCompletedGameExecutable
 		}
 
 	def createExecutable(self):
@@ -444,3 +445,65 @@ class GetNameExecutable(AbstractExecutable):
 			self._writeResponse({"success" : False})
 		else:
 			self._writeResponse({"success" : True, "playerId" : playerId, "name" : "Player " + playerId})
+
+class RemoveCompletedGameExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter):
+		if None != cls.instance:
+			return cls.instance
+		return RemoveCompletedGameExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer):
+		super(RemoveCompletedGameExecutable, self).__init__(requestDataAccessor, responseWriter)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+
+	def execute(self):
+		playerId = self._requestDataAccessor.get("playerId")
+		gameId = self._requestDataAccessor.get("gameId")
+
+		if None == gameId or None == playerId:
+			logging.info("Missing game id (%s) or player id (%s)" % (gameId, playerId))
+			self._writeResponse({"success" : False})
+			return
+
+		try:
+			gameId = int(gameId)
+		except ValueError:
+			logging.info("Non-integer gameId (%s) specified" % self._requestDataAccessor.get("gameId"))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+
+		if None == gameModel:
+			logging.info("Player id %s tried to delete game %s, but that game doesn't exist" % (playerId, gameId))
+			self._writeResponse({"success" : False})
+			return
+
+		if playerId in gameModel.readyToRemove:
+			logging.info("Player id %s tried to delete game %s, but they've already requested deletion" % (playerId, gameId))
+			self._writeResponse({"success" : False})
+			return
+
+		if not playerId in gameModel.playerId:
+			logging.info("Player id %s tried to delete game %s, but they're not part of that game" % (playerId, gameId))
+			self._writeResponse({"success" : False})
+			return
+
+		game = self._gameSerializer.deserialize(gameModel.serializedGame)
+
+		if not game.isGameComplete():
+			logging.info("Player id %s tried to delete game %s, but it's not complete" % (playerId, gameId))
+			self._writeResponse({"success" : False})
+			return
+
+		gameModel.readyToRemove.append(playerId)
+
+		if len(gameModel.playerId) == len(gameModel.readyToRemove):
+			self._gameModelFinder.deleteGame(gameId)
+		else:
+			gameModel.put()
+
+		self._writeResponse({"success" : True})

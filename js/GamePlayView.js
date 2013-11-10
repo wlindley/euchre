@@ -53,7 +53,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 		var cardElements = gameElement.find(".card");
 
 		if ("complete" == response.status) {
-			var gameCompleteElement = gameCompleteDisplayBuilder.buildGameCompleteDisplay(response.teams, response.scores);
+			var gameCompleteElement = gameCompleteDisplayBuilder.buildGameCompleteDisplay(response.teams, response.scores, response.gameId);
 
 			var gameCompleteInsertionPoint = gameElement.find(".gameCompleteWrapper");
 			gameCompleteInsertionPoint.append(gameCompleteElement);
