@@ -161,7 +161,8 @@ div.winningCard {
 }
 
 .gameComplete {
-	width: 200px;
+	width: 1000px;
+	height: 250px;
 	text-align: center;
 }
 
