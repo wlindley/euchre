@@ -3,6 +3,7 @@ import testhelper
 import json
 import random
 from mockito import *
+from src.matcher import *
 
 import src.euchre
 
@@ -13,6 +14,7 @@ from src import euchre
 from src import game
 from src import serializer
 from src import retriever
+from src import filter
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -133,8 +135,6 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		statuses = ["trump_selection", "round_in_progress", "trump_selection_2", "waiting_for_more_players"]
 		currentTurns[3] = None
 
-		when(self.gameModelFinder).getGamesForPlayerId(playerId).thenReturn(gameModels)
-
 		for i in range(NUM_GAMES):
 			gameModels[i].playerId = participatingPlayerIds
 			gameModels[i].teams = json.dumps(teams)
@@ -147,6 +147,16 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		gameModels[3].playerId = gameModels[3].playerId[:2]
 		gameModels[3].teams = json.dumps([teams[0]])
 		gameModels[3].serializedGame = ""
+
+		#game model to be filtered
+		filteredGameModel = testhelper.createMock(model.GameModel)
+		filteredGameModel.readyToRemove = [playerId]
+		gameModels.append(filteredGameModel)
+
+		gameModelFilter = testhelper.createSingletonMock(filter.PlayerHasNotRemovedGameModelFilter)
+		when(gameModelFilter).filterList(gameModels).thenReturn(gameModels[:-1])
+
+		when(self.gameModelFinder).getGamesForPlayerId(playerId).thenReturn(gameModels)
 		
 		self.testObj.execute()
 

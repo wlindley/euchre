@@ -9,6 +9,7 @@ import euchre
 import serializer
 import model
 import retriever
+import filter
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -102,7 +103,8 @@ class ListGamesExecutable(AbstractExecutable):
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
-		gameModels = self._gameModelFinder.getGamesForPlayerId(playerId)
+		gameModelFilter = filter.PlayerHasNotRemovedGameModelFilter.getInstance(playerId)
+		gameModels = gameModelFilter.filterList(self._gameModelFinder.getGamesForPlayerId(playerId))
 		gameDatas = [self._buildGameData(playerId, gameModel) for gameModel in gameModels]
 		self._writeResponse({"games" : gameDatas, "success" : True})
 
