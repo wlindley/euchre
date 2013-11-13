@@ -37,32 +37,6 @@ class ResponseWriter(object):
 	def write(self, data):
 		self._response.write(data)
 
-class GameIdTracker(object):
-	instance = None
-	@classmethod
-	def getInstance(cls):
-		if None != cls.instance:
-			return cls.instance
-		return GameIdTracker()
-
-	KEY_ID = "gameIdSingleton"
-
-	def _getGameIdKey(self):
-		return ndb.Key(model.GameIdModel, GameIdTracker.KEY_ID)
-
-	def _getNewModel(self):
-		return model.GameIdModel(nextGameId=0, id=GameIdTracker.KEY_ID)
-
-	@ndb.transactional
-	def getGameId(self):
-		entity = self._getGameIdKey().get()
-		if None == entity:
-			entity = self._getNewModel()
-		gameId = entity.nextGameId
-		entity.nextGameId += 1
-		entity.put()
-		return gameId
-
 class FileReader(object):
 	instance = None
 	@classmethod

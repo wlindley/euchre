@@ -12,9 +12,6 @@ class GameModel(ndb.Model):
 	version = ndb.IntegerProperty(default=1)
 	readyToRemove = ndb.StringProperty(repeated=True)
 
-class GameIdModel(ndb.Model):
-	nextGameId = ndb.IntegerProperty(default=0)
-
 class GameModelFactory(object):
 	instance = None
 	@classmethod

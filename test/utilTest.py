@@ -38,29 +38,6 @@ class ResponseWriterTest(testhelper.TestCase):
 		self.testObj.write(params)
 		verify(self.response).write(params)
 
-class GameIdTrackerTest(testhelper.TestCase):
-	def setUp(self):
-		self.key = testhelper.createMock(ndb.Key)
-		self.model = testhelper.createMock(model.GameIdModel)
-		self.testObj = util.GameIdTracker.getInstance()
-		self.testObj._getGameIdKey = lambda: self.key
-		when(self.key).get().thenReturn(self.model)
-
-	def testGetsAndIncrementsValue(self):
-		expectedGameId = 100
-		self.model.nextGameId = expectedGameId
-		result = self.testObj.getGameId()
-		self.assertEqual(expectedGameId, result)
-		self.assertEqual(expectedGameId + 1, self.model.nextGameId)
-		verify(self.model).put()
-
-	def testGetCreatesModelIfItDoesNotExist(self):
-		when(self.key).get().thenReturn(None)
-		self.model.nextGameId = 0
-		self.testObj._getNewModel = lambda: self.model
-		self.assertEqual(0, self.testObj.getGameId())
-		self.assertEqual(1, self.testObj.getGameId())
-
 class JsFileLoaderTest(testhelper.TestCase):
 	def setUp(self):
 		self.filename = "data/jsFileList.txt"
