@@ -10,10 +10,8 @@ class GameModelFactoryTest(testhelper.TestCase):
 		self.testObj = model.GameModelFactory.getInstance()
 
 	def testCreateReturnsGameModelWithGivenId(self):
-		gameId = 5428
-		result = self.testObj.create(gameId)
+		result = self.testObj.create()
 		self.assertTrue(isinstance(result, model.GameModel))
-		self.assertEqual(gameId, result.gameId)
 
 class GameModelFinderTest(testhelper.TestCase):
 	def setUp(self):
@@ -29,32 +27,29 @@ class GameModelFinderTest(testhelper.TestCase):
 		self.assertEqual(models, result)
 
 	def testGetGameByGameIdReturnsCorrectGameModel(self):
-		gameId = 864
+		gameId = "864"
 		gameModel = testhelper.createMock(model.GameModel)
-		query = testhelper.createMock(ndb.Query)
-		when(query).get().thenReturn(gameModel)
-		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+		key = testhelper.createMock(ndb.Key)
+		when(key).get().thenReturn(gameModel)
+		self.testObj._getKeyByUrl = lambda url: key if gameId == url else None
 		result = self.testObj.getGameByGameId(gameId)
 		self.assertEqual(gameModel, result)
 
 	def testDeleteGameReturnsFalseAndDoesNothingElseIfCannotFindGameModel(self):
-		gameId = 8237
-		query = testhelper.createMock(ndb.Query)
-		when(query).get().thenReturn(None)
-		when(query).get(keys_only=True).thenReturn(None)
-		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+		gameId = "8237"
+		key = testhelper.createMock(ndb.Key)
+		when(key).get().thenReturn(None)
+		self.testObj._getKeyByUrl = lambda url: None
 		result = self.testObj.deleteGame(gameId)
 		self.assertFalse(result)
 
 	def testDeleteGameDeletesSpecifiedGameAndReturnsTrue(self):
-		gameId = 8237
+		gameId = "8237"
 		gameModel = testhelper.createMock(model.GameModel)
 		key = testhelper.createMock(ndb.Key)
 		gameModel.key = key
-		query = testhelper.createMock(ndb.Query)
-		when(query).get().thenReturn(gameModel)
-		when(query).get(keys_only=True).thenReturn(key)
-		self.testObj._getGameIdQuery = lambda gid: query if gameId == gid else None
+		when(key).get().thenReturn(gameModel)
+		self.testObj._getKeyByUrl = lambda url: key if gameId == url else None
 
 		result = self.testObj.deleteGame(gameId)
 

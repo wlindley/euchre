@@ -64,11 +64,10 @@ class CreateGameExecutable(AbstractExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, util.GameIdTracker.getInstance(), model.GameModelFactory.getInstance())
+		return CreateGameExecutable(requestDataAccessor, responseWriter, model.GameModelFactory.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, gameIdTracker, gameModelFactory):
+	def __init__(self, requestDataAccessor, responseWriter, gameModelFactory):
 		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter)
-		self._gameIdTracker = gameIdTracker
 		self._gameModelFactory = gameModelFactory
 
 	def execute(self):
@@ -77,14 +76,13 @@ class CreateGameExecutable(AbstractExecutable):
 		if 1 < team or 0 > team:
 			self._writeResponse({"success" : False})
 			return
-		gameId = self._gameIdTracker.getGameId()
-		gameModel = self._gameModelFactory.create(gameId)
+		gameModel = self._gameModelFactory.create()
 		gameModel.playerId = [playerId]
 		teamInfo = [[], []]
 		teamInfo[team].append(playerId)
 		gameModel.teams = json.dumps(teamInfo)
-		gameModel.put()
-		self._writeResponse({"success" : True, "gameId" : gameId})
+		key = gameModel.put()
+		self._writeResponse({"success" : True, "gameId" : key.urlsafe()})
 
 class ListGamesExecutable(AbstractExecutable):
 	instance = None
@@ -110,7 +108,7 @@ class ListGamesExecutable(AbstractExecutable):
 
 	def _buildGameData(self, playerId, gameModel):
 		gameData = {
-			"gameId" : gameModel.gameId,
+			"gameId" : gameModel.key.urlsafe(),
 			"teams" : json.loads(gameModel.teams)
 		}
 		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
@@ -148,13 +146,13 @@ class AddPlayerExecutable(AbstractExecutable):
 
 	def execute(self):
 		try:
-			gameId = int(self._requestDataAccessor.get("gameId"))
 			team = int(self._requestDataAccessor.get("team"))
 		except ValueError:
-			logging.info("Non-integer gameId (%s) or team (%s) specified" % (self._requestDataAccessor.get("gameId"), self._requestDataAccessor.get("team")))
+			logging.info("Non-integer team (%s) specified" % self._requestDataAccessor.get("team"))
 			self._writeResponse({"success" : False})
 			return
 		playerId = self._requestDataAccessor.get("playerId")
+		gameId = self._requestDataAccessor.get("gameId")
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 		if None == gameModel or playerId in gameModel.playerId or 1 < team or 0 > team:
 			logging.info("No game found for gameId %s or player %s is already in game or invalid team of %s specified" % (gameId, playerId, team))
@@ -184,8 +182,6 @@ class AddPlayerExecutable(AbstractExecutable):
 			currentTeam = (firstTeam + (i % 2)) % 2
 			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
 			players.append(game.Player(teams[currentTeam][currentIndex]))
-		print "teams:", teams
-		print "players:", [player.playerId for player in players]
 		return players
 
 class GetGameDataExecutable(AbstractExecutable):
@@ -215,11 +211,7 @@ class GetGameDataExecutable(AbstractExecutable):
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
-		try:
-			gameId = int(self._requestDataAccessor.get("gameId"))
-		except ValueError:
-			self._writeResponse({"success" : False})
-			return
+		gameId = self._requestDataAccessor.get("gameId")
 
 		if "" == playerId:
 			self._writeResponse({"success" : False})
@@ -296,10 +288,9 @@ class SelectTrumpExecutable(AbstractExecutable):
 			suit = euchre.SUIT_NONE
 
 		try:
-			gameId = int(gameId)
 			suit = int(suit)
 		except ValueError:
-			logging.info("Invalid game id (%s) or suit (%s)" % (gameId, suit))
+			logging.info("Invalid suit (%s)" % suit)
 			self._writeResponse({"success" : False})
 			return
 
@@ -349,11 +340,10 @@ class PlayCardExecutable(AbstractExecutable):
 			self._writeResponse({"success" : False})
 			return
 		try:
-			gameId = int(gameId)
 			cardSuit = int(cardSuit)
 			cardValue = int(cardValue)
 		except ValueError:
-			logging.info("Error parsing integer for game id (%s), card suit (%s), or card value (%s)" % (gameId, cardSuit, cardValue))
+			logging.info("Error parsing integer for card suit (%s) or card value (%s)" % (cardSuit, cardValue))
 			self._writeResponse({"success" : False})
 			return
 
@@ -400,11 +390,10 @@ class DiscardExecutable(AbstractExecutable):
 			self._writeResponse({"success" : False})
 			return
 		try:
-			gameId = int(gameId)
 			cardSuit = int(cardSuit)
 			cardValue = int(cardValue)
 		except ValueError:
-			logging.info("Error parsing integer for game id (%s), card suit (%s), or card value (%s)" % (gameId, cardSuit, cardValue))
+			logging.info("Error parsing integer for card suit (%s) or card value (%s)" % (cardSuit, cardValue))
 			self._writeResponse({"success" : False})
 			return
 
@@ -467,13 +456,6 @@ class RemoveCompletedGameExecutable(AbstractExecutable):
 
 		if None == gameId or None == playerId:
 			logging.info("Missing game id (%s) or player id (%s)" % (gameId, playerId))
-			self._writeResponse({"success" : False})
-			return
-
-		try:
-			gameId = int(gameId)
-		except ValueError:
-			logging.info("Non-integer gameId (%s) specified" % self._requestDataAccessor.get("gameId"))
 			self._writeResponse({"success" : False})
 			return
 

@@ -3,7 +3,8 @@ import testhelper
 import json
 import random
 from mockito import *
-from src.matcher import *
+
+from google.appengine.ext import ndb
 
 import src.euchre
 
@@ -62,25 +63,26 @@ class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerId = "1"
 		self.team = 0
-		self.gameId = 251
+		self.gameId = "251"
 		self.requestData = {"gameId" : self.gameId, "playerId" : self.playerId, "team" : str(self.team)}
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		for key, val in self.requestData.iteritems():
 			when(self.requestDataAccessor).get(key).thenReturn(val)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
-		self.gameIdTracker = testhelper.createSingletonMock(util.GameIdTracker)
-		when(self.gameIdTracker).getGameId().thenReturn(self.gameId)
+		self.gameModelKey = testhelper.createMock(ndb.Key)
+		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
 		self.gameModel = testhelper.createMock(model.GameModel)
-		self.gameModel.gameId = self.gameId
+		self.gameModel.gameId = "0"
+		self.gameModel.key = None
+		when(self.gameModel).put().thenReturn(self.gameModelKey)
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
-		when(self.gameModelFactory).create(self.gameId).thenReturn(self.gameModel)
+		when(self.gameModelFactory).create().thenReturn(self.gameModel)
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteCreatesGameModelWithCorrectData(self):
 		expectedTeams = [[], []]
 		expectedTeams[self.team].append(self.playerId)
 		self.testObj.execute()
-		self.assertEqual(self.gameId, self.gameModel.gameId)
 		self.assertEqual(self.playerId, self.gameModel.playerId[0])
 		self.assertEqual(json.dumps(expectedTeams), self.gameModel.teams)
 		verify(self.gameModel).put()
@@ -90,7 +92,6 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		self.team = self.requestData["team"] = 2
 		when(self.requestDataAccessor).get("team").thenReturn(str(self.team))
 		self.testObj.execute()
-		verifyZeroInteractions(self.gameIdTracker)
 		verifyZeroInteractions(self.gameModelFactory)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
@@ -98,7 +99,6 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		self.team = self.requestData["team"] = -1
 		when(self.requestDataAccessor).get("team").thenReturn(str(self.team))
 		self.testObj.execute()
-		verifyZeroInteractions(self.gameIdTracker)
 		verifyZeroInteractions(self.gameModelFactory)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
@@ -121,6 +121,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		serializedGames = []
 		gameIds = []
 		gameModels = []
+		gameModelKeys = []
 		games = []
 		sequences = []
 		currentTurns = []
@@ -128,6 +129,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			serializedGames.append("serialized game %s" % i)
 			gameIds.append(str(i * 1000))
 			gameModels.append(testhelper.createMock(model.GameModel))
+			gameModelKeys.append(testhelper.createMock(ndb.Key))
 			games.append(testhelper.createMock(euchre.Game))
 			sequences.append(testhelper.createMock(euchre.Sequence))
 			currentTurns.append(participatingPlayerIds[i % len(participatingPlayerIds)])
@@ -137,9 +139,11 @@ class ListGamesExecutableTest(testhelper.TestCase):
 
 		for i in range(NUM_GAMES):
 			gameModels[i].playerId = participatingPlayerIds
+			gameModels[i].gameId = "0"
 			gameModels[i].teams = json.dumps(teams)
-			gameModels[i].gameId = gameIds[i]
+			gameModels[i].key = gameModelKeys[i]
 			gameModels[i].serializedGame = serializedGames[i]
+			when(gameModelKeys[i]).urlsafe().thenReturn(gameIds[i])
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
 			when(games[i]).getSequence().thenReturn(sequences[i])
 			when(sequences[i]).getState().thenReturn(sequenceStates[i])
@@ -167,7 +171,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 
 		for i in range(NUM_GAMES):
 			expectedResponse["games"].append({
-				"gameId" : gameModels[i].gameId,
+				"gameId" : gameIds[i],
 				"teams" : teams,
 				"status" : statuses[i],
 				"currentPlayerId" : currentTurns[i]
@@ -188,7 +192,7 @@ class DefaultExecutableTest(testhelper.TestCase):
 
 class AddPlayerExecutableTest(testhelper.TestCase):
 	def setUp(self):
-		self.gameId = 12843
+		self.gameId = "12843"
 		self.existingPlayerIds = ["1", "2"]
 		self.existingTeams = [["1"], ["2"]]
 		self.requestData = {"gameId" : self.gameId}
@@ -196,8 +200,11 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameModelKey = testhelper.createMock(ndb.Key)
+		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
 		self.gameModel = testhelper.createMock(model.GameModel)
-		self.gameModel.gameId = self.gameId
+		self.gameModel.gameId = "0"
+		self.gameModel.key = self.gameModelKey
 		self.gameModel.playerId = self.existingPlayerIds
 		self.gameModel.teams = json.dumps(self.existingTeams)
 		self.gameModel.serializedGame = ''
@@ -252,7 +259,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 
 	def testExecuteDoesNothingIfInvalidGameId(self):
 		self._trainPlayerIdAndTeam("3", 1)
-		self.requestData["gameId"] += 1
+		self.requestData["gameId"] += "1"
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.requestData["gameId"])
 		self.testObj.execute()
 		self._assertGameModelUnchanged()
@@ -336,9 +343,12 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
-		self.gameId = 12345
+		self.gameId = "12345"
+		self.gameModelKey = testhelper.createMock(ndb.Key)
+		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
 		self.gameModel = testhelper.createMock(model.GameModel)
-		self.gameModel.gameId = self.gameId
+		self.gameModel.gameId = "0"
+		self.gameModel.key = self.gameModelKey
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
 		self.playerId = "09876"
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
@@ -471,7 +481,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testReturnsFailureWhenGameNotFound(self):
-		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId + 1)
+		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId + "1")
 		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
@@ -483,7 +493,7 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 
-		self.gameId = 45678
+		self.gameId = "45678"
 		self.playerId = "1230982304"
 		self.suit = euchre.SUIT_HEARTS
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
@@ -577,13 +587,6 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
-		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
-		self.testObj.execute()
-		verifyZeroInteractions(self.gameModelFinder)
-		verify(self.gameModel, never).put()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
 	def testExecuteWritesFailureIfGameModelNotFound(self):
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(None)
 		self.testObj.execute()
@@ -606,7 +609,7 @@ class PlayCardExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 
-		self.gameId = 45678
+		self.gameId = "45678"
 		self.playerId = "1230982304"
 		self.cardValue = random.randrange(9, 15)
 		self.cardSuit = random.randrange(1, euchre.NUM_SUITS + 1)
@@ -655,13 +658,6 @@ class PlayCardExecutableTest(testhelper.TestCase):
 
 	def testExecuteWritesFailureIfGameIdIsMissing(self):
 		when(self.requestDataAccessor).get("gameId").thenReturn(None)
-		self.testObj.execute()
-		verifyZeroInteractions(self.gameModelFinder)
-		verify(self.gameModel, never).put()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
-		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
@@ -717,7 +713,7 @@ class DiscardExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 
-		self.gameId = 45678
+		self.gameId = "45678"
 		self.playerId = "1230982304"
 		self.cardValue = random.randrange(9, 15)
 		self.cardSuit = random.randrange(1, euchre.NUM_SUITS + 1)
@@ -764,13 +760,6 @@ class DiscardExecutableTest(testhelper.TestCase):
 
 	def testExecuteWritesFailureIfGameIdIsMissing(self):
 		when(self.requestDataAccessor).get("gameId").thenReturn(None)
-		self.testObj.execute()
-		verifyZeroInteractions(self.gameModelFinder)
-		verify(self.gameModel, never).put()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
-		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
@@ -849,7 +838,7 @@ class RemoveCompletedGameExecutableTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 
-		self.gameId = 15
+		self.gameId = "15"
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
 
 		self.playerId = "a2bc345"
@@ -923,12 +912,6 @@ class RemoveCompletedGameExecutableTest(testhelper.TestCase):
 
 	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
 		when(self.requestDataAccessor).get("playerId").thenReturn(None)
-		self.testObj.execute()
-		self._verifyReadyToRemoveDidNotChange()
-		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testExecuteWritesFailureWhenGameIdIsInvalid(self):
-		when(self.requestDataAccessor).get("gameId").thenReturn("bar")
 		self.testObj.execute()
 		self._verifyReadyToRemoveDidNotChange()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))

@@ -1,12 +1,11 @@
 from google.appengine.ext import ndb
 
-CURRENT_GAME_MODEL_VERSION = 2
+CURRENT_GAME_MODEL_VERSION = 3
 
 class PlayerModel(ndb.Model):
 	playerId = ndb.StringProperty(required=True)
 
 class GameModel(ndb.Model):
-	gameId = ndb.IntegerProperty(required=True)
 	serializedGame = ndb.JsonProperty(default='')
 	playerId = ndb.StringProperty(repeated=True)
 	teams = ndb.JsonProperty()
@@ -24,8 +23,8 @@ class GameModelFactory(object):
 			return cls.instance
 		return GameModelFactory()
 
-	def create(self, gameId):
-		return GameModel(gameId=gameId, version=CURRENT_GAME_MODEL_VERSION)
+	def create(self):
+		return GameModel(version=CURRENT_GAME_MODEL_VERSION)
 
 class GameModelFinder(object):
 	instance = None
@@ -46,13 +45,16 @@ class GameModelFinder(object):
 		return GameModel.query(GameModel.playerId == playerId)
 
 	def getGameByGameId(self, gameId):
-		return self._getGameIdQuery(gameId).get()
+		return self._getKeyByUrl(gameId).get()
 
 	def _getGameIdQuery(self, gameId):
 		return GameModel.query(GameModel.gameId == gameId)
 
+	def _getKeyByUrl(self, urlsafe):
+		return ndb.Key(urlsafe=urlsafe)
+
 	def deleteGame(self, gameId):
-		key = self._getGameIdQuery(gameId).get(keys_only=True)
+		key = self._getKeyByUrl(gameId)
 		if None == key:
 			return False
 		key.delete()
