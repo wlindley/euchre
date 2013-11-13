@@ -6,6 +6,7 @@ import json
 import logging
 from google.appengine.ext import db
 from google.appengine.ext import ndb
+from google.appengine.api import users
 
 import sys
 sys.path.insert(1, './src')
@@ -31,27 +32,6 @@ class IndexPage(webapp2.RequestHandler):
 		template = jinjaEnvironment.get_template('index.html')
 		self.response.out.write(template.render(templateValues))
 
-class PlayerCreator(webapp2.RequestHandler):
-	def get(self):
-		self._handle()
-
-	def post(self):
-		self._handle()
-
-	def _handle(self):
-		playerId = self.request.get("playerId")
-		player = model.PlayerModel(playerId=playerId)
-		player.put()
-
-		dbResults = db.GqlQuery("SELECT * FROM PlayerModel WHERE playerId IN :1", [playerId])
-
-		result = {"numFound" : 0}
-		for dbResult in dbResults:
-			result["numFound"] += 1
-			result["playerId"] = dbResult.playerId
-
-		self.response.write(json.dumps(result))
-
 class AjaxHandler(webapp2.RequestHandler):
 	def post(self):
 		self.response.headers.add_header('content-type', 'application/json', charset='utf-8')
@@ -61,7 +41,6 @@ class AjaxHandler(webapp2.RequestHandler):
 
 logging.getLogger().setLevel(logging.DEBUG)
 app = webapp2.WSGIApplication([
-	('/createPlayer', PlayerCreator),
 	('/ajax', AjaxHandler),
 	('/', IndexPage)
 ], debug=True)
