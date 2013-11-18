@@ -23,6 +23,9 @@ class RequestDataAccessor(object):
 	def getBaseUrl(self):
 		return self._request.application_url
 
+	def getCookies(self):
+		return self._request.cookies
+
 class ResponseWriter(object):
 	instance = None
 	@classmethod

@@ -40,6 +40,7 @@ class TestCase(unittest.TestCase):
 		super(TestCase, self).setUp()
 
 	def tearDown(self):
+		unstub()
 		destroySingletonMocks()
 		restoreClasses()
 		super(TestCase, self).tearDown()

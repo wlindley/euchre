@@ -29,3 +29,7 @@ class PlayerHasNotRemovedGameModelFilter(BaseFilter):
 
 	def filterItem(self, item):
 		return not self._playerId in item.readyToRemove
+
+	#required for mocking framework
+	def filterList(self, items):
+		return super(PlayerHasNotRemovedGameModelFilter, self).filterList(items)

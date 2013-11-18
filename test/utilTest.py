@@ -16,8 +16,12 @@ class RequestDataAccessorTest(testhelper.TestCase):
 		self.applicationUrl = "http://sweetapp.com"
 		self.key = "some key"
 		self.expectedResult = "some data"
+		self.cookies = ["123", "sdlkj", "324jd"]
+
 		self.request = testhelper.createSimpleMock()
 		self.request.application_url = self.applicationUrl
+		self.request.cookies = self.cookies
+
 		when(self.request).get(self.key).thenReturn(self.expectedResult)
 		self.testObj = util.RequestDataAccessor.getInstance(self.request)
 
@@ -27,6 +31,9 @@ class RequestDataAccessorTest(testhelper.TestCase):
 
 	def testGetBaseUrlReturnsApplicationUrl(self):
 		self.assertEqual(self.applicationUrl, self.testObj.getBaseUrl())
+
+	def testGetCookiesReturnsCookies(self):
+		self.assertEqual(self.cookies, self.testObj.getCookies())
 
 class ResponseWriterTest(testhelper.TestCase):
 	def setUp(self):
@@ -59,7 +66,7 @@ class FileReaderTest(testhelper.TestCase):
 	def testGetFileLinesReturnsLinesOfFile(self):
 		filename = "fooFile.dat"
 		fileLines = ["one", "two", "three", "all of the lines"]
-		mockFile = testhelper.createMock(file)
+		mockFile = testhelper.createSimpleMock() #file object
 		when(mockFile).readlines().thenReturn(fileLines)
 		self.testObj._getFile = lambda fname: mockFile if filename == fname else None
 		result = self.testObj.getFileLines(filename)
@@ -69,7 +76,7 @@ class FileReaderTest(testhelper.TestCase):
 	def testGetFileContentsReturnsContentsOfFile(self):
 		filename = "bar_file.info"
 		fileContents = "the best file ever\nis not at this location"
-		mockFile = testhelper.createMock(file)
+		mockFile = testhelper.createSimpleMock() #file object
 		when(mockFile).read().thenReturn(fileContents)
 		self.testObj._getFile = lambda fname: mockFile if filename == fname else None
 		result = self.testObj.getFileContents(filename)
