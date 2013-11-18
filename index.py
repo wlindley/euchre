@@ -21,6 +21,9 @@ import util
 jinjaEnvironment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
 class IndexPage(webapp2.RequestHandler):
+	def post(self):
+		self.get()
+
 	def get(self):
 		requestDataAccessor = util.RequestDataAccessor.getInstance(self.request)
 		jsFileLoader = util.JsFileLoader.getInstance()
