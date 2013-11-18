@@ -1,5 +1,6 @@
 js/jquery.js
 js/JQueryWrapper.js
+js/Facebook.js
 js/Ajax.js
 js/PlayerNamePromise.js
 js/PlayerNameDirectory.js

@@ -1,6 +1,7 @@
 $(function() {
 	function createObjects() {
 		window.jqueryWrapper = AVOCADO.JQueryWrapper.getInstance($);
+		window.facebook = AVOCADO.Facebook.getInstance(window.jqueryWrapper, EUCHRE.appId, EUCHRE.channelUrl);
 		window.ajax = AVOCADO.Ajax.getInstance(window.jqueryWrapper, EUCHRE.ajaxUrl);
 		window.templateRenderer = AVOCADO.TemplateRenderer.getInstance(EUCHRE.templates);
 		window.playerNameDirectory = AVOCADO.PlayerNameDirectory.getInstance(window.ajax, EUCHRE.locStrings, EUCHRE.playerId);
@@ -10,10 +11,10 @@ $(function() {
 	}
 
 	function initObjects() {
+		window.facebook.init();
 		window.gameListView.init();
 		window.gamePlayView.init();
 	}
-
 
 	createObjects();
 	initObjects();
