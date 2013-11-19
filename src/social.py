@@ -3,6 +3,24 @@ import logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+class User(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, playerId="", name=""):
+		if None != cls.instance:
+			return cls.instance
+		return User(playerId, name)
+
+	def __init__(self, playerId="", name=""):
+		self._playerId = playerId
+		self._name = name
+
+	def getName(self):
+		return self._name
+
+	def getId(self):
+		return self._playerId
+
 class Facebook(object):
 	instance = None
 	@classmethod
@@ -21,13 +39,16 @@ class Facebook(object):
 		cookie = facebook.get_user_from_cookie(requestDataAccessor.getCookies(), Facebook.APP_ID, Facebook.APP_SECRET)
 		self._graph = facebook.GraphAPI(cookie["access_token"])
 
-	def getName(self, playerId):
+	def getUser(self, identifier):
 		self._defaultAuthentication()
-		profile = self._graph.get_object(playerId)
-		if None == profile:
-			return ""
-		return profile["name"]
+		profile = self._graph.get_object(identifier)
+		return self._buildUser(profile)
 
 	def _defaultAuthentication(self):
 		if None == self._graph:
 			self._graph = facebook.GraphAPI()
+
+	def _buildUser(self, fbProfile):
+		if None == fbProfile:
+			return User.getInstance()
+		return User.getInstance(fbProfile["id"], fbProfile["name"])
