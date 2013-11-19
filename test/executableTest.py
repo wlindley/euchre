@@ -16,6 +16,7 @@ from src import game
 from src import serializer
 from src import retriever
 from src import filter
+from src import social
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -62,9 +63,13 @@ class ExecutableFactoryTest(testhelper.TestCase):
 class CreateGameExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.playerId = "1"
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 		self.team = 0
 		self.gameId = "251"
-		self.requestData = {"gameId" : self.gameId, "playerId" : self.playerId, "team" : str(self.team)}
+		self.requestData = {"gameId" : self.gameId, "team" : str(self.team)}
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		for key, val in self.requestData.iteritems():
 			when(self.requestDataAccessor).get(key).thenReturn(val)
@@ -77,12 +82,16 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		when(self.gameModel).put().thenReturn(self.gameModelKey)
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
 		when(self.gameModelFactory).create().thenReturn(self.gameModel)
+		self._buildTestObj()
+
+	def _buildTestObj(self):
 		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteCreatesGameModelWithCorrectData(self):
 		expectedTeams = [[], []]
 		expectedTeams[self.team].append(self.playerId)
 		self.testObj.execute()
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.playerId, self.gameModel.playerId[0])
 		self.assertEqual(json.dumps(expectedTeams), self.gameModel.teams)
 		verify(self.gameModel).put()
@@ -102,6 +111,15 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		verifyZeroInteractions(self.gameModelFactory)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
+	def testAuthenticateIsCalledBeforeGetUser(self):
+		when(self.facebook).authenticateAsUser(self.requestDataAccessor).thenRaise(Exception("expected"))
+		try:
+			self._buildTestObj()
+			self.testObj.execute()
+		except Exception:
+			pass
+		verify(self.facebook, never).getUser("me")
+
 class ListGamesExecutableTest(testhelper.TestCase):
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
@@ -109,12 +127,15 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def testExecuteReturnsCorrectGameData(self):
 		NUM_GAMES = 4
 		playerId = "2854"
-		when(self.requestDataAccessor).get("playerId").thenReturn(playerId)
+		when(self.user).getId().thenReturn(playerId)
 		participatingPlayerIds = [playerId, "54321", "8976", "12345"]
 		teams = [[playerId, "54321"], ["8976", "12345"]]
 
@@ -178,6 +199,7 @@ class ListGamesExecutableTest(testhelper.TestCase):
 			})
 		expectedResponse["games"][3]["teams"] = [teams[0]]
 
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
 
 class DefaultExecutableTest(testhelper.TestCase):
@@ -210,11 +232,14 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.gameModel.serializedGame = ''
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 		self.testObj = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
 
 	def _trainPlayerIdAndTeam(self, playerId, team):
-		when(self.requestDataAccessor).get("playerId").thenReturn(playerId)
+		when(self.user).getId().thenReturn(playerId)
 		when(self.requestDataAccessor).get("team").thenReturn(team)
 		expectedPlayerIds = self.existingPlayerIds[:]
 		expectedPlayerIds.append(playerId)
@@ -224,6 +249,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		return expectedPlayerIds, expectedTeams
 
 	def _assertResponseResult(self, success):
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.responseWriter).write(json.dumps({"success" : success}))
 
 	def _assertGameModelUnchanged(self):
@@ -351,8 +377,11 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.gameModel.key = self.gameModelKey
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
 		self.playerId = "09876"
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
 		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
@@ -419,6 +448,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self):
+		verify(self.facebook, atleast=1).authenticateAsUser(self.requestDataAccessor)
 		expectedUpCard = None
 		if None != self.upCard:
 			expectedUpCard = {"suit" : self.upCard.suit, "value" : self.upCard.value}
@@ -471,7 +501,7 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testReturnsFailureWhenPlayerIdIsInvalid(self):
-		when(self.requestDataAccessor).get("playerId").thenReturn("")
+		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
@@ -497,8 +527,12 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		self.playerId = "1230982304"
 		self.suit = euchre.SUIT_HEARTS
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		when(self.requestDataAccessor).get("suit").thenReturn(str(self.suit))
+
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 		self.player = game.Player.getInstance(self.playerId)
 
@@ -532,6 +566,7 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self, expectedSuit):
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
 		inorder.verify(self.game).addCardToHand(self.dealerPlayer, self.upCard)
@@ -573,8 +608,8 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		verify(self.game, never).addCardToHand(any(), any())
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
-	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
-		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
+		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
@@ -614,9 +649,13 @@ class PlayCardExecutableTest(testhelper.TestCase):
 		self.cardValue = random.randrange(9, 15)
 		self.cardSuit = random.randrange(1, euchre.NUM_SUITS + 1)
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		when(self.requestDataAccessor).get("suit").thenReturn(str(self.cardSuit))
 		when(self.requestDataAccessor).get("value").thenReturn(str(self.cardValue))
+
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 		self.player = game.Player(self.playerId)
 		testhelper.replaceClass(src.game, "Player", testhelper.createSimpleMock())
@@ -644,13 +683,14 @@ class PlayCardExecutableTest(testhelper.TestCase):
 
 		self.testObj.execute()
 
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).playCard(self.player, self.card)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
-	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
-		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
+		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
@@ -718,9 +758,13 @@ class DiscardExecutableTest(testhelper.TestCase):
 		self.cardValue = random.randrange(9, 15)
 		self.cardSuit = random.randrange(1, euchre.NUM_SUITS + 1)
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		when(self.requestDataAccessor).get("suit").thenReturn(str(self.cardSuit))
 		when(self.requestDataAccessor).get("value").thenReturn(str(self.cardValue))
+
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 		self.player = game.Player(self.playerId)
 		testhelper.replaceClass(src.game, "Player", testhelper.createSimpleMock())
@@ -746,13 +790,14 @@ class DiscardExecutableTest(testhelper.TestCase):
 	def testExecuteCallsDiscardOnGameAndWritesSuccess(self):
 		self.gameModel.serializedGame = self.serializedGame
 		self.testObj.execute()
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).discardCard(self.player, self.card)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
-	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
-		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
+		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
@@ -842,7 +887,11 @@ class RemoveCompletedGameExecutableTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
 
 		self.playerId = "a2bc345"
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
+
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.user = testhelper.createMock(social.User)
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 		self.playerIds = [self.playerId, "432sb", "ad938", "23amr9"]
 
@@ -875,6 +924,7 @@ class RemoveCompletedGameExecutableTest(testhelper.TestCase):
 		self.assertFalse(self.playerId in self.gameModel.readyToRemove)
 		self.testObj.execute()
 		self.assertTrue(self.playerId in self.gameModel.readyToRemove)
+		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
@@ -910,8 +960,8 @@ class RemoveCompletedGameExecutableTest(testhelper.TestCase):
 		self._verifyReadyToRemoveDidNotChange()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-	def testExecuteWritesFailureIfPlayerIdIsMissing(self):
-		when(self.requestDataAccessor).get("playerId").thenReturn(None)
+	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
+		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
 		self._verifyReadyToRemoveDidNotChange()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
