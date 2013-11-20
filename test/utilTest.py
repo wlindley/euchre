@@ -10,6 +10,7 @@ from src import util
 from src import model
 from src import game
 from src import euchre
+from src import social
 
 class RequestDataAccessorTest(testhelper.TestCase):
 	def setUp(self):
@@ -86,21 +87,20 @@ class FileReaderTest(testhelper.TestCase):
 class PageDataBuilderTest(testhelper.TestCase):
 	def setUp(self):
 		self.baseUrl = "http://awesomest.url.ever"
-		self.playerId = "123456"
 		self.templateFiles = "some filenames"
 		self.templates = "the best templates ever"
 		self.locStrings = {"foo" : "all of the localized strings"}
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
-			"playerId" : self.playerId,
 			"templates" : self.templates,
-			"locStrings" : self.locStrings
+			"locStrings" : self.locStrings,
+			"appId" : social.Facebook.APP_ID,
+			"channelUrl" : self.baseUrl + "/data/channel.html"
 		}
 		self.expectedTemplates = None
 
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		when(self.requestDataAccessor).getBaseUrl().thenReturn(self.baseUrl)
-		when(self.requestDataAccessor).get("playerId").thenReturn(self.playerId)
 		when(util.glob).glob("templates/*.template").thenReturn(self.templateFiles)
 		self.templateManager = testhelper.createSingletonMock(util.TemplateManager)
 		def replaceLoadTemplates(filenames):

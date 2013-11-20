@@ -5,6 +5,7 @@ import os.path
 import glob
 
 from src import euchre
+import social
 
 class RequestDataAccessor(object):
 	instance = None
@@ -102,6 +103,7 @@ class PageDataBuilder(object):
 		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance(), FileReader.getInstance())
 
 	AJAX_PATH = "/ajax"
+	CHANNEL_PATH = "/data/channel.html"
 	TEMPLATE_PATTERN  = "templates/*.template"
 
 	def __init__(self, requestDataAccessor, templateManager, fileReader):
@@ -112,8 +114,9 @@ class PageDataBuilder(object):
 
 	def buildData(self):
 		pageData = {}
-		pageData["playerId"] = self._requestDataAccessor.get("playerId")
+		pageData["appId"] = social.Facebook.APP_ID
 		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
+		pageData["channelUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.CHANNEL_PATH
 		self._templateManager.loadTemplates(glob.glob(PageDataBuilder.TEMPLATE_PATTERN))
 		pageData["templates"] = self._templateManager.getTemplates()
 		pageData["locStrings"] = json.loads(self._fileReader.getFileContents("data/locStrings.json"))
