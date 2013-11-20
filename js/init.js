@@ -11,13 +11,14 @@ $(function() {
 	}
 
 	function initObjects() {
-		window.facebook.init();
 		window.gameListView.init();
 		window.gamePlayView.init();
 	}
 
 	createObjects();
-	initObjects();
+	window.facebook.init({"success" : function() {
+		initObjects();
+		window.gameListView.show();
+	}});
 	$(".title").addClass("titleLoaded");
-	window.gameListView.show();
 });
