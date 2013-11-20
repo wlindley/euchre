@@ -9,6 +9,7 @@ FacebookTest.prototype.setUp = function() {
 	window.FB = null;
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.appId = "234023984";
+	this.localPlayerId = "324lkjada34l";
 	this.channelUrl = "http://my.awesome.com/channel.html";
 
 	this.successCallback = mockFunction();
@@ -39,7 +40,11 @@ FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
 		window.FB = mock(FakeFB);
 		if (undefined !== trainingValueForLogin) {
 			window.FB.login = function(func) {
-				func({"authResponse" : trainingValueForLogin});
+				var response = trainingValueForLogin;
+				if (trainingValueForLogin) {
+					response = {"authResponse" : {"userID" : testHarness.localPlayerId}}; //this structure mimics Facebook's response as of 20131119
+				}
+				func(response);
 			};
 		}
 		params["success"]();
@@ -130,4 +135,25 @@ FacebookTest.prototype.testHandlesMissingLoginFailureCallback = function() {
 
 	verifyZeroInteractions(this.successCallback);
 	verifyZeroInteractions(this.failureCallback);
+};
+
+FacebookTest.prototype.testGetSignedInPlayerIdReturnsExpectedDataAfterLoggingIn = function() {
+	this.setupAjaxCall(true);
+
+	this.trigger();
+
+	assertEquals(this.localPlayerId, this.testObj.getSignedInPlayerId());
+};
+
+FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringAfterLoginFailure = function() {
+	this.setupAjaxCall(false);
+
+	this.trigger();
+
+	assertEquals("", this.testObj.getSignedInPlayerId());
+};
+
+FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringIfHaveNotLoggedIn = function() {
+	this.trigger();
+	assertEquals("", this.testObj.getSignedInPlayerId());
 };

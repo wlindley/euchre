@@ -4,6 +4,7 @@ if (AVOCADO === undefined) {
 
 AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var self = this;
+	var signedInPlayerId = "";
 	var successCallback = null;
 	var failureCallback = null;
 
@@ -11,25 +12,30 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		successCallback = params["success"];
 		failureCallback = params["failure"];
 		jqueryWrapper.ajax("//connect.facebook.net/en_US/all.js", {
-			"success" : self.handleAjaxResponse,
+			"success" : handleAjaxResponse,
 			"dataType" : "script",
 			"cache" : true
 		});
 	};
 
-	this.handleAjaxResponse = function() {
+	this.getSignedInPlayerId = function() {
+		return signedInPlayerId;
+	};
+
+	function handleAjaxResponse() {
 		FB.init({
 			"appId" : appId,
 			"channelUrl" : channelUrl,
 			"status" : true,
 			"cookie" : true
 		});
-		FB.login(self.handleLoginResponse);
+		FB.login(handleLoginResponse);
 	};
 
-	this.handleLoginResponse = function(response) {
+	function handleLoginResponse(response) {
 		if (response.authResponse) {
 			if (successCallback) {
+				signedInPlayerId = response.authResponse.userID;
 				successCallback();
 			}
 		} else {
