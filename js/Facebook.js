@@ -4,10 +4,14 @@ if (AVOCADO === undefined) {
 
 AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var self = this;
+	var successCallback = null;
+	var failureCallback = null;
 
-	this.init = function() {
+	this.init = function(params) {
+		successCallback = params["success"];
+		failureCallback = params["failure"];
 		jqueryWrapper.ajax("//connect.facebook.net/en_US/all.js", {
-			"success" : this.handleAjaxResponse,
+			"success" : self.handleAjaxResponse,
 			"dataType" : "script",
 			"cache" : true
 		});
@@ -20,7 +24,19 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 			"status" : true,
 			"cookie" : true
 		});
-		FB.login();
+		FB.login(self.handleLoginResponse);
+	};
+
+	this.handleLoginResponse = function(response) {
+		if (response.authResponse) {
+			if (successCallback) {
+				successCallback();
+			}
+		} else {
+			if (failureCallback) {
+				failureCallback();
+			}
+		}
 	};
 };
 

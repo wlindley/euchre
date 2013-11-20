@@ -6,30 +6,48 @@ FakeFB = function() {
 };
 
 FacebookTest.prototype.setUp = function() {
+	window.FB = null;
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.appId = "234023984";
 	this.channelUrl = "http://my.awesome.com/channel.html";
+
+	this.successCallback = mockFunction();
+	this.failureCallback = mockFunction();
 
 	this.buildTestObj();
 };
 
 FacebookTest.prototype.tearDown = function() {
-	FB = undefined;
+	window.FB = undefined;
 };
 
 FacebookTest.prototype.buildTestObj = function() {
 	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.appId, this.channelUrl);	
 };
 
-FacebookTest.prototype.setupAjaxCall = function() {
+FacebookTest.prototype.trigger = function() {
+	var testHarness = this;
+	this.testObj.init({
+		"success" : this.successCallback,
+		"failure" : this.failureCallback
+	});
+};
+
+FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
+	var testHarness = this;
 	this.jqueryWrapper.ajax = function(url, params) {
-		FB = mock(FakeFB);
+		window.FB = mock(FakeFB);
+		if (undefined !== trainingValueForLogin) {
+			window.FB.login = function(func) {
+				func({"authResponse" : trainingValueForLogin});
+			};
+		}
 		params["success"]();
 	};
 };
 
 FacebookTest.prototype.testInitLoadsFBScript = function() {
-	this.testObj.init();
+	this.trigger();
 	verify(this.jqueryWrapper).ajax("//connect.facebook.net/en_US/all.js", allOf(
 		hasMember("dataType", "script"),
 		hasMember("success", this.testObj.handleAjaxResponse),
@@ -40,8 +58,8 @@ FacebookTest.prototype.testInitLoadsFBScript = function() {
 FacebookTest.prototype.testHandleAjaxResponseInitializesFB = function() {
 	this.setupAjaxCall();
 
-	this.testObj.init();
-	verify(FB).init(allOf(
+	this.trigger();
+	verify(window.FB).init(allOf(
 		hasMember("appId", this.appId),
 		hasMember("channelUrl", this.channelUrl),
 		hasMember("status", true),
@@ -52,24 +70,64 @@ FacebookTest.prototype.testHandleAjaxResponseInitializesFB = function() {
 FacebookTest.prototype.testHandleAjaxResponseLogsIn = function() {
 	this.setupAjaxCall();
 
-	this.testObj.init();
+	this.trigger();
 
-	verify(FB).login();
+	verify(window.FB).login(func());
 };
 
-FacebookTest.prototype.testHandAjaxResponseInitsBeforeLoggingIn = function() {
-	FB = mock(FakeFB);
+FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
+	window.FB = mock(FakeFB);
 	this.jqueryWrapper.ajax = function(url, params) {
 		params["success"]();
 	};
-	when(FB).init().thenThrow("Exception!");
+	when(window.FB).init().thenThrow("Exception!");
 
 	try {
-		this.testObj.init();
+		this.trigger();
 	} catch (e) {
 		//ignore
 	}
 
-	verify(FB).init();
-	verify(FB, never()).login();
+	verify(window.FB).init();
+	verify(window.FB, never()).login(anything());
+};
+
+FacebookTest.prototype.testLoginSuccessCallbackIsCalled = function() {
+	this.setupAjaxCall(true);
+
+	this.trigger();
+
+	verify(this.successCallback)();
+	verifyZeroInteractions(this.failureCallback);
+};
+
+FacebookTest.prototype.testLoginFailureCallbackIsCalled = function() {
+	this.setupAjaxCall(false);
+
+	this.trigger();
+
+	verifyZeroInteractions(this.successCallback);
+	verify(this.failureCallback)();
+};
+
+FacebookTest.prototype.testHandlesMissingLoginSuccessCallback = function() {
+	this.setupAjaxCall(true);
+
+	this.testObj.init({
+		"failure" : this.failureCallback
+	});
+
+	verifyZeroInteractions(this.successCallback);
+	verifyZeroInteractions(this.failureCallback);
+};
+
+FacebookTest.prototype.testHandlesMissingLoginFailureCallback = function() {
+	this.setupAjaxCall(false);
+
+	this.testObj.init({
+		"success" : this.successCallback
+	});
+
+	verifyZeroInteractions(this.successCallback);
+	verifyZeroInteractions(this.failureCallback);
 };
