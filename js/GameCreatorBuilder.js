@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreatorBuilder = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
+AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper) {
 	var self = this;
 
 	this.buildGameCreator = function() {
@@ -13,7 +13,7 @@ AVOCADO.GameCreatorBuilder = function(playerId, ajax, viewManager, templateRende
 
 	this.createGameClickHandler = function() {
 		var params = {
-			"playerId" : playerId,
+			"playerId" : facebook.getSignedInPlayerId(),
 			"team" : 0
 		};
 		ajax.call("createGame", params, handleCreateGameResponse);
@@ -28,6 +28,6 @@ AVOCADO.GameCreatorBuilder = function(playerId, ajax, viewManager, templateRende
 	}
 };
 
-AVOCADO.GameCreatorBuilder.getInstance = function(playerId, ajax, viewManager, templateRenderer, jqueryWrapper) {
-	return new AVOCADO.GameCreatorBuilder(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
+AVOCADO.GameCreatorBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper) {
+	return new AVOCADO.GameCreatorBuilder(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
 };

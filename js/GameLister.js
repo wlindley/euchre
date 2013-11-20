@@ -2,14 +2,14 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameLister = function(playerId, ajax) {
+AVOCADO.GameLister = function(facebook, ajax) {
 	var self = this;
 
 	this.getGameList = function(callback) {
-		ajax.call("listGames", {"playerId" : playerId}, callback);
+		ajax.call("listGames", {"playerId" : facebook.getSignedInPlayerId()}, callback);
 	};
 };
 
-AVOCADO.GameLister.getInstance = function(playerId, ajax) {
-	return new AVOCADO.GameLister(playerId, ajax);
+AVOCADO.GameLister.getInstance = function(facebook, ajax) {
+	return new AVOCADO.GameLister(facebook, ajax);
 };

@@ -11,14 +11,14 @@ GameListViewTest.prototype.setUp = function() {
 	};
 
 	this.ajax = TEST.FakeAjax.getInstance();
-	this.gameLister = AVOCADO.GameLister.getInstance(this.playerId, this.ajax);
-
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.gameCreatorBuilder = mock(AVOCADO.GameCreatorBuilder);
 	this.gameJoinerBuilder = mock(AVOCADO.GameJoinerBuilder);
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.facebook = mock(AVOCADO.Facebook);
+	this.gameLister = AVOCADO.GameLister.getInstance(this.facebook, this.ajax);
 
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 
@@ -82,10 +82,12 @@ GameListViewTest.prototype.setUp = function() {
 };
 
 GameListViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.playerId, this.gameCreatorBuilder, this.gameJoinerBuilder, this.playerNameDirectory);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.facebook, this.gameCreatorBuilder, this.gameJoinerBuilder, this.playerNameDirectory);
 };
 
 GameListViewTest.prototype.doTraining = function() {
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
+
 	this.ajax.callbackResponse = {"games" : this.gameList, "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
@@ -263,9 +265,13 @@ GameListViewTest.prototype.testShowRemovesClassesFromListEntries = function() {
 	for (var i in this.statuses) {
 		if ("waiting_for_more_players" == this.statuses[i]) {
 			verify(this.elements[i]).removeClass("gameListEntryClickable");
+		} else {
+			verify(this.elements[i], never()).removeClass("gameListEntryClickable");
 		}
 		if (this.currentPlayerIds[i] != this.playerId) {
 			verify(this.elements[i]).removeClass("gameListEntryYourTurn");
+		} else {
+			verify(this.elements[i], never()).removeClass("gameListEntryYourTurn");
 		}
 	}
 };

@@ -6,6 +6,8 @@ GameCreatorBuilderTest.prototype.setUp = function() {
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 	this.origSetTimeout = setTimeout;
 	this.origSetTimeout = function(func, time, lang) {
 		func();
@@ -89,5 +91,5 @@ GameCreatorBuilderTest.prototype.trigger = function() {
 };
 
 GameCreatorBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.playerId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
+	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
 };

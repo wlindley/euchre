@@ -3,6 +3,8 @@ GameJoinerBuilderTest = TestCase("GameJoinerBuilderTest");
 GameJoinerBuilderTest.prototype.setUp = function() {
 	this.fbId = "1234567";
 	this.ajax = mock(AVOCADO.Ajax);
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.fbId);
 	this.txtGameId = mock(TEST.FakeJQueryElement);
 	this.txtTeamId = mock(TEST.FakeJQueryElement);
 	this.btnJoinGame = mock(TEST.FakeJQueryElement);
@@ -103,5 +105,5 @@ GameJoinerBuilderTest.prototype.trigger = function() {
 };
 
 GameJoinerBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameJoinerBuilder(this.fbId, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
+	this.testObj = new AVOCADO.GameJoinerBuilder(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
 };

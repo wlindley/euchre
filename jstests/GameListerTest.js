@@ -3,6 +3,8 @@ GameListerTest = TestCase("GameListerTest")
 GameListerTest.prototype.setUp = function() {
 	this.fbId = "12345";
 	this.ajax = new TEST.FakeAjax();
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.fbId);
 	this.buildTestObj();
 };
 
@@ -28,5 +30,5 @@ GameListerTest.prototype.testCallsAjaxCorrectly = function() {
 };
 
 GameListerTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameLister.getInstance(this.fbId, this.ajax);
+	this.testObj = AVOCADO.GameLister.getInstance(this.facebook, this.ajax);
 };

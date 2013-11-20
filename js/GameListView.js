@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner, playerNameDirectory) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory) {
 	var self = this;
 
 	this.init = function() {
@@ -29,7 +29,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 			} else {
 				element.removeClass("gameListEntryClickable");
 			}
-			if (response.games[i].currentPlayerId != playerId) {
+			if (response.games[i].currentPlayerId != facebook.getSignedInPlayerId()) {
 				element.removeClass("gameListEntryYourTurn");
 			}
 
@@ -84,9 +84,9 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	};
 };
 
-AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, playerNameDirectory) {
-	var gameLister = new AVOCADO.GameLister.getInstance(playerId, ajax);
-	var gameCreator = new AVOCADO.GameCreatorBuilder.getInstance(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
-	var gameJoiner = new AVOCADO.GameJoinerBuilder.getInstance(playerId, ajax, viewManager, templateRenderer, jqueryWrapper);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, playerId, gameCreator, gameJoiner, playerNameDirectory);
+AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, playerNameDirectory) {
+	var gameLister = new AVOCADO.GameLister.getInstance(facebook, ajax);
+	var gameCreator = new AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
+	var gameJoiner = new AVOCADO.GameJoinerBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory);
 };
