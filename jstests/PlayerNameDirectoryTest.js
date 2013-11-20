@@ -12,6 +12,9 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 	};
 
 	this.ajax = mock(AVOCADO.Ajax);
+	this.facebook = mock(AVOCADO.Facebook);
+
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
 
 	this.buildTestObj();
 };
@@ -21,7 +24,7 @@ PlayerNameDirectoryTest.prototype.tearDown = function() {
 };
 
 PlayerNameDirectoryTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.PlayerNameDirectory(this.ajax, this.locStrings, this.localPlayerId);
+	this.testObj = new AVOCADO.PlayerNameDirectory(this.ajax, this.locStrings, this.facebook);
 };
 
 PlayerNameDirectoryTest.prototype.trigger = function(playerId) {

@@ -2,13 +2,13 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.PlayerNameDirectory = function(ajax, locStrings, playerId) {
+AVOCADO.PlayerNameDirectory = function(ajax, locStrings, facebook) {
 	var promises = {};
 
 	this.getNamePromise = function(pid) {
 		if (!(pid in promises)) {
 			promises[pid] = AVOCADO.PlayerNamePromise.getInstance(pid, locStrings);
-			if (playerId == pid) {
+			if (facebook.getSignedInPlayerId() == pid) {
 				promises[pid].setName(locStrings["you"]);
 			} else {
 				ajax.call("getName", {"playerId" : pid}, this.handleResponse);
@@ -25,6 +25,6 @@ AVOCADO.PlayerNameDirectory = function(ajax, locStrings, playerId) {
 	};
 };
 
-AVOCADO.PlayerNameDirectory.getInstance = function(ajax, locStrings, playerId) {
-	return new AVOCADO.PlayerNameDirectory(ajax, locStrings, playerId);
+AVOCADO.PlayerNameDirectory.getInstance = function(ajax, locStrings, facebook) {
+	return new AVOCADO.PlayerNameDirectory(ajax, locStrings, facebook);
 };
