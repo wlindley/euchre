@@ -48,37 +48,46 @@ class FacebookTest(testhelper.TestCase):
 		self._doTraining()
 		self._buildTestObj()
 
-	def testSuccessfulAuthenticateAsUserStoresDataInSession(self):
-		self.testObj.authenticateAsUser(self.requestDataAccessor)
-		verify(self.session).set(social.Facebook.SESSION_KEY, self.sessionData)
-
 	def testGetUserReturnsExpectedName(self):
-		self.testObj.authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
 	def testGetUserReturnsDefaultUserIfNoProfileFound(self):
 		when(self.graph).get_object(self.playerId).thenReturn(None)
-		self.testObj.authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.nullUser, self.testObj.getUser(self.playerId))
 
+	def testSuccessfulAuthenticateAsUserStoresDataInSession(self):
+		self.testObj.getUser(self.playerId)
+		verify(self.session).set(social.Facebook.SESSION_KEY, self.sessionData)
+
 	def testGetUserStillWorksNoAuthentication(self):
+		when(facebook).get_user_from_cookie(any(), any(), any()).thenReturn(None)
+		when(facebook).GraphAPI().thenReturn(self.graph)
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
 	def testRetrievesDataFromSessionIfPresent(self):
-		when(facebook).GraphAPI().thenReturn(None)
 		when(self.session).get(social.Facebook.SESSION_KEY).thenReturn(self.sessionData)
 
-		self.testObj.authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
 		verify(facebook, never).get_user_from_cookie(any(), any(), any())
+
+	def testClearsSessionIfGetObjectRaisesGraphAPIErrorAndTriesAgain(self):
+		when(self.graph).get_object(self.playerId).thenRaise(facebook.GraphAPIError({"type" : "bar"})).thenReturn(self.profile)
+
+		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
+
+		verify(self.session).set(social.Facebook.SESSION_KEY, None)
+
+	def testReturnsDefaultUserIfRetryFails(self):
+		when(self.graph).get_object(self.playerId).thenRaise(facebook.GraphAPIError({"type" : "bar"}))
+
+		self.assertEqual(self.nullUser, self.testObj.getUser(self.playerId))
 
 	def _doTraining(self):
 		when(self.requestDataAccessor).getCookies().thenReturn(self.requestCookies)
 
 		when(facebook).get_user_from_cookie(self.requestCookies, social.Facebook.APP_ID, social.Facebook.APP_SECRET).thenReturn(self.fbCookie)
 		when(facebook).GraphAPI(self.accessToken).thenReturn(self.graph)
-		when(facebook).GraphAPI().thenReturn(self.graph)
 
 		when(self.graph).get_object(self.playerId).thenReturn(self.profile)
 
@@ -87,4 +96,4 @@ class FacebookTest(testhelper.TestCase):
 		when(src.social.User).getInstance().thenReturn(self.nullUser)
 
 	def _buildTestObj(self):
-		self.testObj = social.Facebook.getInstance(self.session)
+		self.testObj = social.Facebook.getInstance(self.requestDataAccessor, self.session)

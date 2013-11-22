@@ -97,7 +97,6 @@ class CreateGameExecutableTest(BaseExecutableTestCase):
 		expectedTeams = [[], []]
 		expectedTeams[self.team].append(self.playerId)
 		self.testObj.execute()
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.playerId, self.gameModel.playerId[0])
 		self.assertEqual(json.dumps(expectedTeams), self.gameModel.teams)
 		verify(self.gameModel).put()
@@ -116,15 +115,6 @@ class CreateGameExecutableTest(BaseExecutableTestCase):
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFactory)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
-
-	def testAuthenticateIsCalledBeforeGetUser(self):
-		when(self.facebook).authenticateAsUser(self.requestDataAccessor).thenRaise(Exception("expected"))
-		try:
-			self._buildTestObj()
-			self.testObj.execute()
-		except Exception:
-			pass
-		verify(self.facebook, never).getUser("me")
 
 class ListGamesExecutableTest(BaseExecutableTestCase):
 	def setUp(self):
@@ -204,7 +194,6 @@ class ListGamesExecutableTest(BaseExecutableTestCase):
 			})
 		expectedResponse["games"][3]["teams"] = [teams[0]]
 
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
 
 class DefaultExecutableTest(BaseExecutableTestCase):
@@ -252,7 +241,6 @@ class AddPlayerExecutableTest(BaseExecutableTestCase):
 		return expectedPlayerIds, expectedTeams
 
 	def _assertResponseResult(self, success):
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.responseWriter).write(json.dumps({"success" : success}))
 
 	def _assertGameModelUnchanged(self):
@@ -450,7 +438,6 @@ class GetGameDataExecutableTest(BaseExecutableTestCase):
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self):
-		verify(self.facebook, atleast=1).authenticateAsUser(self.requestDataAccessor)
 		expectedUpCard = None
 		if None != self.upCard:
 			expectedUpCard = {"suit" : self.upCard.suit, "value" : self.upCard.value}
@@ -567,7 +554,6 @@ class SelectTrumpExecutableTest(BaseExecutableTestCase):
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self, expectedSuit):
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
 		inorder.verify(self.game).addCardToHand(self.dealerPlayer, self.upCard)
@@ -683,7 +669,6 @@ class PlayCardExecutableTest(BaseExecutableTestCase):
 
 		self.testObj.execute()
 
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).playCard(self.player, self.card)
 		inorder.verify(self.gameModel).put()
@@ -789,7 +774,6 @@ class DiscardExecutableTest(BaseExecutableTestCase):
 	def testExecuteCallsDiscardOnGameAndWritesSuccess(self):
 		self.gameModel.serializedGame = self.serializedGame
 		self.testObj.execute()
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).discardCard(self.player, self.card)
 		inorder.verify(self.gameModel).put()
@@ -921,7 +905,6 @@ class RemoveCompletedGameExecutableTest(BaseExecutableTestCase):
 		self.assertFalse(self.playerId in self.gameModel.readyToRemove)
 		self.testObj.execute()
 		self.assertTrue(self.playerId in self.gameModel.readyToRemove)
-		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
