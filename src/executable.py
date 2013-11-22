@@ -19,14 +19,15 @@ MAX_TEAM_SIZE = 2
 class ExecutableFactory(object):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return ExecutableFactory(requestDataAccessor, responseWriter)
+		return ExecutableFactory(requestDataAccessor, responseWriter, session)
 
-	def __init__(self, requestDataAccessor, responseWriter):
+	def __init__(self, requestDataAccessor, responseWriter, session):
 		self._requestDataAccessor = requestDataAccessor
 		self._responseWriter = responseWriter
+		self._session = session
 		self._executables = {
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
@@ -42,15 +43,16 @@ class ExecutableFactory(object):
 	def createExecutable(self):
 		action = self._requestDataAccessor.get("action")
 		if action in self._executables:
-			return self._executables[action].getInstance(self._requestDataAccessor, self._responseWriter)
-		return DefaultExecutable.getInstance(self._requestDataAccessor, self._responseWriter)
+			return self._executables[action].getInstance(self._requestDataAccessor, self._responseWriter, self._session)
+		return DefaultExecutable.getInstance(self._requestDataAccessor, self._responseWriter, self._session)
 
 class AbstractExecutable(object):
 	__metaclass__ = ABCMeta
 
-	def __init__(self, requestDataAccessor, responseWriter, *args, **kwargs):
+	def __init__(self, requestDataAccessor, responseWriter, session, *args, **kwargs):
 		self._requestDataAccessor = requestDataAccessor
 		self._responseWriter = responseWriter
+		self._session = session
 
 	@abstractmethod
 	def execute(self, *args, **kwargs):
@@ -60,8 +62,8 @@ class AbstractExecutable(object):
 		self._responseWriter.write(json.dumps(response, sort_keys=True))
 
 class FacebookUserExecutable(AbstractExecutable):
-	def __init__(self, requestDataAccessor, responseWriter, facebook):
-		super(FacebookUserExecutable, self).__init__(requestDataAccessor, responseWriter)
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook):
+		super(FacebookUserExecutable, self).__init__(requestDataAccessor, responseWriter, session)
 		self._facebook = facebook
 		self._facebook.authenticateAsUser(requestDataAccessor)
 
@@ -71,13 +73,13 @@ class FacebookUserExecutable(AbstractExecutable):
 class CreateGameExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, model.GameModelFactory.getInstance(), social.Facebook.getInstance())
+		return CreateGameExecutable(requestDataAccessor, responseWriter, session, model.GameModelFactory.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFactory, facebook):
-		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFactory, facebook):
+		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFactory = gameModelFactory
 
 	def execute(self):
@@ -97,13 +99,13 @@ class CreateGameExecutable(FacebookUserExecutable):
 class ListGamesExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return ListGamesExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), social.Facebook.getInstance())
+		return ListGamesExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, gameStatusRetriever, facebook):
-		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, turnRetriever, gameStatusRetriever, facebook):
+		super(ListGamesExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
@@ -133,10 +135,10 @@ class ListGamesExecutable(FacebookUserExecutable):
 class DefaultExecutable(AbstractExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return DefaultExecutable(requestDataAccessor, responseWriter)
+		return DefaultExecutable(requestDataAccessor, responseWriter, session)
 
 	def execute(self):
 		self._writeResponse({})
@@ -144,13 +146,13 @@ class DefaultExecutable(AbstractExecutable):
 class AddPlayerExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return AddPlayerExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance())
+		return AddPlayerExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, facebook):
-		super(AddPlayerExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+		super(AddPlayerExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 
@@ -197,13 +199,13 @@ class AddPlayerExecutable(FacebookUserExecutable):
 class GetGameDataExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance(), retriever.TrickLeaderRetriever.getInstance(), retriever.PreviousTrickRetriever.getInstance(), social.Facebook.getInstance())
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance(), retriever.TrickLeaderRetriever.getInstance(), retriever.PreviousTrickRetriever.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever, trickLeaderRetriever, previousTrickRetriever, facebook):
-		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever, trickLeaderRetriever, previousTrickRetriever, facebook):
+		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
@@ -272,13 +274,13 @@ class GetGameDataExecutable(FacebookUserExecutable):
 class SelectTrumpExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return SelectTrumpExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.DealerRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), social.Facebook.getInstance())
+		return SelectTrumpExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.DealerRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, dealerRetriever, upCardRetriever, facebook):
-		super(SelectTrumpExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, dealerRetriever, upCardRetriever, facebook):
+		super(SelectTrumpExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._dealerRetriever = dealerRetriever
@@ -330,13 +332,13 @@ class SelectTrumpExecutable(FacebookUserExecutable):
 class PlayCardExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return PlayCardExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance())
+		return PlayCardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, facebook):
-		super(PlayCardExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+		super(PlayCardExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 
@@ -380,13 +382,13 @@ class PlayCardExecutable(FacebookUserExecutable):
 class DiscardExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return DiscardExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance())
+		return DiscardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, facebook):
-		super(DiscardExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+		super(DiscardExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 
@@ -432,13 +434,13 @@ class DiscardExecutable(FacebookUserExecutable):
 class GetNameExecutable(AbstractExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return GetNameExecutable(requestDataAccessor, responseWriter)
+		return GetNameExecutable(requestDataAccessor, responseWriter, session)
 
-	def __init__(self, requestDataAccessor, responseWriter):
-		super(GetNameExecutable, self).__init__(requestDataAccessor, responseWriter)
+	def __init__(self, requestDataAccessor, responseWriter, session):
+		super(GetNameExecutable, self).__init__(requestDataAccessor, responseWriter, session)
 
 	def execute(self):
 		playerId = self._requestDataAccessor.get("playerId")
@@ -450,13 +452,13 @@ class GetNameExecutable(AbstractExecutable):
 class RemoveCompletedGameExecutable(FacebookUserExecutable):
 	instance = None
 	@classmethod
-	def getInstance(cls, requestDataAccessor, responseWriter):
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return RemoveCompletedGameExecutable(requestDataAccessor, responseWriter, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance())
+		return RemoveCompletedGameExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(session))
 
-	def __init__(self, requestDataAccessor, responseWriter, gameModelFinder, gameSerializer, facebook):
-		super(RemoveCompletedGameExecutable, self).__init__(requestDataAccessor, responseWriter, facebook)
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+		super(RemoveCompletedGameExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 

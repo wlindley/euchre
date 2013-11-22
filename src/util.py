@@ -41,6 +41,23 @@ class ResponseWriter(object):
 	def write(self, data):
 		self._response.write(data)
 
+class Session(object):
+	instance = None
+	@classmethod
+	def getInstance(cls, sessionStore):
+		if None != cls.instance:
+			return cls.instance
+		return Session(sessionStore)
+
+	def __init__(self, sessionStore):
+		self._sessionStore = sessionStore
+
+	def get(self, key):
+		return self._sessionStore.get(key)
+
+	def set(self, key, value):
+		self._sessionStore[key] = value
+
 class FileReader(object):
 	instance = None
 	@classmethod

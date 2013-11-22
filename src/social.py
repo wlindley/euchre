@@ -24,20 +24,28 @@ class User(object):
 class Facebook(object):
 	instance = None
 	@classmethod
-	def getInstance(cls):
+	def getInstance(cls, session):
 		if None != cls.instance:
 			return cls.instance
-		return Facebook()
+		return Facebook(session)
 
 	APP_ID = "247880815364832"
-	APP_SECRET = "07b0648bd8f3c3318de53482a68126ee"	
+	APP_SECRET = "07b0648bd8f3c3318de53482a68126ee"
+	SESSION_KEY = "fbuser"
 
-	def __init__(self):
+	def __init__(self, session):
+		self._session = session
 		self._graph = None
 
 	def authenticateAsUser(self, requestDataAccessor):
-		cookie = facebook.get_user_from_cookie(requestDataAccessor.getCookies(), Facebook.APP_ID, Facebook.APP_SECRET)
-		self._graph = facebook.GraphAPI(cookie["access_token"])
+		sessionData = self._session.get(Facebook.SESSION_KEY)
+		if sessionData:
+			accessToken = sessionData["accessToken"]
+		else:
+			cookie = facebook.get_user_from_cookie(requestDataAccessor.getCookies(), Facebook.APP_ID, Facebook.APP_SECRET)
+			accessToken = cookie["access_token"]
+			self._session.set(Facebook.SESSION_KEY, {"accessToken" : accessToken})
+		self._graph = facebook.GraphAPI(accessToken)
 
 	def getUser(self, identifier):
 		self._defaultAuthentication()

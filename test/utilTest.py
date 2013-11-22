@@ -46,6 +46,32 @@ class ResponseWriterTest(testhelper.TestCase):
 		self.testObj.write(params)
 		verify(self.response).write(params)
 
+class SessionTest(testhelper.TestCase):
+	def setUp(self):
+		self.sessionStore = testhelper.createSimpleMock()
+
+		self.key = "foouser"
+		self.expectedValue = {"userid" : "2309asdlj3"}
+
+		when(self.sessionStore).get(self.key).thenReturn(self.expectedValue)
+
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.testObj = util.Session.getInstance(self.sessionStore)
+
+	def testGetReturnsExpectedValue(self):
+		self.assertEqual(self.expectedValue, self.testObj.get(self.key))
+
+	def testSetUpdatesValue(self):
+		updatedValue = {"userid" : "bing"}
+		self.sessionStore = {self.key : self.expectedValue}
+		self._buildTestObj()
+
+		self.testObj.set(self.key, updatedValue)
+
+		self.assertEqual(updatedValue, self.sessionStore[self.key])
+
 class JsFileLoaderTest(testhelper.TestCase):
 	def setUp(self):
 		self.filename = "data/jsFileList.txt"

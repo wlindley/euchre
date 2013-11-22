@@ -22,7 +22,8 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
-		self.testObj = executable.ExecutableFactory.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.session = testhelper.createSingletonMock(util.Session)
+		self.testObj = executable.ExecutableFactory.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def _runTestForAction(self, action, executableClassName):
 		executableObj = testhelper.createSingletonMock(executable.__dict__[executableClassName])
@@ -60,8 +61,15 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsRemoveCompletedGameExecutableWhenActionIsDismissCompletedGame(self):
 		self._runTestForAction("dismissCompletedGame", "RemoveCompletedGameExecutable")
 
-class CreateGameExecutableTest(testhelper.TestCase):
+class BaseExecutableTestCase(testhelper.TestCase):
 	def setUp(self):
+		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
+		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		self.session = testhelper.createSingletonMock(util.Session)
+
+class CreateGameExecutableTest(BaseExecutableTestCase):
+	def setUp(self):
+		super(CreateGameExecutableTest, self).setUp()
 		self.playerId = "1"
 		self.facebook = testhelper.createSingletonMock(social.Facebook)
 		self.user = testhelper.createMock(social.User)
@@ -70,10 +78,8 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		self.team = 0
 		self.gameId = "251"
 		self.requestData = {"gameId" : self.gameId, "team" : str(self.team)}
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		for key, val in self.requestData.iteritems():
 			when(self.requestDataAccessor).get(key).thenReturn(val)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelKey = testhelper.createMock(ndb.Key)
 		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
 		self.gameModel = testhelper.createMock(model.GameModel)
@@ -85,7 +91,7 @@ class CreateGameExecutableTest(testhelper.TestCase):
 		self._buildTestObj()
 
 	def _buildTestObj(self):
-		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def testExecuteCreatesGameModelWithCorrectData(self):
 		expectedTeams = [[], []]
@@ -120,17 +126,16 @@ class CreateGameExecutableTest(testhelper.TestCase):
 			pass
 		verify(self.facebook, never).getUser("me")
 
-class ListGamesExecutableTest(testhelper.TestCase):
+class ListGamesExecutableTest(BaseExecutableTestCase):
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(ListGamesExecutableTest, self).setUp()
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
 		self.facebook = testhelper.createSingletonMock(social.Facebook)
 		self.user = testhelper.createMock(social.User)
 		when(self.facebook).getUser("me").thenReturn(self.user)
-		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def testExecuteReturnsCorrectGameData(self):
 		NUM_GAMES = 4
@@ -202,25 +207,23 @@ class ListGamesExecutableTest(testhelper.TestCase):
 		verify(self.facebook).authenticateAsUser(self.requestDataAccessor)
 		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
 
-class DefaultExecutableTest(testhelper.TestCase):
+class DefaultExecutableTest(BaseExecutableTestCase):
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
-		self.testObj = executable.DefaultExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		super(DefaultExecutableTest, self).setUp()
+		self.testObj = executable.DefaultExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def testExecuteReturnsEmptyObjectAsResponse(self):
 		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({}))
 
-class AddPlayerExecutableTest(testhelper.TestCase):
+class AddPlayerExecutableTest(BaseExecutableTestCase):
 	def setUp(self):
+		super(AddPlayerExecutableTest, self).setUp()
 		self.gameId = "12843"
 		self.existingPlayerIds = ["1", "2"]
 		self.existingTeams = [["1"], ["2"]]
 		self.requestData = {"gameId" : self.gameId}
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		when(self.requestDataAccessor).get("gameId").thenReturn(str(self.gameId))
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameModelKey = testhelper.createMock(ndb.Key)
 		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
@@ -236,7 +239,7 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 		self.user = testhelper.createMock(social.User)
 		when(self.facebook).getUser("me").thenReturn(self.user)
 
-		self.testObj = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def _trainPlayerIdAndTeam(self, playerId, team):
 		when(self.user).getId().thenReturn(playerId)
@@ -361,13 +364,12 @@ class AddPlayerExecutableTest(testhelper.TestCase):
 
 		self.assertTrue(self.wasCalled)
 
-class GetGameDataExecutableTest(testhelper.TestCase):
+class GetGameDataExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(GetGameDataExecutableTest, self).setUp()
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.gameId = "12345"
 		self.gameModelKey = testhelper.createMock(ndb.Key)
@@ -515,13 +517,12 @@ class GetGameDataExecutableTest(testhelper.TestCase):
 		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-class SelectTrumpExecutableTest(testhelper.TestCase):
+class SelectTrumpExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.SelectTrumpExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.SelectTrumpExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(SelectTrumpExecutableTest, self).setUp()
 
 		self.gameId = "45678"
 		self.playerId = "1230982304"
@@ -636,13 +637,12 @@ class SelectTrumpExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-class PlayCardExecutableTest(testhelper.TestCase):
+class PlayCardExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.PlayCardExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.PlayCardExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(PlayCardExecutableTest, self).setUp()
 
 		self.gameId = "45678"
 		self.playerId = "1230982304"
@@ -745,13 +745,12 @@ class PlayCardExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-class DiscardExecutableTest(testhelper.TestCase):
+class DiscardExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.DiscardExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.DiscardExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(DiscardExecutableTest, self).setUp()
 
 		self.gameId = "45678"
 		self.playerId = "1230982304"
@@ -852,13 +851,12 @@ class DiscardExecutableTest(testhelper.TestCase):
 		verify(self.gameModel, never).put()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-class GetNameExecutableTest(testhelper.TestCase):
+class GetNameExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.GetNameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.GetNameExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(GetNameExecutableTest, self).setUp()
 
 		self.playerId = "123456"
 		when(self.requestDataAccessor).get("playerId").thenReturn(str(self.playerId))
@@ -875,13 +873,12 @@ class GetNameExecutableTest(testhelper.TestCase):
 		self.testObj.execute()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-class RemoveCompletedGameExecutableTest(testhelper.TestCase):
+class RemoveCompletedGameExecutableTest(BaseExecutableTestCase):
 	def _buildTestObj(self):
-		self.testObj = executable.RemoveCompletedGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter)
+		self.testObj = executable.RemoveCompletedGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
 	def setUp(self):
-		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
-		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
+		super(RemoveCompletedGameExecutableTest, self).setUp()
 
 		self.gameId = "15"
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
