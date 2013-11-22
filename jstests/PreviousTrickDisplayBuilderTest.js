@@ -144,5 +144,5 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 };
 
 PreviousTrickDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory, this.playerId);
+	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory);
 };

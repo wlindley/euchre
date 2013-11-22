@@ -25,6 +25,8 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
 
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 
 	this.trumpSelectionElement = mock(TEST.FakeJQueryElement);
 	this.passButtonElement = mock(TEST.FakeJQueryElement);
@@ -61,7 +63,7 @@ TrumpSelectionAreaBuilderTest.prototype.tearDown = function() {
 };
 
 TrumpSelectionAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.playerId, this.locStrings, this.viewManager, this.playerNameDirectory);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.facebook, this.locStrings, this.viewManager, this.playerNameDirectory);
 };
 
 TrumpSelectionAreaBuilderTest.prototype.train = function(trumpSelectionActionHtml) {

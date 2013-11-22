@@ -46,6 +46,9 @@ RoundPlayingAreaBuilderTest.prototype.setUp = function() {
 
 	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
+
 	this.trainCardAndTrickElementTemplates();
 	this.trainAreaTemplate(this.leaderHtml);
 	this.buildTestObj();
@@ -161,7 +164,7 @@ RoundPlayingAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPl
 };
 
 RoundPlayingAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.RoundPlayingAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.playerId, this.viewManager, this.playerNameDirectory);
+	this.testObj = AVOCADO.RoundPlayingAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.facebook, this.viewManager, this.playerNameDirectory);
 };
 
 RoundPlayingAreaBuilderTest.prototype.trigger = function() {

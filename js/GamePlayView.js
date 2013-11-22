@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder, playerNameDirectory, gameCompleteDisplayBuilder) {
+AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder, playerNameDirectory, gameCompleteDisplayBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -10,7 +10,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 	};
 
 	this.show = function(params) {
-		ajax.call("getGameData", {"gameId" : params.gameId, "playerId" : fbId}, handleGetGameDataResponse);
+		ajax.call("getGameData", {"gameId" : params.gameId, "playerId" : facebook.getSignedInPlayerId()}, handleGetGameDataResponse);
 	};
 
 	this.hide = function() {
@@ -29,7 +29,7 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 
 		var gameScores = response.scores;
 		var roundScores = response.round.tricksTaken;
-		if (0 <= response.teams[1].indexOf(fbId)) {
+		if (0 <= response.teams[1].indexOf(facebook.getSignedInPlayerId())) {
 			gameScores = [response.scores[1], response.scores[0]];
 			roundScores = [response.round.tricksTaken[1], response.round.tricksTaken[0]];
 		}
@@ -84,11 +84,11 @@ AVOCADO.GamePlayView = function(ajax, fbId, templateRenderer, gamePlayDiv, viewM
 	};
 };
 
-AVOCADO.GamePlayView.getInstance = function(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, jqueryWrapper, playerNameDirectory) {
-	var trumpSelectionAreaBuilder = AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer, jqueryWrapper, ajax, fbId, locStrings, viewManager, playerNameDirectory);
-	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, fbId, viewManager, playerNameDirectory);
-	var discardAreaBuilder = AVOCADO.DiscardAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, fbId, viewManager);
-	var previousTrickDisplayBuilder = AVOCADO.PreviousTrickDisplayBuilder.getInstance(templateRenderer, jqueryWrapper, playerNameDirectory, fbId);
-	var gameCompleteDisplayBuilder = AVOCADO.GameCompleteDisplayBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, fbId, ajax, viewManager);
-	return new AVOCADO.GamePlayView(ajax, fbId, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder, playerNameDirectory, gameCompleteDisplayBuilder);
+AVOCADO.GamePlayView.getInstance = function(ajax, facebook, templateRenderer, gamePlayDiv, viewManager, locStrings, jqueryWrapper, playerNameDirectory) {
+	var trumpSelectionAreaBuilder = AVOCADO.TrumpSelectionAreaBuilder.getInstance(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory);
+	var roundPlayingAreaBuilder = AVOCADO.RoundPlayingAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory);
+	var discardAreaBuilder = AVOCADO.DiscardAreaBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager);
+	var previousTrickDisplayBuilder = AVOCADO.PreviousTrickDisplayBuilder.getInstance(templateRenderer, jqueryWrapper, playerNameDirectory);
+	var gameCompleteDisplayBuilder = AVOCADO.GameCompleteDisplayBuilder.getInstance(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, facebook, ajax, viewManager);
+	return new AVOCADO.GamePlayView(ajax, facebook, templateRenderer, gamePlayDiv, viewManager, locStrings, trumpSelectionAreaBuilder, jqueryWrapper, roundPlayingAreaBuilder, discardAreaBuilder, previousTrickDisplayBuilder, playerNameDirectory, gameCompleteDisplayBuilder);
 };

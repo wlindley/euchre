@@ -27,6 +27,9 @@ DiscardAreaBuilderTest.prototype.setUp = function() {
 
 	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.facebook = mock(AVOCADO.Facebook);
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
+
 	this.buildTestObj();
 };
 
@@ -113,7 +116,7 @@ DiscardAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPlayers
 };
 
 DiscardAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.DiscardAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.playerId, this.viewManager);
+	this.testObj = AVOCADO.DiscardAreaBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.ajax, this.facebook, this.viewManager);
 };
 
 DiscardAreaBuilderTest.prototype.trigger = function() {

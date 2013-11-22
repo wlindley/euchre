@@ -52,6 +52,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.gameCompleteInsertionElement = mock(TEST.FakeJQueryElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
+	this.facebook = mock(AVOCADO.Facebook);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.gamePlayDiv = mock(TEST.FakeJQueryElement);
 	this.viewManager = mock(AVOCADO.ViewManager);
@@ -97,6 +98,8 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 }
 
 GamePlayViewTest.prototype.doTraining = function() {
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
+
 	this.expectedTrumpText = "";
 	if (0 < this.trumpSuit) {
 		this.expectedTrumpText = this.locStrings.trumpDisplay.replace("%trumpSuit%", this.locStrings["suit_" + this.trumpSuit]);
@@ -301,5 +304,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.playerId, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder, this.playerNameDirectory, this.gameCompleteDisplayBuilder);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.facebook, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder, this.playerNameDirectory, this.gameCompleteDisplayBuilder);
 };

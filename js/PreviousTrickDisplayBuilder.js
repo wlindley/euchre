@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, playerId) {
+AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
 	var self = this;
 
 	this.buildPreviousTrickDisplay = function(playedCards, winnerId) {
@@ -69,6 +69,6 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	}
 };
 
-AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, playerId) {
-	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, playerId);
+AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
+	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory);
 };

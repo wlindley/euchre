@@ -2,11 +2,11 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, localPlayerId, ajax, viewManager) {
+AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
 	var self = this;
 
 	this.buildGameCompleteDisplay = function(teams, scores, gameId) {
-		var localPlayerTeamId = getTeamIndexByPlayerId(teams, localPlayerId);
+		var localPlayerTeamId = getTeamIndexByPlayerId(teams, facebook.getSignedInPlayerId());
 		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
 
 		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {
@@ -44,7 +44,7 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 
 	this.buildDismissClickHandler = function(gameId) {
 		return function() {
-			ajax.call("dismissCompletedGame", {"gameId" : gameId, "playerId" : localPlayerId}, handleDismissResponseHandler);
+			ajax.call("dismissCompletedGame", {"gameId" : gameId, "playerId" : facebook.getSignedInPlayerId()}, handleDismissResponseHandler);
 		};
 	};
 
@@ -55,6 +55,6 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 	}
 };
 
-AVOCADO.GameCompleteDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, localPlayerId, ajax, viewManager) {
-	return new AVOCADO.GameCompleteDisplayBuilder(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, localPlayerId, ajax, viewManager);
+AVOCADO.GameCompleteDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
+	return new AVOCADO.GameCompleteDisplayBuilder(templateRenderer, jqueryWrapper, locStrings, playerNameDirectory, facebook, ajax, viewManager);
 }

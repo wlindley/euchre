@@ -2,11 +2,11 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
+AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager) {
 	var self = this;
 
 	this.buildDiscardArea = function(status, cardElements, gameId, currentPlayerId) {
-		if ("discard" != status || currentPlayerId != playerId) {
+		if ("discard" != status || currentPlayerId != facebook.getSignedInPlayerId()) {
 			return null;
 		}
 
@@ -24,7 +24,7 @@ AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locString
 			var suit = target.find(".cardSuit").val();
 			var value = target.find(".cardValue").val();
 			ajax.call("discard", {
-				"playerId" : playerId,
+				"playerId" : facebook.getSignedInPlayerId(),
 				"gameId" : gameId,
 				"suit" : suit,
 				"value" : value
@@ -35,12 +35,12 @@ AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locString
 	this.buildRefreshViewFunc = function(gameId) {
 		return function() {
 			setTimeout(function() {
-				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : facebook.getSignedInPlayerId()});
 			}, 100);
 		};
 	};
 };
 
-AVOCADO.DiscardAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager) {
-	return new AVOCADO.DiscardAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager);
+AVOCADO.DiscardAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager) {
+	return new AVOCADO.DiscardAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager);
 };

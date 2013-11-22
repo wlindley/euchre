@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory) {
+AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory) {
 	var self = this;
 
 	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId, leaderId, teams) {
@@ -10,7 +10,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			return null;
 		}
 
-		if (currentPlayerId == playerId) {
+		if (currentPlayerId == facebook.getSignedInPlayerId()) {
 			cardElements.addClass("clickableCard");
 			cardElements.click(self.buildCardClickHandler(gameId));
 		}
@@ -23,7 +23,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 		var leaderHtml = "";
 		if (null != leaderId) {
 			var teamString = locStrings.yourTeam;
-			if ((0 <= (teams[0].indexOf(playerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
+			if ((0 <= (teams[0].indexOf(facebook.getSignedInPlayerId()))) != (0 <= (teams[0].indexOf(leaderId)))) {
 				teamString = locStrings.otherTeam;
 			}
 			leaderHtml = templateRenderer.renderTemplate("leader", {"team" : teamString});
@@ -62,7 +62,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			var suit = target.find(".cardSuit").val();
 			var value = target.find(".cardValue").val();
 			ajax.call("playCard", {
-				"playerId" : playerId,
+				"playerId" : facebook.getSignedInPlayerId(),
 				"gameId" : gameId,
 				"suit" : suit,
 				"value" : value
@@ -73,12 +73,12 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 	this.buildRefreshViewFunc = function(gameId) {
 		return function() {
 			setTimeout(function() {
-				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : playerId});
+				viewManager.showView("gamePlay", {"gameId" : gameId, "playerId" : facebook.getSignedInPlayerId()});
 			}, 100);
 		};
 	};
 };
 
-AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory) {
-	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, playerId, viewManager, playerNameDirectory);
+AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory) {
+	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory);
 };

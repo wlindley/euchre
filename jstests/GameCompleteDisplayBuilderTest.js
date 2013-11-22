@@ -20,10 +20,11 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.locStrings = {"won" : "won!", "and" : "foo and", "dismiss" : "diss that miss"};
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
-	this.localPlayerId = "3452cba";
+	this.facebook = mock(AVOCADO.Facebook);
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.localPlayerId = "3452cba";
 	this.gameId = 4;
 	this.teams = [[this.localPlayerId, "2b"], ["3c", "4d"]];
 	this.scores = [0, 0];
@@ -44,6 +45,8 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 };
 
 GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamWon) {
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
+
 	when(this.templateRenderer).renderTemplate("gameComplete", allOf(
 		hasMember("won", this.locStrings["won"]),
 		hasMember("and", this.locStrings["and"]),
@@ -63,7 +66,7 @@ GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamW
 };
 
 GameCompleteDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.localPlayerId, this.ajax, this.viewManager);
+	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager);
 };
 
 GameCompleteDisplayBuilderTest.prototype.trigger = function() {
