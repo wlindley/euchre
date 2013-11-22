@@ -43,14 +43,15 @@ class Facebook(object):
 		try:
 			profile = self._graph.get_object(identifier)
 		except facebook.GraphAPIError as e:
-			logging.info("Facebook Graph error while getting user, error type: %s" % e.type)
+			#may just want to do this for error codes 190 and 191
+			logging.info("Facebook Graph error while getting user, error type: %s" % e.result)
 			self._session.set(Facebook.SESSION_KEY, None)
 			self._graph = None
 			self._defaultAuthentication()
 			try:
 				profile = self._graph.get_object(identifier)
 			except facebook.GraphAPIError as e:
-				logging.info("Facebook Graph error while retrying user get, error type: %s" % e.type)
+				logging.info("Facebook Graph error while retrying user get, error type: %s" % e.result)
 				profile = None
 
 		return self._buildUser(profile)
