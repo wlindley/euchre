@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.PlayerNameDirectory = function(ajax, locStrings, facebook) {
+AVOCADO.PlayerNameDirectory = function(locStrings, facebook) {
 	var promises = {};
 
 	this.getNamePromise = function(pid) {
@@ -25,6 +25,6 @@ AVOCADO.PlayerNameDirectory = function(ajax, locStrings, facebook) {
 	};
 };
 
-AVOCADO.PlayerNameDirectory.getInstance = function(ajax, locStrings, facebook) {
-	return new AVOCADO.PlayerNameDirectory(ajax, locStrings, facebook);
+AVOCADO.PlayerNameDirectory.getInstance = function(locStrings, facebook) {
+	return new AVOCADO.PlayerNameDirectory(locStrings, facebook);
 };

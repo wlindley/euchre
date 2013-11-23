@@ -11,7 +11,6 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 		"someone" : "freeb"
 	};
 
-	this.ajax = mock(AVOCADO.Ajax);
 	this.facebook = mock(AVOCADO.Facebook);
 
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
@@ -24,7 +23,7 @@ PlayerNameDirectoryTest.prototype.tearDown = function() {
 };
 
 PlayerNameDirectoryTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.PlayerNameDirectory(this.ajax, this.locStrings, this.facebook);
+	this.testObj = new AVOCADO.PlayerNameDirectory(this.locStrings, this.facebook);
 };
 
 PlayerNameDirectoryTest.prototype.trigger = function(playerId) {
@@ -95,6 +94,6 @@ PlayerNameDirectoryTest.prototype.testLocalPlayerIdImmediatelyGetsExpectedName =
 
 	var promise = this.trigger(this.localPlayerId);
 
-	verify(this.ajax, never()).call("getName", allOf(hasMember("playerId", this.localPlayerId)), this.testObj.handleResponse);
+	verify(this.facebook, never()).getPlayerData(this.playerId, this.testObj.handleResponse);
 	verify(promise).setName(this.expectedYouString);
 };
