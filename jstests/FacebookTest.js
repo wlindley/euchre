@@ -3,6 +3,7 @@ FacebookTest = TestCase("FacebookTest");
 FakeFB = function() {
 	this.init = function() {};
 	this.login = function() {};
+	this.api = function() {};
 };
 
 FacebookTest.prototype.setUp = function() {
@@ -11,9 +12,12 @@ FacebookTest.prototype.setUp = function() {
 	this.appId = "234023984";
 	this.localPlayerId = "324lkjada34l";
 	this.channelUrl = "http://my.awesome.com/channel.html";
+	this.otherPlayerId = "slajf323409imsde3";
+	this.otherPlayerName = "Foobing Barbazi";
 
 	this.successCallback = mockFunction();
 	this.failureCallback = mockFunction();
+	this.getPlayerDataCallback = mockFunction();
 
 	this.buildTestObj();
 };
@@ -27,7 +31,6 @@ FacebookTest.prototype.buildTestObj = function() {
 };
 
 FacebookTest.prototype.trigger = function() {
-	var testHarness = this;
 	this.testObj.init({
 		"success" : this.successCallback,
 		"failure" : this.failureCallback
@@ -49,6 +52,20 @@ FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
 		}
 		params["success"]();
 	};
+};
+
+FacebookTest.prototype.setupGetNameCallSuccess = function() {
+	var testHarness = this;
+	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
+		testHarness.testObj.buildGetPlayerDataCallback(testHarness.getPlayerDataCallback)({"name" : testHarness.otherPlayerName, "id" : testHarness.otherPlayerId});
+	});
+};
+
+FacebookTest.prototype.setupGetNameCallError = function() {
+	var testHarness = this;
+	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
+		testHarness.testObj.buildGetPlayerDataCallback(testHarness.getPlayerDataCallback)({"error" : {"message" : "foo"}});
+	});
 };
 
 FacebookTest.prototype.testInitLoadsFBScript = function() {
@@ -156,4 +173,25 @@ FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringAfterLoginFailur
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringIfHaveNotLoggedIn = function() {
 	this.trigger();
 	assertEquals("", this.testObj.getSignedInPlayerId());
+};
+
+FacebookTest.prototype.testgetPlayerDataCallsCallbackWithName = function() {
+	this.setupAjaxCall();
+	this.trigger();
+	this.setupGetNameCallSuccess();
+
+	this.testObj.getPlayerData(this.otherPlayerId, this.getPlayerDataCallback);
+	verify(this.getPlayerDataCallback)(allOf(
+		hasMember("name", this.otherPlayerName),
+		hasMember("playerId", this.otherPlayerId)
+	));
+};
+
+FacebookTest.prototype.testGetPlayerNameCallsCallbackWithEmptyObject = function() {
+	this.setupAjaxCall();
+	this.trigger();
+	this.setupGetNameCallError();
+
+	this.testObj.getPlayerData(this.otherPlayerId, this.getPlayerDataCallback);
+	verify(this.getPlayerDataCallback)(anything());
 };

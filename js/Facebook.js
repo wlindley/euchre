@@ -22,6 +22,21 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		return signedInPlayerId;
 	};
 
+	this.getPlayerData = function(playerId, callback) {
+		FB.api("/" + playerId + "?fields=name,id", this.buildGetPlayerDataCallback(callback));
+	};
+
+	this.buildGetPlayerDataCallback = function(callback) {
+		return function(response) {
+			var data = {};
+			if (!("error" in response)) {
+				data["name"] = response["name"];
+				data["playerId"] = response["id"];
+			}
+			callback(data);
+		};
+	};
+
 	function handleAjaxResponse() {
 		FB.init({
 			"appId" : appId,

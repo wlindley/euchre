@@ -11,7 +11,7 @@ AVOCADO.PlayerNameDirectory = function(ajax, locStrings, facebook) {
 			if (facebook.getSignedInPlayerId() == pid) {
 				promises[pid].setName(locStrings["you"]);
 			} else {
-				ajax.call("getName", {"playerId" : pid}, this.handleResponse);
+				facebook.getPlayerData(pid, this.handleResponse);
 			}
 		}
 		return promises[pid];

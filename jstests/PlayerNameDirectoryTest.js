@@ -44,13 +44,13 @@ PlayerNameDirectoryTest.prototype.testGetNamePromiseReturnsSamePromiseForMultipl
 
 PlayerNameDirectoryTest.prototype.testGetNamePromiseMakesRequestToServerForName = function() {
 	var promise = this.trigger(this.playerId);
-	verify(this.ajax).call("getName", allOf(hasMember("playerId", this.playerId)), this.testObj.handleResponse);
+	verify(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse);
 };
 
 PlayerNameDirectoryTest.prototype.testMultipleCallsToGetNamePromiseOnlyMakeOneServerRequest = function() {
 	this.trigger(this.playerId);
 	this.trigger(this.playerId);
-	verify(this.ajax, once()).call("getName", allOf(hasMember("playerId", this.playerId)), this.testObj.handleResponse);
+	verify(this.facebook, once()).getPlayerData(this.playerId, this.testObj.handleResponse);
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = function() {
@@ -58,10 +58,14 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = functio
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
+	var testHarness = this;
 	var expectedName = "John Encom";
-	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true, "playerId" : this.playerId, "name" : expectedName};
-	this.buildTestObj();
+	when(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse).then(function() {
+		testHarness.testObj.handleResponse({
+			"playerId" : testHarness.playerId,
+			"name" : expectedName
+		});
+	});
 
 	var promise = this.trigger(this.playerId);
 
@@ -73,11 +77,10 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
-	var expectedName = "Bob Skynet";
-	var otherPlayerId = "zxy0987";
-	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true, "playerId" : otherPlayerId, "name" : expectedName};
-	this.buildTestObj();
+	var testHarness = this;
+	when(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse).then(function() {
+		testHarness.testObj.handleResponse({});
+	});
 
 	var promise = this.trigger(this.playerId);
 
