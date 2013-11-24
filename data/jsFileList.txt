@@ -16,4 +16,5 @@ js/RoundPlayingAreaBuilder.js
 js/PreviousTrickDisplayBuilder.js
 js/DiscardAreaBuilder.js
 js/GameCompleteDisplayBuilder.js
+js/GameListElementBuilder.js
 js/init.js

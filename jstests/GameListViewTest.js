@@ -19,55 +19,21 @@ GameListViewTest.prototype.setUp = function() {
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.facebook = mock(AVOCADO.Facebook);
 	this.gameLister = AVOCADO.GameLister.getInstance(this.facebook, this.ajax);
+	this.gameListElementBuilder = mock(AVOCADO.GameListElementBuilder);
 
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
+	this.gameListElement = mock(TEST.FakeJQueryElement);
 
-	this.gameIds = [1, 2, 3];
-	this.statuses = ["round_in_progress", "waiting_for_more_players", "trump_selection"];
-	this.teams = [[["2345", "3456"], [this.playerId, "1234"]], [[this.playerId, "2345"]], [[this.playerId, "1234"], ["0987", "9876"]]];
-	this.currentPlayerIds = [this.playerId, null, "9876"];
-	this.gameList = [];
-	this.elements = [];
-	this.linkElements = [];
-	this.namePromises = {};
-	this.turnNameElements = [];
-	this.turnElements = [];
-	this.tableElements = [];
-	this.tableDataElements = [];
-	this.tableDataNameElements = [];
-	for (var i in this.teams) {
-		var tableElements = [];
-		var nameElements = [];
-		for (var j = 0; j < 2; j++) {
-			var teamTableElements = [];
-			var teamNameElements = [];
-			for (var k = 0; k < 2; k++) {
-				if ((j in this.teams[i]) && (k in this.teams[i][j])) {
-					var pid = this.teams[i][j][k];
-					this.namePromises[pid] = mock(AVOCADO.PlayerNamePromise);
-				}
-				teamTableElements.push(mock(TEST.FakeJQueryElement));
-				teamNameElements.push(mock(TEST.FakeJQueryElement));
-			}
-			tableElements.push(teamTableElements);
-			nameElements.push(teamNameElements);
-		}
-		this.tableDataElements.push(tableElements);
-		this.tableDataNameElements.push(nameElements);
-		this.tableElements.push(mock(TEST.FakeJQueryElement));
-	}
-	for (var i in this.gameIds) {
-		this.gameList.push({
-			"gameId" : this.gameIds[i],
-			"status" : this.statuses[i],
-			"teams" : this.teams[i],
-			"currentPlayerId" : this.currentPlayerIds[i]
-		});
-		this.elements.push(mock(TEST.FakeJQueryElement));
-		this.linkElements.push(mock(TEST.FakeJQueryElement));
-		this.turnNameElements.push(mock(TEST.FakeJQueryElement));
-		this.turnElements.push(mock(TEST.FakeJQueryElement));
-	}
+	this.gameId = "14klj234";
+	this.status = "round_in_progress";
+	this.teams = [["2345", "3456"], [this.playerId, "1234"]];
+	this.currentPlayerIds = this.playerId;
+	this.gameData = {
+		"gameId" : this.gameId,
+		"status" : this.status,
+		"teams" : this.teams,
+		"currentPlayerId" : this.currentPlayerId
+	};
 	this.listHeaderHtml = "list header";
 	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
 	this.gameJoinerElement = mock(TEST.FakeJQueryElement);
@@ -82,42 +48,24 @@ GameListViewTest.prototype.setUp = function() {
 };
 
 GameListViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.facebook, this.gameCreatorBuilder, this.gameJoinerBuilder, this.playerNameDirectory);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.facebook, this.gameCreatorBuilder, this.gameJoinerBuilder, this.playerNameDirectory, this.gameListElementBuilder);
 };
 
 GameListViewTest.prototype.doTraining = function() {
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 
-	this.ajax.callbackResponse = {"games" : this.gameList, "success" : true};
+	this.ajax.callbackResponse = {"games" : [this.gameData], "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
 	for (var pid in this.namePromises) {
 		when(this.playerNameDirectory).getNamePromise(pid).thenReturn(this.namePromises[pid]);
 	}
-	for (var i in this.gameList) {
-		var gameHtml = "game " + this.gameIds[i];
-		var expectedValues = allOf(
-			hasMember("gameId", equalTo(this.gameIds[i])),
-			hasMember("status", equalTo(this.locStrings[this.statuses[i]])),
-			hasMember("vs", equalTo(this.locStrings["vs"]))
-		);
-		when(this.templateRenderer).renderTemplate("gameListEntry", expectedValues).thenReturn(gameHtml);
-		when(this.jqueryWrapper).getElement(gameHtml).thenReturn(this.elements[i]);
-		when(this.elements[i]).find(".viewGameData").thenReturn(this.linkElements[i]);
-		when(this.elements[i]).find(".gameListElementTeams").thenReturn(this.tableElements[i]);
-		when(this.elements[i]).find(".turn").thenReturn(this.turnElements[i]);
-		when(this.turnElements[i]).find(".playerName").thenReturn(this.turnNameElements[i]);
-		var tableDataSelector = mock(TEST.FakeJQueryElement);
-		when(this.tableElements[i]).find("td").thenReturn(tableDataSelector);
-		for (var j in this.tableDataElements[i]) {
-			var teamSelector = mock(TEST.FakeJQueryElement);
-			when(tableDataSelector).has("input.team[value=" + j + "]").thenReturn(teamSelector);
-			for (var k in this.tableDataElements[i][j]) {
-				when(teamSelector).has("input.index[value=" + k + "]").thenReturn(this.tableDataElements[i][j][k]);
-				when(this.tableDataElements[i][j][k]).find(".playerName").thenReturn(this.tableDataNameElements[i][j][k]);
-			}
-		}
-	}
+	when(this.gameListElementBuilder).buildListElement(allOf(
+		hasMember("gameId", this.gameId),
+		hasMember("status", this.status),
+		hasMember("teams", this.teams),
+		hasMember("currentPlayerId", this.currentPlayerId)
+	), this.testObj.showGameData).thenReturn(this.gameListElement);
 
 	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
 	when(this.gameJoinerBuilder).buildGameJoiner().thenReturn(this.gameJoinerElement);
@@ -147,37 +95,7 @@ GameListViewTest.prototype.testShowAppendsHeader = function() {
 
 GameListViewTest.prototype.testShowAppendsGameListElements = function() {
 	this.trigger();
-	for (var i in this.elements) {
-		verify(this.elements[i]).appendTo(this.gameListDiv);
-	}
-};
-
-GameListViewTest.prototype.testHooksUpTurnNamePromises = function() {
-	this.trigger();
-	for (var i in this.turnNameElements) {
-		var pid = this.currentPlayerIds[i];
-		if (null != pid) {
-			verify(this.namePromises[pid]).registerForUpdates(this.turnNameElements[i]);
-		} else {
-			verify(this.turnNameElements[i]).text(this.locStrings["n/a"]);
-		}
-	}
-};
-
-GameListViewTest.prototype.testHooksUpTeamNamePromises = function() {
-	this.trigger();
-	for (var i in this.teams) {
-		for (var j = 0; j < 2; j++) {
-			for (var k = 0; k < 2; k++) {
-				if ((j in this.teams[i]) && (k in this.teams[i][j])) {
-					var pid = this.teams[i][j][k];
-					verify(this.namePromises[pid]).registerForUpdates(this.tableDataNameElements[i][j][k]);
-				} else {
-					verify(this.tableDataNameElements[i][j][k]).text(this.locStrings["inviteCTA"]);
-				}
-			}
-		}
-	}
+	verify(this.gameListElement).appendTo(this.gameListDiv);
 };
 
 GameListViewTest.prototype.testShowAppendsGameCreator = function() {
@@ -218,13 +136,11 @@ GameListViewTest.prototype.testShowAppendsHeaderBeforeListElements = function() 
 	}
 
 	verify(this.gameListDiv).append(this.listHeaderHtml);
-	for (var i in this.elements) {
-		verify(this.elements[i], never()).appendTo(anything());
-	}
+	verify(this.gameListElement, never()).appendTo(anything());
 };
 
 GameListViewTest.prototype.testShowAppendsListElementsBeforeGameCreator = function() {
-	when(this.elements[this.elements.length - 1]).appendTo(this.gameListDiv).thenThrow("expected exception");
+	when(this.gameListElement).appendTo(this.gameListDiv).thenThrow("expected exception");
 
 	try {
 		this.trigger();
@@ -232,7 +148,7 @@ GameListViewTest.prototype.testShowAppendsListElementsBeforeGameCreator = functi
 		//intentionally empty
 	}
 
-	verify(this.elements[this.elements.length - 1]).appendTo(this.gameListDiv);
+	verify(this.gameListElement).appendTo(this.gameListDiv);
 	verify(this.gameListDiv, never()).append(this.gameCreatorElement);
 };
 
@@ -247,33 +163,6 @@ GameListViewTest.prototype.testShowAppendsGameCreatorBeforeGameJoiner = function
 
 	verify(this.gameListDiv).append(this.gameCreatorElement);
 	verify(this.gameListDiv, never()).append(this.gameJoinerElement);
-};
-
-GameListViewTest.prototype.testShowHooksUpCorrectClickHandlers = function() {
-	this.trigger();
-	for (var i in this.statuses) {
-		if ("waiting_for_more_players" != this.statuses[i]) {
-			verify(this.linkElements[i]).click(this.testObj.showGameData);
-		} else {
-			verify(this.linkElements[i], never()).click(this.testObj.showGameData);
-		}
-	}
-};
-
-GameListViewTest.prototype.testShowRemovesClassesFromListEntries = function() {
-	this.trigger();
-	for (var i in this.statuses) {
-		if ("waiting_for_more_players" == this.statuses[i]) {
-			verify(this.elements[i]).removeClass("gameListEntryClickable");
-		} else {
-			verify(this.elements[i], never()).removeClass("gameListEntryClickable");
-		}
-		if (this.currentPlayerIds[i] != this.playerId) {
-			verify(this.elements[i]).removeClass("gameListEntryYourTurn");
-		} else {
-			verify(this.elements[i], never()).removeClass("gameListEntryYourTurn");
-		}
-	}
 };
 
 GameListViewTest.prototype.testShowGameDataHidesSelf = function() {

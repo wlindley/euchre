@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory, gameListElementBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -21,40 +21,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		gameListDiv.empty();
 		gameListDiv.append(templateRenderer.renderTemplate("gameListHeader"));
 		for (var i = 0; i < response.games.length; i++) {
-			var gameHtml = templateRenderer.renderTemplate("gameListEntry", buildTemplateValues(response.games[i]));
-			var element = jqueryWrapper.getElement(gameHtml);
-
-			if (response.games[i].status != "waiting_for_more_players") {
-				element.find(".viewGameData").click(self.showGameData);
-			} else {
-				element.removeClass("gameListEntryClickable");
-			}
-			if (response.games[i].currentPlayerId != facebook.getSignedInPlayerId()) {
-				element.removeClass("gameListEntryYourTurn");
-			}
-
-			var nameElement = element.find(".turn").find(".playerName");
-			if (null == response.games[i].currentPlayerId) {
-				nameElement.text(locStrings["n/a"]);
-			} else {
-				var namePromise = playerNameDirectory.getNamePromise(response.games[i].currentPlayerId);
-				namePromise.registerForUpdates(nameElement);
-			}
-
-			var playerTable = element.find(".gameListElementTeams");
-			for (var teamId = 0; teamId < 2; teamId++) {
-				for (var index = 0; index < 2; index++) {
-					var dataElement = playerTable.find("td").has("input.team[value=" + teamId + "]").has("input.index[value=" + index + "]");
-					var dataNameElement = dataElement.find(".playerName");
-					if ((teamId in response.games[i].teams) && (index in response.games[i].teams[teamId])) {
-						var namePromise = playerNameDirectory.getNamePromise(response.games[i].teams[teamId][index]);
-						namePromise.registerForUpdates(dataNameElement);
-					} else {
-						dataNameElement.text(locStrings["inviteCTA"]);
-					}
-				}
-			}
-
+			var element = gameListElementBuilder.buildListElement(response.games[i], self.showGameData);
 			element.appendTo(gameListDiv);
 		}
 
@@ -85,8 +52,9 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 };
 
 AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, playerNameDirectory) {
-	var gameLister = new AVOCADO.GameLister.getInstance(facebook, ajax);
-	var gameCreator = new AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
-	var gameJoiner = new AVOCADO.GameJoinerBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory);
+	var gameLister = AVOCADO.GameLister.getInstance(facebook, ajax);
+	var gameCreator = AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
+	var gameJoiner = AVOCADO.GameJoinerBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
+	var gameListElementBuilder = AVOCADO.GameListElementBuilder.getInstance(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory, gameListElementBuilder);
 };
