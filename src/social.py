@@ -63,14 +63,17 @@ class Facebook(object):
 		#first, try session
 		sessionData = self._session.get(Facebook.SESSION_KEY)
 		if sessionData:
+			logging.info("Facebook access token found in session data")
 			accessToken = sessionData["accessToken"]
 		else:
 			#second, try cookies
 			cookie = facebook.get_user_from_cookie(self._requestDataAccessor.getCookies(), Facebook.APP_ID, Facebook.APP_SECRET)
 			if None == cookie:
 				#give up and use default
+				logging.info("Facebook access token could not be obtained, using unauthenticated GraphAPI object")
 				self._graph = facebook.GraphAPI()
 				return
+			logging.info("Facebbok access token retrieved from cookies")
 			accessToken = cookie["access_token"]
 			self._session.set(Facebook.SESSION_KEY, {"accessToken" : accessToken})
 		self._graph = facebook.GraphAPI(accessToken)
