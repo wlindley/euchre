@@ -1,22 +1,12 @@
 GameListViewTest = TestCase("GameListViewTest");
 
 GameListViewTest.prototype.setUp = function() {
-	this.playerId = "45678ghi";
-	this.locStrings = {
-		"n/a" : "N/A",
-		"inviteCTA" : "invite",
-		"round_in_progress" : "foo",
-		"waiting_for_more_players" : "bar",
-		"trump_selection" : "baz"
-	};
-
 	this.ajax = TEST.FakeAjax.getInstance();
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.gameCreatorBuilder = mock(AVOCADO.GameCreatorBuilder);
 	this.gameJoinerBuilder = mock(AVOCADO.GameJoinerBuilder);
-	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.facebook = mock(AVOCADO.Facebook);
 	this.gameLister = AVOCADO.GameLister.getInstance(this.facebook, this.ajax);
 	this.gameListElementBuilder = mock(AVOCADO.GameListElementBuilder);
@@ -24,6 +14,7 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameListDiv = mock(TEST.FakeJQueryElement);
 	this.gameListElement = mock(TEST.FakeJQueryElement);
 
+	this.playerId = "45678ghi";
 	this.gameId = "14klj234";
 	this.status = "round_in_progress";
 	this.teams = [["2345", "3456"], [this.playerId, "1234"]];
@@ -48,7 +39,7 @@ GameListViewTest.prototype.setUp = function() {
 };
 
 GameListViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.ajax, this.locStrings, this.facebook, this.gameCreatorBuilder, this.gameJoinerBuilder, this.playerNameDirectory, this.gameListElementBuilder);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.gameListDiv, this.jqueryWrapper, this.viewManager, this.gameCreatorBuilder, this.gameJoinerBuilder, this.gameListElementBuilder);
 };
 
 GameListViewTest.prototype.doTraining = function() {
@@ -57,9 +48,6 @@ GameListViewTest.prototype.doTraining = function() {
 	this.ajax.callbackResponse = {"games" : [this.gameData], "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
-	for (var pid in this.namePromises) {
-		when(this.playerNameDirectory).getNamePromise(pid).thenReturn(this.namePromises[pid]);
-	}
 	when(this.gameListElementBuilder).buildListElement(allOf(
 		hasMember("gameId", this.gameId),
 		hasMember("status", this.status),

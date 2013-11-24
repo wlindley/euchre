@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory, gameListElementBuilder) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, gameCreator, gameJoiner, gameListElementBuilder) {
 	var self = this;
 
 	this.init = function() {
@@ -34,15 +34,6 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		gameListDiv.show();
 	}
 
-	function buildTemplateValues(gameData) {
-		var values = {
-			"gameId" : gameData.gameId,
-			"status" : locStrings[gameData.status],
-			"vs" : locStrings["vs"]
-		};
-		return values;
-	}
-
 	this.showGameData = function(event) {
 		gameListDiv.hide();
 		var target = jqueryWrapper.getElement(event.currentTarget);
@@ -56,5 +47,5 @@ AVOCADO.GameListView.getInstance = function(templateRenderer, gameListDiv, jquer
 	var gameCreator = AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
 	var gameJoiner = AVOCADO.GameJoinerBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
 	var gameListElementBuilder = AVOCADO.GameListElementBuilder.getInstance(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, ajax, locStrings, facebook, gameCreator, gameJoiner, playerNameDirectory, gameListElementBuilder);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, gameListDiv, jqueryWrapper, viewManager, gameCreator, gameJoiner, gameListElementBuilder);
 };
