@@ -1,4 +1,4 @@
-js/jquery.js
+js/lib/jquery.js
 js/JQueryWrapper.js
 js/Facebook.js
 js/Ajax.js
