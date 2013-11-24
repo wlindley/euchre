@@ -12,6 +12,10 @@ AVOCADO.JQueryWrapper = function(jquery) {
 	this.getElement = function(elementOrSelector) {
 		return jquery(elementOrSelector);
 	};
+
+	this.buildDeferred = function() {
+		return jquery.Deferred();
+	};
 };
 
 AVOCADO.JQueryWrapper.getInstance = function(jquery) {

@@ -2,6 +2,7 @@ JQueryWrapperTest = TestCase("JQueryWrapperTest")
 
 TestableJQuery = function() {
 	this.ajax = function(url, params) {};
+	this.Deferred = function() {};
 };
 
 JQueryWrapperTest.prototype.setUp = function() {
@@ -30,6 +31,18 @@ JQueryWrapperTest.prototype.testGetElementPassesThrough = function() {
 	var selector = "#foo";
 	this.testObj.getElement(selector);
 	assertEquals(selector, params);
+};
+
+JQueryWrapperTest.prototype.testBuildDeferred = function() {
+	when(this.mockJQuery).Deferred().thenReturn($.Deferred());
+	var result = this.testObj.buildDeferred();
+	assertTrue(result.hasOwnProperty("done"));
+	assertTrue(result.hasOwnProperty("fail"));
+	assertTrue(result.hasOwnProperty("progress"));
+	assertTrue(result.hasOwnProperty("resolve"));
+	assertTrue(result.hasOwnProperty("reject"));
+	assertTrue(result.hasOwnProperty("notify"));
+	assertTrue(result.hasOwnProperty("promise"));
 };
 
 JQueryWrapperTest.prototype.buildTestObj = function() {
