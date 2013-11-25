@@ -17,9 +17,9 @@ FacebookTest.prototype.setUp = function() {
 
 	this.initDeferred = mock(TEST.FakeDeferred);
 	this.initPromise = mock(TEST.FakePromise);
+	this.getPlayerDataDeferred = mock(TEST.FakeDeferred);
+	this.getPlayerDataPromise = mock(TEST.FakePromise);
 
-	this.successCallback = mockFunction();
-	this.failureCallback = mockFunction();
 	this.getPlayerDataCallback = mockFunction();
 
 	this.doTraining();
@@ -36,14 +36,12 @@ FacebookTest.prototype.buildTestObj = function() {
 
 FacebookTest.prototype.doTraining = function() {
 	when(this.initDeferred).promise().thenReturn(this.initPromise);
-	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred);
+	when(this.getPlayerDataDeferred).promise().thenReturn(this.getPlayerDataPromise);
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred);
 };
 
 FacebookTest.prototype.trigger = function() {
-	return this.testObj.init({
-		"success" : this.successCallback,
-		"failure" : this.failureCallback
-	});
+	return this.testObj.init();
 };
 
 FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
@@ -66,14 +64,14 @@ FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
 FacebookTest.prototype.setupGetNameCallSuccess = function() {
 	var testHarness = this;
 	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
-		testHarness.testObj.buildGetPlayerDataCallback(testHarness.getPlayerDataCallback)({"name" : testHarness.otherPlayerName, "id" : testHarness.otherPlayerId});
+		testHarness.testObj.getPlayerDataCallback({"name" : testHarness.otherPlayerName, "id" : testHarness.otherPlayerId});
 	});
 };
 
 FacebookTest.prototype.setupGetNameCallError = function() {
 	var testHarness = this;
 	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
-		testHarness.testObj.buildGetPlayerDataCallback(testHarness.getPlayerDataCallback)({"error" : {"message" : "foo"}});
+		testHarness.testObj.getPlayerDataCallback({"error" : {"message" : "foo"}});
 	});
 };
 
@@ -170,23 +168,43 @@ FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringIfHaveNotLoggedI
 	assertEquals("", this.testObj.getSignedInPlayerId());
 };
 
-FacebookTest.prototype.testGetPlayerDataCallsCallbackWithName = function() {
+FacebookTest.prototype.testGetPlayerDataReturnsPromise = function() {
+	this.setupAjaxCall();
+	this.trigger();
+	var result = this.testObj.getPlayerData(this.otherPlayerId);
+	assertEquals(this.getPlayerDataPromise, result);
+};
+
+FacebookTest.prototype.testGetPlayerDataResolvesPromiseOnSuccess = function() {
 	this.setupAjaxCall();
 	this.trigger();
 	this.setupGetNameCallSuccess();
 
-	this.testObj.getPlayerData(this.otherPlayerId, this.getPlayerDataCallback);
-	verify(this.getPlayerDataCallback)(allOf(
-		hasMember("name", this.otherPlayerName),
-		hasMember("playerId", this.otherPlayerId)
-	));
+	this.testObj.getPlayerData(this.otherPlayerId);
+
+	verify(this.getPlayerDataDeferred).resolve();
 };
 
-FacebookTest.prototype.testGetPlayerNameCallsCallbackWithEmptyObject = function() {
+FacebookTest.prototype.testGetPlayerDataDoesNotResolvePromiseOnFailure = function() {
 	this.setupAjaxCall();
 	this.trigger();
 	this.setupGetNameCallError();
 
-	this.testObj.getPlayerData(this.otherPlayerId, this.getPlayerDataCallback);
-	verify(this.getPlayerDataCallback)(anything());
+	this.testObj.getPlayerData(this.otherPlayerId);
+
+	verify(this.getPlayerDataDeferred, never()).resolve();
+};
+
+FacebookTest.prototype.testRepeatedGetPlayerDataReturnsSamePromiseAndOnlyCallsFacebookOnce = function() {
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred).thenReturn(null);
+	this.setupAjaxCall();
+	this.trigger();
+	this.setupGetNameCallSuccess();
+
+	var firstResult = this.testObj.getPlayerData(this.otherPlayerId);
+	var secondResult = this.testObj.getPlayerData(this.otherPlayerId);
+
+	verify(FB, once()).api(anything(), anything());
+	assertEquals(this.getPlayerDataPromise, firstResult);
+	assertEquals(this.getPlayerDataPromise, secondResult);
 };

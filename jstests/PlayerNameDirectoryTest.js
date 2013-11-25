@@ -12,8 +12,10 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 	};
 
 	this.facebook = mock(AVOCADO.Facebook);
+	this.getPlayerDataPromise = mock(TEST.FakePromise);
 
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
+	when(this.facebook).getPlayerData(this.playerId).thenReturn(this.getPlayerDataPromise);
 
 	this.buildTestObj();
 };
@@ -43,13 +45,14 @@ PlayerNameDirectoryTest.prototype.testGetNamePromiseReturnsSamePromiseForMultipl
 
 PlayerNameDirectoryTest.prototype.testGetNamePromiseMakesRequestToServerForName = function() {
 	var promise = this.trigger(this.playerId);
-	verify(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse);
+	verify(this.facebook).getPlayerData(this.playerId);
+	verify(this.getPlayerDataPromise).done(this.testObj.handleResponse);
 };
 
 PlayerNameDirectoryTest.prototype.testMultipleCallsToGetNamePromiseOnlyMakeOneServerRequest = function() {
 	this.trigger(this.playerId);
 	this.trigger(this.playerId);
-	verify(this.facebook, once()).getPlayerData(this.playerId, this.testObj.handleResponse);
+	verify(this.facebook, once()).getPlayerData(this.playerId);
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = function() {
@@ -59,7 +62,7 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = functio
 
 	var testHarness = this;
 	var expectedName = "John Encom";
-	when(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse).then(function() {
+	when(this.getPlayerDataPromise).done(func()).then(function() {
 		testHarness.testObj.handleResponse({
 			"playerId" : testHarness.playerId,
 			"name" : expectedName
@@ -77,7 +80,7 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 	};
 
 	var testHarness = this;
-	when(this.facebook).getPlayerData(this.playerId, this.testObj.handleResponse).then(function() {
+	when(this.getPlayerDataPromise).done(func()).then(function() {
 		testHarness.testObj.handleResponse({});
 	});
 

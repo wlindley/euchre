@@ -6,6 +6,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var self = this;
 	var signedInPlayerId = "";
 	var initDeferred = null;
+	var getPlayerDataDeferreds = {};
 
 	this.init = function(params) {
 		if (null == initDeferred) {
@@ -23,19 +24,22 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		return signedInPlayerId;
 	};
 
-	this.getPlayerData = function(playerId, callback) {
-		FB.api("/" + playerId + "?fields=name,id", this.buildGetPlayerDataCallback(callback));
+	this.getPlayerData = function(playerId) {
+		if (!(playerId in getPlayerDataDeferreds)) {
+			var deferred = jqueryWrapper.buildDeferred();
+			getPlayerDataDeferreds[playerId] = deferred;
+			FB.api("/" + playerId + "?fields=name,id", this.getPlayerDataCallback);
+		}
+		return getPlayerDataDeferreds[playerId].promise();
 	};
 
-	this.buildGetPlayerDataCallback = function(callback) {
-		return function(response) {
-			var data = {};
-			if (!("error" in response)) {
-				data["name"] = response["name"];
-				data["playerId"] = response["id"];
-			}
-			callback(data);
-		};
+	this.getPlayerDataCallback = function(response) {
+		var data = {};
+		if (!("error" in response)) {
+			data["name"] = response["name"];
+			data["playerId"] = response["id"];
+			getPlayerDataDeferreds[response["id"]].resolve(data);
+		}
 	};
 
 	function handleAjaxResponse() {
