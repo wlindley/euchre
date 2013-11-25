@@ -15,10 +15,14 @@ FacebookTest.prototype.setUp = function() {
 	this.otherPlayerId = "slajf323409imsde3";
 	this.otherPlayerName = "Foobing Barbazi";
 
+	this.initDeferred = mock(TEST.FakeDeferred);
+	this.initPromise = mock(TEST.FakePromise);
+
 	this.successCallback = mockFunction();
 	this.failureCallback = mockFunction();
 	this.getPlayerDataCallback = mockFunction();
 
+	this.doTraining();
 	this.buildTestObj();
 };
 
@@ -30,8 +34,13 @@ FacebookTest.prototype.buildTestObj = function() {
 	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.appId, this.channelUrl);	
 };
 
+FacebookTest.prototype.doTraining = function() {
+	when(this.initDeferred).promise().thenReturn(this.initPromise);
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred);
+};
+
 FacebookTest.prototype.trigger = function() {
-	this.testObj.init({
+	return this.testObj.init({
 		"success" : this.successCallback,
 		"failure" : this.failureCallback
 	});
@@ -114,44 +123,30 @@ FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 	verify(window.FB, never()).login(anything());
 };
 
-FacebookTest.prototype.testLoginSuccessCallbackIsCalled = function() {
+FacebookTest.prototype.testInitReturnsExpectedPromise = function() {
+	var result = this.trigger();
+	assertEquals(this.initPromise, result);
+};
+
+FacebookTest.prototype.testMultipleInitsReturnsSamePromiseAndDoesNotReinitialize = function() {
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(null);
+	var firstResult = this.trigger();
+	var secondResult = this.trigger();
+	verify(this.jqueryWrapper, once()).ajax(anything(), anything());
+	assertEquals(this.initPromise, firstResult);
+	assertEquals(this.initPromise, secondResult);
+};
+
+FacebookTest.prototype.testPromiseResolvedOnSuccessfulLogin = function() {
 	this.setupAjaxCall(true);
-
 	this.trigger();
-
-	verify(this.successCallback)();
-	verifyZeroInteractions(this.failureCallback);
+	verify(this.initDeferred).resolve();
 };
 
-FacebookTest.prototype.testLoginFailureCallbackIsCalled = function() {
+FacebookTest.prototype.testPromiseRejectedOnFailedLogin = function() {
 	this.setupAjaxCall(false);
-
 	this.trigger();
-
-	verifyZeroInteractions(this.successCallback);
-	verify(this.failureCallback)();
-};
-
-FacebookTest.prototype.testHandlesMissingLoginSuccessCallback = function() {
-	this.setupAjaxCall(true);
-
-	this.testObj.init({
-		"failure" : this.failureCallback
-	});
-
-	verifyZeroInteractions(this.successCallback);
-	verifyZeroInteractions(this.failureCallback);
-};
-
-FacebookTest.prototype.testHandlesMissingLoginFailureCallback = function() {
-	this.setupAjaxCall(false);
-
-	this.testObj.init({
-		"success" : this.successCallback
-	});
-
-	verifyZeroInteractions(this.successCallback);
-	verifyZeroInteractions(this.failureCallback);
+	verify(this.initDeferred).reject();
 };
 
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsExpectedDataAfterLoggingIn = function() {
@@ -175,7 +170,7 @@ FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringIfHaveNotLoggedI
 	assertEquals("", this.testObj.getSignedInPlayerId());
 };
 
-FacebookTest.prototype.testgetPlayerDataCallsCallbackWithName = function() {
+FacebookTest.prototype.testGetPlayerDataCallsCallbackWithName = function() {
 	this.setupAjaxCall();
 	this.trigger();
 	this.setupGetNameCallSuccess();

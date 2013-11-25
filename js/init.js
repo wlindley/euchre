@@ -16,9 +16,9 @@ $(function() {
 	}
 
 	createObjects();
-	window.facebook.init({"success" : function() {
+	window.facebook.init().done(function() {
 		initObjects();
 		window.gameListView.show();
-	}});
+	});
 	$(".title").addClass("titleLoaded");
 });

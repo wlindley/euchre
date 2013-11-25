@@ -5,17 +5,18 @@ if (AVOCADO === undefined) {
 AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var self = this;
 	var signedInPlayerId = "";
-	var successCallback = null;
-	var failureCallback = null;
+	var initDeferred = null;
 
 	this.init = function(params) {
-		successCallback = params["success"];
-		failureCallback = params["failure"];
-		jqueryWrapper.ajax("//connect.facebook.net/en_US/all.js", {
-			"success" : handleAjaxResponse,
-			"dataType" : "script",
-			"cache" : true
-		});
+		if (null == initDeferred) {
+			initDeferred = jqueryWrapper.buildDeferred();
+			jqueryWrapper.ajax("//connect.facebook.net/en_US/all.js", {
+				"success" : handleAjaxResponse,
+				"dataType" : "script",
+				"cache" : true
+			});
+		}
+		return initDeferred.promise();
 	};
 
 	this.getSignedInPlayerId = function() {
@@ -49,14 +50,10 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 
 	function handleLoginResponse(response) {
 		if (response.authResponse) {
-			if (successCallback) {
-				signedInPlayerId = response.authResponse.userID;
-				successCallback();
-			}
+			signedInPlayerId = response.authResponse.userID;
+			initDeferred.resolve();
 		} else {
-			if (failureCallback) {
-				failureCallback();
-			}
+			initDeferred.reject();
 		}
 	};
 };
