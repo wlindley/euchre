@@ -1,0 +1,8 @@
+<div class="ui menu">
+	<div class="item">
+		<div class="gameCreatorContainer" />
+	</div>
+	<div class="item">
+		<div class="gameJoinerContainer" />
+	</div>
+</div>

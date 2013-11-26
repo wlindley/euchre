@@ -28,6 +28,10 @@ GameListViewTest.prototype.setUp = function() {
 	this.listHeaderHtml = "list header";
 	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
 	this.gameJoinerElement = mock(TEST.FakeJQueryElement);
+	this.gameListMenuElement = mock(TEST.FakeJQueryElement);
+	this.gameListMenuHtml = "game list menu html";
+	this.gameCreatorInsertionElement = mock(TEST.FakeJQueryElement);
+	this.gameJoinerInsertionElement = mock(TEST.FakeJQueryElement);
 
 	this.clickTargetHtml = "click target html";
 	this.clickTargetElement = mock(TEST.FakeJQueryElement);
@@ -58,6 +62,11 @@ GameListViewTest.prototype.doTraining = function() {
 	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
 	when(this.gameJoinerBuilder).buildGameJoiner().thenReturn(this.gameJoinerElement);
 
+	when(this.templateRenderer).renderTemplate("gameListMenu").thenReturn(this.gameListMenuHtml);
+	when(this.jqueryWrapper).getElement(this.gameListMenuHtml).thenReturn(this.gameListMenuElement);
+	when(this.gameListMenuElement).find(".gameCreatorContainer").thenReturn(this.gameCreatorInsertionElement);
+	when(this.gameListMenuElement).find(".gameJoinerContainer").thenReturn(this.gameJoinerInsertionElement);
+
 	when(this.jqueryWrapper).getElement(this.clickTargetHtml).thenReturn(this.clickTargetElement);
 	when(this.clickTargetElement).attr("id").thenReturn("gameId_" + this.clickTargetGameId);
 };
@@ -86,14 +95,11 @@ GameListViewTest.prototype.testShowAppendsGameListElements = function() {
 	verify(this.gameListElement).appendTo(this.gameListDiv);
 };
 
-GameListViewTest.prototype.testShowAppendsGameCreator = function() {
+GameListViewTest.prototype.testShowAppendsFullMenu = function() {
 	this.trigger();
-	verify(this.gameListDiv).append(this.gameCreatorElement);
-};
-
-GameListViewTest.prototype.testShowAppendsGameJoiner = function() {
-	this.trigger();
-	verify(this.gameListDiv).append(this.gameJoinerElement);
+	verify(this.gameListDiv).append(this.gameListMenuElement);
+	verify(this.gameCreatorInsertionElement).append(this.gameCreatorElement);
+	verify(this.gameJoinerInsertionElement).append(this.gameJoinerElement);
 };
 
 GameListViewTest.prototype.testShowCallsShowOnContainerDiv = function() {
@@ -138,19 +144,6 @@ GameListViewTest.prototype.testShowAppendsListElementsBeforeGameCreator = functi
 
 	verify(this.gameListElement).appendTo(this.gameListDiv);
 	verify(this.gameListDiv, never()).append(this.gameCreatorElement);
-};
-
-GameListViewTest.prototype.testShowAppendsGameCreatorBeforeGameJoiner = function() {
-	when(this.gameListDiv).append(this.gameCreatorElement).thenThrow("expected exception");
-
-	try {
-		this.trigger();
-	} catch (ex) {
-		//intentionally empty
-	}
-
-	verify(this.gameListDiv).append(this.gameCreatorElement);
-	verify(this.gameListDiv, never()).append(this.gameJoinerElement);
 };
 
 GameListViewTest.prototype.testShowGameDataHidesSelf = function() {

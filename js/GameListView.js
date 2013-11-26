@@ -20,16 +20,17 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	function handleGameListResponse(response) {
 		gameListDiv.empty();
 		gameListDiv.append(templateRenderer.renderTemplate("gameListHeader"));
+
 		for (var i = 0; i < response.games.length; i++) {
 			var element = gameListElementBuilder.buildListElement(response.games[i], self.showGameData);
 			element.appendTo(gameListDiv);
 		}
 
-		var gameCreatorElement = gameCreator.buildGameCreator();
-		gameListDiv.append(gameCreatorElement);
-
-		var gameJoinerElement = gameJoiner.buildGameJoiner();
-		gameListDiv.append(gameJoinerElement);
+		var menuHtml = templateRenderer.renderTemplate("gameListMenu");
+		var menu = jqueryWrapper.getElement(menuHtml);
+		menu.find(".gameCreatorContainer").append(gameCreator.buildGameCreator());
+		menu.find(".gameJoinerContainer").append(gameJoiner.buildGameJoiner());
+		gameListDiv.append(menu);
 
 		gameListDiv.show();
 	}
