@@ -1,17 +1,23 @@
-<a class="viewGameList" href="javascript:void(0)">Back to list</a>
-<div class="game">
-	Game %gameId%:
+<div class="viewGameList ui blue left labeled icon button">
+	<i class="triangle left icon"/>Back
+</div>
+
+<div class="game ui inverted black segment">
+	<h2 class="ui header">Game %gameId%:</h2>
 	%gameScores%
 	%roundScores%
 	<div class="previousTrickWrapper"/>
 	<div class="gameCompleteWrapper"/>
-	<div class="turn">
-		Turn: <span class="playerName"/>
+	<div class="turn ui teal circular label">
+		Turn: <span class="playerName detail"/>
 	</div>
 	<div class="trumpDisplay">%trump%</div>
 	<div class="discard"/>
-	%hand%
+	<div class="ui inverted black secondary segment">%hand%</div>
 	<div class="trumpSelection"/>
 	<div class="playingRound"/>
 </div>
-<a class="viewGameList" href="javascript:void(0)">Back to list</a>
+
+<div class="viewGameList ui blue left labeled icon button">
+	<i class="triangle left icon"/>Back
+</div>
