@@ -3,7 +3,7 @@ body {
 }
 
 .mainBody {
-	width: 60em;
+	width: 100%;
 }
 
 .clickable {
@@ -136,11 +136,6 @@ div.winningCard {
 
 .gameJoiner {
 	position: relative;
-	top: -24px;
-	left: 257px;
-	border-left-style: solid;
-	border-left-width: 2px;
-	border-left-color: #888888;
 }
 
 .gameComplete {

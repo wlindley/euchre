@@ -2,7 +2,7 @@
 	<div id="btnCreateGame" class="ui green vertical animated button">
 		<div class="visible content">Create Game</div>
 		<div class="hidden content">
-			<i class="plus icon"></i>
+			<i class="add icon"></i>
 		</div>
 	</div>
 </div>

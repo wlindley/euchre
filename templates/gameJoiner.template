@@ -1,5 +1,15 @@
-<div class="gameJoiner">
-	<input id="txtGameId" type="text" value="Game ID"></input>
-	<input id="txtTeam" type="text" value="Team ID"></input>
-	<button id="btnJoinGame">Join Game</button>
+<div class="gameJoiner ui form segment">
+	<div class="field">
+		<div class="ui input">
+			<input id="txtGameId" type="text" placeholder="Game Id" />
+		</div>
+	</div>
+	<div class="field">
+		<div class="ui input">
+			<input id="txtTeam" type="text" placeholder="Team Id" />
+		</div>
+	</div>
+	<div id="btnJoinGame" class="ui blue submit button">
+		Join Game
+	</div>
 </div>
