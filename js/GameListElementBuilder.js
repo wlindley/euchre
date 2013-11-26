@@ -12,13 +12,16 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		var elementHtml = templateRenderer.renderTemplate("gameListEntry", templateParams);
 		var element = jqueryWrapper.getElement(elementHtml);
 
-		if (gameData.status != "waiting_for_more_players") {
-			element.find(".viewGameData").click(clickHandler);
+		if ("waiting_for_more_players" == gameData.status) {
+			element.addClass("tertiary");
 		} else {
-			element.removeClass("gameListEntryClickable");
-		}
-		if (gameData.currentPlayerId != facebook.getSignedInPlayerId()) {
-			element.removeClass("gameListEntryYourTurn");
+			element.find(".viewGameData").click(clickHandler);
+			element.addClass("clickable");
+			if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
+				element.addClass("primary");
+			} else {
+				element.addClass("secondary");
+			}
 		}
 
 		var nameElement = element.find(".turn").find(".playerName");

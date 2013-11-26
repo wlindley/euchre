@@ -144,25 +144,24 @@ GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStart
 	verify(this.linkElement, never()).click(this.showGameDataFunc);
 };
 
-GameListElementBuilderTest.prototype.testNeverRemovesClassesIfCurrentPlayersTurn = function() {
+GameListElementBuilderTest.prototype.testSetsCorrectClassesIfCurrentPlayersTurn = function() {
 	this.doTraining("round_in_progress");
 	this.trigger();
-	verify(this.element, never()).removeClass("gameListEntryClickable");
-	verify(this.element, never()).removeClass("gameListEntryYourTurn");
+	verify(this.element).addClass("primary");
+	verify(this.element).addClass("clickable");
 };
 
-GameListElementBuilderTest.prototype.testRemovesClassesIfStatusIsWaitingForMorePlayers = function() {
+GameListElementBuilderTest.prototype.testSetsCorrectClassesIfStatusIsWaitingForMorePlayers = function() {
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
 	this.trigger();
-	verify(this.element).removeClass("gameListEntryClickable");
-	verify(this.element).removeClass("gameListEntryYourTurn");
+	verify(this.element).addClass("tertiary");
 };
 
-GameListElementBuilderTest.prototype.testRemovesClassNotLocalPlayersTurn = function() {
+GameListElementBuilderTest.prototype.testSetsCorrectClassesIfNotLocalPlayersTurn = function() {
 	this.currentPlayerId = this.otherPlayerId;
 	this.doTraining("round_in_progress");
 	this.trigger();
-	verify(this.element, never()).removeClass("gameListEntryClickable");
-	verify(this.element).removeClass("gameListEntryYourTurn");
+	verify(this.element).addClass("secondary");
+	verify(this.element).addClass("clickable");
 };

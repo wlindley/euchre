@@ -1,4 +1,4 @@
-<div class="gameListEntry gameListEntryClickable gameListEntryYourTurn">
+<div class="gameListEntry ui inverted blue segment">
 	<a class="viewGameData" id="gameId_%gameId%">
 	<table class="gameListElementTeams">
 		<tr>
