@@ -2,12 +2,8 @@ body {
 	font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 }
 
-.title {
-	color: red;
-}
-
-.titleLoaded {
-	color: green;
+.mainBody {
+	width: 60em;
 }
 
 .clickable {

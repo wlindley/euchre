@@ -20,5 +20,4 @@ $(function() {
 		initObjects();
 		window.gameListView.show();
 	});
-	$(".title").addClass("titleLoaded");
 });
