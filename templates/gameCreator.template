@@ -1,3 +1,8 @@
 <div class="gameCreator">
-	<button id="btnCreateGame">Create Game</button>
+	<div id="btnCreateGame" class="ui vertical animated button">
+		<div class="visible content">Create Game</div>
+		<div class="hidden content">
+			<i class="plus icon"></i>
+		</div>
+	</div>
 </div>
