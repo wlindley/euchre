@@ -19,20 +19,8 @@ body {
 	width: 700px;
 }
 
-.playerName {
-	
-}
-
-.vs {
-	
-}
-
 .gameListEntrySpacer {
 	height: 5px;
-}
-
-.game {
-	
 }
 
 .hand {
@@ -76,18 +64,6 @@ body {
 .clickableCard img {
 	cursor: hand;
 	cursor: pointer;
-}
-
-.score {
-	margin-left: 20px;
-}
-
-.yourScore {
-	color: green;
-}
-
-.otherScore {
-	color: red;
 }
 
 .previousTrick {

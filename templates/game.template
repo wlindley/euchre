@@ -4,13 +4,20 @@
 
 <div class="game ui inverted black segment">
 	<h2 class="ui header">Game %gameId%:</h2>
-	%gameScores%
-	%roundScores%
+	<div class="ui center middle aligned three column grid">
+		<div class="column">%gameScores%</div>
+		<div class="column">%roundScores%</div>
+		<div class="column">
+			<div class="turn">
+				<h3 class="ui header">Turn:</h3>
+				<div class="playerName ui teal label"/>
+			</div>
+		</div>
+	</div>
+	<div class="ui inverted divider"/>
+	<br/>
 	<div class="previousTrickWrapper"/>
 	<div class="gameCompleteWrapper"/>
-	<div class="turn ui teal circular label">
-		Turn: <span class="playerName detail"/>
-	</div>
 	<div class="trumpDisplay">%trump%</div>
 	<div class="discard"/>
 	<div class="ui inverted black secondary segment">%hand%</div>
