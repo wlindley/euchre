@@ -35,7 +35,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		var playerTable = element.find(".gameListElementTeams");
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var index = 0; index < 2; index++) {
-				var dataElement = playerTable.find("td").has("input.team[value=" + teamId + "]").has("input.index[value=" + index + "]");
+				var dataElement = playerTable.find(".playerNameContainer").has("input.team[value=" + teamId + "]").has("input.index[value=" + index + "]");
 				var dataNameElement = dataElement.find(".playerName");
 				if ((teamId in gameData.teams) && (index in gameData.teams[teamId])) {
 					var namePromise = playerNameDirectory.getNamePromise(gameData.teams[teamId][index]);

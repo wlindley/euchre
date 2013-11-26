@@ -82,7 +82,7 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 	when(this.element).find(".turn").thenReturn(this.turnElement);
 	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 	var tableDataSelector = mock(TEST.FakeJQueryElement);
-	when(this.tableElement).find("td").thenReturn(tableDataSelector);
+	when(this.tableElement).find(".playerNameContainer").thenReturn(tableDataSelector);
 	for (var j in this.tableDataElements) {
 		var teamSelector = mock(TEST.FakeJQueryElement);
 		when(tableDataSelector).has("input.team[value=" + j + "]").thenReturn(teamSelector);

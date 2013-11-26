@@ -15,22 +15,12 @@ body {
 	width: 50%;
 }
 
-.gameListElementTeams {
-	border-spacing: 5px;
-	margin: auto;
-}
-
-table.gameListElementTeams {
-	margin-top: 5px;
-	margin-bottom: 5px;
-}
-
-td.gameListTableData {
-	text-align: center;
+.gameListEntry {
+	width: 700px;
 }
 
 .playerName {
-	font-weight: bold;
+	
 }
 
 .vs {
