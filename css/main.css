@@ -11,6 +11,10 @@ body {
 	cursor: pointer;
 }
 
+.gameListMenu {
+	width: 50%;
+}
+
 .gameListElementTeams {
 	border-spacing: 5px;
 	margin: auto;
@@ -128,14 +132,6 @@ div.winningCard {
 	border-style: solid;
 	border-width: 3px;
 	border-color: #DAA520;
-}
-
-.gameCreator {
-	position: relative;
-}
-
-.gameJoiner {
-	position: relative;
 }
 
 .gameComplete {

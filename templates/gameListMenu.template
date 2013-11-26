@@ -1,8 +1,11 @@
-<div class="ui menu">
-	<div class="item">
+<div class="gameListMenu ui two column middle aligned relaxed grid basic segment">
+	<div class="center aligned column">
 		<div class="gameCreatorContainer" />
 	</div>
-	<div class="item">
+	<div class="ui vertical divider">
+		or
+	</div>
+	<div class="column">
 		<div class="gameJoinerContainer" />
 	</div>
 </div>
