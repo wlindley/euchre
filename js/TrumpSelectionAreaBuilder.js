@@ -37,12 +37,14 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 			trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
 			trumpSelectionElement.find(".selectTrumpSuitButton").click(self.buildSelectTrumpSuitClickHandler(gameId, trumpSelectionElement.find(".selectTrumpSuitInput")));
 		} else {
-			trumpSelectionElement.find(".trumpSelectionPassButton").hide();
+			trumpSelectionElement.find(".trumpSelectionActions").hide();
 		}
 
 		var dealerNamePromise = playerNameDirectory.getNamePromise(dealerId);
 		var dealerNameElement = trumpSelectionElement.find(".dealer").find(".playerName");
 		dealerNamePromise.registerForUpdates(dealerNameElement);
+
+		trumpSelectionElement.find(".ui.dropdown").dropdown();
 
 		return trumpSelectionElement;
 	};

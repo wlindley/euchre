@@ -1,3 +1,1 @@
-<div class="dealerPicksUp">
-	<button class="dealerPicksUpButton" type="button">Dealer picks up</button>
-</div>
+<div class="dealerPicksUpButton ui positive button">Dealer picks up</div>

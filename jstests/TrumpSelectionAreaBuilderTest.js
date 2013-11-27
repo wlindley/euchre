@@ -41,6 +41,10 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 	when(this.trumpSelectionElement).find(".dealer").thenReturn(this.dealerElement);
 	this.dealerNameElement = mock(TEST.FakeJQueryElement);
 	when(this.dealerElement).find(".playerName").thenReturn(this.dealerNameElement);
+	this.suitDropdownElement = mock(TEST.FakeJQueryElement);
+	when(this.trumpSelectionElement).find(".ui.dropdown").thenReturn(this.suitDropdownElement);
+	this.trumpSelectionActionsElement = mock(TEST.FakeJQueryElement);
+	when(this.trumpSelectionElement).find(".trumpSelectionActions").thenReturn(this.trumpSelectionActionsElement);
 
 	this.ajax = mock(AVOCADO.Ajax);
 
@@ -97,6 +101,7 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenV
 
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.dealerPicksUpButtonElement).click(dealerPicksUpClickHandler);
+	verify(this.suitDropdownElement).dropdown();
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenDealerIsOnOtherTeam = function() {
@@ -164,8 +169,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildDoesNotIncludeActionsWhenNotCur
 
 	verify(this.templateRenderer, never()).renderTemplate("trumpSelection1Action", anything());
 	verify(this.passButtonElement, never()).click(func());
-	verify(this.passButtonElement).hide();
 	verify(this.dealerPicksUpButtonElement, never()).click(func());
+	verify(this.trumpSelectionActionsElement).hide();
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildDoesNotIncludeActionsWhenNotCurrentPlayersTurnAndInTrumpSelection2 = function() {
@@ -182,8 +187,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildDoesNotIncludeActionsWhenNotCur
 
 	verify(this.templateRenderer, never()).renderTemplate("trumpSelection1Action", anything());
 	verify(this.passButtonElement, never()).click(func());
-	verify(this.passButtonElement).hide();
 	verify(this.dealerPicksUpButtonElement, never()).click(func());
+	verify(this.trumpSelectionActionsElement).hide();
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsNullWhenStatusIsRoundInProgress = function() {

@@ -1,4 +1,11 @@
-<div class="selectTrumpSuit">
-	<input type="text" class="selectTrumpSuitInput">Suit</input>
-	<button type="button" class="selectTrumpSuitButton">Select suit</button>
+<div class="selectTrumpSuitButton ui positive button">Select suit</div>
+<div class="ui selection dropdown">
+	<input class="selectTrumpSuitInput" type="hidden" name="suit" value="hearts"/>
+	<div class="text">Hearts</div><i class="dropdown icon"/>
+	<div class="menu">
+		<div class="item active" data-value="hearts">Hearts</div>
+		<div class="item" data-value="clubs">Clubs</div>
+		<div class="item" data-value="diamonds">Diamonds</div>
+		<div class="item" data-value="spades">Spades</div>
+	</div>
 </div>

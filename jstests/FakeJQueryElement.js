@@ -22,4 +22,5 @@ TEST.FakeJQueryElement = function() {
 	this.each = function() {};
 	this.fadeOut = function() {};
 	this.text = function() {};
+	this.dropdown = function() {};
 };

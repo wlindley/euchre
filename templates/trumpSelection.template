@@ -10,13 +10,14 @@
 			</div>
 		</div>
 		<div class="column">
-			<div class="upCared">
+			<div class="upCard">
 				<h4 class="ui header">Up card</h4>
 				<div>%card%</div>
 			</div>
-			%trumpSelectionAction%
-			<div class="trumpSelectionPass">
-				<button class="trumpSelectionPassButton" type="button">Pass</input>
+			<div class="trumpSelectionActions ui buttons">
+				<div class="trumpSelectionPassButton ui button">Pass</div>
+				<div class="or"/>
+				%trumpSelectionAction%
 			</div>
 		</div>
 	<div>
