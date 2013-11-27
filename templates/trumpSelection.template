@@ -1,6 +1,6 @@
 <div class="ui inverted black secondary segment">
 	<h3 class="ui center aligned header">Trump Selection</h3>
-	<div class="ui two column center middle aligned compact grid basic segment">
+	<div class="ui two column center middle aligned compact grid">
 		<div class="column">
 			<div class="dealer">
 				<h4 class="ui header">Dealer</h4>

@@ -33,27 +33,12 @@ body {
 	margin: 5px;
 }
 
-/*.handElement {
-	width: 75px;
-	height: 100px;
-	vertical-align: middle;
-	text-align: center;
-	position: relative;
-	float: left;
-	margin: 5px;
-}*/
-
 .continue {
 	position: relative;
 	vertical-align: bottom;
 	text-align: center;
 	left: -40px;
 	bottom: -4px;
-}
-
-.trumpSelection {
-	font-weight: normal;
-	margin-top: 20px;
 }
 
 .clickableCard img {
@@ -72,26 +57,6 @@ body {
 	height: 200px;
 	width: 500px;
 }
-
-/*.playersCard {
-	color: #DDDDDD;
-}
-
-div.playersCard {
-	border-style: solid;
-	border-width: 3px;
-	border-color: #DDDDDD;
-}
-
-.winningCard {
-	color: #DAA520;
-}
-
-div.winningCard {
-	border-style: solid;
-	border-width: 3px;
-	border-color: #DAA520;
-}*/
 
 .gameComplete {
 	width: 1000px;
