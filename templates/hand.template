@@ -1,1 +1,4 @@
-<div class="hand">Hand: <div class="cards">%hand%</div></div>
+<div class="hand">
+	<h3 class="ui center aligned header">Hand</h3>
+	<div class="cards ui center aligned images">%hand%</div>
+</div>

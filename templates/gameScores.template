@@ -1,5 +1,5 @@
 <div class="gameScores">
-	<h3 class="ui header">Scores:</h3>
+	<h3 class="ui header">Scores</h3>
 	<div class="ui large green label">Your team: <div class="detail">%yourScore%</div></div>
 	<div class="ui large red label">Other team: <div class="detail">%otherScore%</div></div>
 </div>
