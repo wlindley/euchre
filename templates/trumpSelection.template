@@ -1,8 +1,23 @@
-<div>
-	<div class="dealer">Dealer: <span class="playerName"></span> (%dealerTeam%)</div>
-	<div class="upCared">Up card: <div>%card%</div></div>
-	%trumpSelectionAction%
-	<div class="trumpSelectionPass">
-		<button class="trumpSelectionPassButton" type="button">Pass</input>
-	</div>
+<div class="ui inverted black secondary segment">
+	<h3 class="ui center aligned header">Trump Selection</h3>
+	<div class="ui two column center middle aligned compact grid basic segment">
+		<div class="column">
+			<div class="dealer">
+				<h4 class="ui header">Dealer</h4>
+				<div class="ui teal label">
+					<span class="playerName"></span> <div class="detail">(%dealerTeam%)</div>
+				</div>
+			</div>
+		</div>
+		<div class="column">
+			<div class="upCared">
+				<h4 class="ui header">Up card</h4>
+				<div>%card%</div>
+			</div>
+			%trumpSelectionAction%
+			<div class="trumpSelectionPass">
+				<button class="trumpSelectionPassButton" type="button">Pass</input>
+			</div>
+		</div>
+	<div>
 </div>

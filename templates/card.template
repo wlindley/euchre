@@ -1,4 +1,4 @@
-<div class="card ui rounded image">
+<div class="card ui image">
 	<img class="" src="/images/cards/%suit%_%value%.png"></img>
 	<input type="hidden" value="%suit%" class="cardSuit"></input>
 	<input type="hidden" value="%value%" class="cardValue"></input>
