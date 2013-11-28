@@ -1,6 +1,16 @@
-<div>
-	<div>Current trick:</div>
-	<div>Led suit: %ledSuit%</div>
-	%leader%
-	<div class="currentTrick">%currentTrick%</div>
+<div class="ui inverted black secondary segment">
+	<h3 class="ui center aligned header">Current trick</h3>
+	<div class="ui two column center middle aligned grid">
+		<div class="column">
+			<h4 class="ui center aligned header">Led Suit</h4>
+			<div class="ui center aligned teal label">
+				%ledSuit%
+			</div>
+		</div>
+		<div class="column">
+			%leader%
+		</div>
+	</div>
+	<div class="ui inverted divider"/>
+	<div class="currentTrick ui four column center middle aligned grid">%currentTrick%</div>
 </div>

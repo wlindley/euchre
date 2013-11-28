@@ -19,20 +19,6 @@ body {
 	width: 700px;
 }
 
-.gameListEntrySpacer {
-	height: 5px;
-}
-
-.trickElement {
-	width: 100px;
-	height: 135px;
-	vertical-align: middle;
-	text-align: center;
-	position: relative;
-	float: left;
-	margin: 5px;
-}
-
 .continue {
 	position: relative;
 	vertical-align: bottom;
@@ -49,11 +35,6 @@ body {
 .previousTrick {
 	background-color: #444444;
 	color: #888888;
-	height: 200px;
-	width: 500px;
-}
-
-.currentTrick {
 	height: 200px;
 	width: 500px;
 }

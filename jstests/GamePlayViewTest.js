@@ -100,11 +100,6 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 GamePlayViewTest.prototype.doTraining = function() {
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 
-	this.expectedTrumpText = "";
-	if (0 < this.trumpSuit) {
-		this.expectedTrumpText = this.locStrings.trumpDisplay.replace("%trumpSuit%", this.locStrings["suit_" + this.trumpSuit]);
-	}
-
 	for (var i = 0; i < this.playerIds.length; i++) {
 		when(this.playerNameDirectory).getNamePromise(this.playerIds[i]).thenReturn(this.playerNamePromises[i]);
 	}
@@ -118,7 +113,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams).thenReturn(this.trumpSelectionElement);
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.expectedTrumpText))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.locStrings["suit_" + this.trumpSuit]))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);

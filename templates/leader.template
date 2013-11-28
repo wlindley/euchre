@@ -1,3 +1,6 @@
 <div class="leader">
-	Trick Leader: <span class="playerName"></span> (%team%)
+	<h4 class="ui center aligned header">Trick Leader</h4>
+	<div class="ui center aligned teal label">
+		<span class="playerName"/> <div class="detail">(%team%)</div>
+	</div>
 </div>

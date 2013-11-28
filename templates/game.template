@@ -4,7 +4,7 @@
 
 <div class="game ui inverted black segment">
 	<h2 class="ui center aligned header">Game %gameId%</h2>
-	<div class="ui center middle aligned three column grid">
+	<div class="ui center middle aligned four column grid">
 		<div class="column">%gameScores%</div>
 		<div class="column">%roundScores%</div>
 		<div class="column">
@@ -13,12 +13,15 @@
 				<div class="playerName ui teal label"/>
 			</div>
 		</div>
+		<div class="column">
+			<h3 class="ui header">Trump Suit</h3>
+			<div class="ui teal label">%trump%</div>
+		</div>
 	</div>
 	<div class="ui inverted divider"/>
 	<br/>
 	<div class="previousTrickWrapper"/>
 	<div class="gameCompleteWrapper"/>
-	<div class="trumpDisplay">%trump%</div>
 	<div class="discard"/>
 	<div class="ui center aligned inverted black secondary segment">%hand%</div>
 	<div class="trumpSelection"/>
