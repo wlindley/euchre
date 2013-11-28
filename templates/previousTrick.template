@@ -1,4 +1,5 @@
-<div class="previousTrick ui inverted black secondary segment">
+<div class="previousTrick ui info message">
+	<i class="continueButton close icon" />
 	<div class="previousTrickTitle">
 		<h3 class="ui center aligned header">Previous Trick</h3>
 	</div>
@@ -8,6 +9,4 @@
 		<div class="column">%card2%</div>
 		<div class="column">%card3%</div>
 	</div>
-
-	<div class="continueButton ui center aligned positive button">Dismiss</div>
 </div>
