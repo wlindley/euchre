@@ -421,6 +421,10 @@ class SequenceFactory(object):
 		return Sequence.getInstance(players, hands, upCard)
 
 class ScoreTracker(object):
+	BASE_POINTS = 1
+	ALL_TRICKS_BONUS = 1
+	DID_NOT_CALL_BONUS = 1
+
 	instance = None
 	@classmethod
 	def getInstance(cls, players, teams):
@@ -441,11 +445,11 @@ class ScoreTracker(object):
 			for playerId in self._teams[teamId]:
 				teamTricks[teamId] += round.getScore(playerId)
 		winningTeam = 0 if teamTricks[0] > teamTricks[1] else 1
-		self._teamScores[winningTeam] += 1
+		self._teamScores[winningTeam] += ScoreTracker.BASE_POINTS
 		if winningTeam != self.getTeamIdFromPlayerId(callingPlayerId):
-			self._teamScores[winningTeam] += 1
+			self._teamScores[winningTeam] += ScoreTracker.DID_NOT_CALL_BONUS
 		elif HAND_SIZE <= teamTricks[winningTeam] and 0 >= teamTricks[(winningTeam + 1) % len(self._teams)]:
-			self._teamScores[winningTeam] += 1
+			self._teamScores[winningTeam] += ScoreTracker.ALL_TRICKS_BONUS
 
 	def getTeamScore(self, teamId):
 		return self._teamScores[teamId]
