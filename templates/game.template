@@ -10,7 +10,7 @@
 		<div class="column">
 			<div class="turn">
 				<h3 class="ui header">Turn</h3>
-				<div class="playerName ui teal label"/>
+				<div class="playerName ui label"/>
 			</div>
 		</div>
 		<div class="column">

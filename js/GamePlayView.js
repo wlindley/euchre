@@ -47,7 +47,13 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 
 		if (null !== response.round.currentPlayerId && undefined !== response.round.currentPlayerId) {
 			var namePromise = playerNameDirectory.getNamePromise(response.round.currentPlayerId);
-			namePromise.registerForUpdates(gameElement.find(".turn").find(".playerName"));
+			var nameElement = gameElement.find(".turn").find(".playerName");
+			namePromise.registerForUpdates(nameElement);
+			if ((-1 == response.teams[0].indexOf(facebook.getSignedInPlayerId())) == (-1 == response.teams[0].indexOf(response.round.currentPlayerId))) {
+				nameElement.addClass("green");
+			} else {
+				nameElement.addClass("red");
+			}
 		} else {
 			gameElement.find(".turn").find(".playerName").text(locStrings["n/a"]);
 		}

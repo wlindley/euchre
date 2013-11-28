@@ -164,6 +164,14 @@ GamePlayViewTest.prototype.verifyCorrectView = function(status) {
 	verify(this.previousTrickInsertionElement).append(this.previousTrickElement);
 	verify(this.gamePlayDiv).show();
 	verify(this.cardsElement).addClass("handElement");
+
+	if (null !== this.currentPlayerId) {
+		if ((this.teams[0].indexOf(this.currentPlayerId) == -1) != ((this.teams[0].indexOf(this.playerId) == -1))) {
+			verify(this.turnNameElement).addClass("red");
+		} else {
+			verify(this.turnNameElement).addClass("green");
+		}
+	}
 };
 
 GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
@@ -188,7 +196,7 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 };
 
 GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
-	var otherPlayerId = this.playerIds[1];
+	var otherPlayerId = this.playerIds[2];
 	this.currentPlayerId = otherPlayerId;
 
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
