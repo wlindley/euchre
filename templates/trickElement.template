@@ -1,6 +1,10 @@
 <div class="trickElement column">
 	<div class="ui one column center aligned grid">
-		<div class="row">%card%</div>
-		<div class="row"><div class="playerName ui teal label"/></div>
+		<div class="row">
+			%card%
+		</div>
+		<div class="row">
+			<div class="playerName ui teal label"/>
+		</div>
 	</div>
 </div>

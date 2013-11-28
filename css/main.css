@@ -19,24 +19,9 @@ body {
 	width: 700px;
 }
 
-.continue {
-	position: relative;
-	vertical-align: bottom;
-	text-align: center;
-	left: -40px;
-	bottom: -4px;
-}
-
 .clickableCard img {
 	cursor: hand;
 	cursor: pointer;
-}
-
-.previousTrick {
-	background-color: #444444;
-	color: #888888;
-	height: 200px;
-	width: 500px;
 }
 
 .gameComplete {

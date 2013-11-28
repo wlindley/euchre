@@ -26,7 +26,7 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 			namePromise.registerForUpdates(trickElementElement.find(".playerName"));
 		}
 
-		updateElement(element, playedCards[winnerId], "winningCard", templateRenderer.renderTemplate("winningCard"));
+		setWinningCard(element, playedCards[winnerId]);
 
 		element.find("button.continue").click(this.buildContinueClickHandler(element));
 
@@ -50,10 +50,9 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		return rootElement.find("div.trickElement").has("input.cardSuit[value=" + targetCard.suit + "]").has("input.cardValue[value=" + targetCard.value + "]");
 	}
 
-	function updateElement(rootElement, targetCard, className, htmlText) {
+	function setWinningCard(rootElement, targetCard) {
 		var target = getTrickElementByCard(rootElement, targetCard);
-		target.addClass(className);
-		target.append(htmlText);
+		target.find(".card").append(templateRenderer.renderTemplate("winnerLabel"));
 	}
 
 	function isObjectValid(obj) {

@@ -1,11 +1,9 @@
 {
-	"player" : "Player %playerId%",
 	"suit_1" : "clubs",
 	"suit_2" : "diamonds",
 	"suit_3" : "spades",
 	"suit_4" : "hearts",
 	"noCardsPlayed" : "No cards played yet",
-	"trumpDisplay" : "Current trump suit: %trumpSuit%",
 	"yourTeam" : "Your team",
 	"otherTeam" : "Other team",
 	"discardMessage" : "As dealer, you picked up a card when you or someone else called trump. Now you must discard one of the cards in your hand.",

@@ -22,8 +22,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 		this.playerNameElements[i] = mock(TEST.FakeJQueryElement);
 	}
 	this.previousTrickHtml = "some previous trick html";
-	this.winningCardHtml = "winning card html";
-	this.playersCardHtml = "players card html";
+	this.winnerLabelHtml = "winner label";
 
 	this.previousTrickElement = mock(TEST.FakeJQueryElement);
 	this.previousTrickElementParent = mock(TEST.FakeJQueryElement);
@@ -44,11 +43,10 @@ PreviousTrickDisplayBuilderTest.prototype.testReturnsExpectedJQueryObject = func
 	assertEquals(this.previousTrickElement, actualResult);
 };
 
-PreviousTrickDisplayBuilderTest.prototype.testSetsClassOnWinningCardAndAppendsElement = function() {
+PreviousTrickDisplayBuilderTest.prototype.testAppendsWinnerLabel = function() {
 	this.trigger();
 	var winnerIndex = this.players.indexOf(this.winnerId);
-	verify(this.trickElementElements[winnerIndex]).addClass("winningCard");
-	verify(this.trickElementElements[winnerIndex]).append(this.winningCardHtml);
+	verify(this.cardElements[winnerIndex]).append(this.winnerLabelHtml);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.testHooksUpPlayerNamesToPromises = function() {
@@ -123,6 +121,7 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 
 		when(this.cardSelector).has("input.cardSuit[value=" + this.cards[i].suit + "]").thenReturn(suitSelector);
 		when(suitSelector).has("input.cardValue[value=" + this.cards[i].value + "]").thenReturn(this.trickElementElements[i]);
+		when(this.trickElementElements[i]).find(".card").thenReturn(this.cardElements[i]);
 
 		when(this.templateRenderer).renderTemplate("trickElement", hasMember("card", this.cardHtmls[i])).thenReturn(this.trickElementHtmls[i]);
 	}
@@ -136,8 +135,7 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 		hasMember("card3", this.trickElementHtmls[3])
 	)).thenReturn(this.previousTrickHtml);
 
-	when(this.templateRenderer).renderTemplate("playersCard").thenReturn(this.playersCardHtml);
-	when(this.templateRenderer).renderTemplate("winningCard").thenReturn(this.winningCardHtml);
+	when(this.templateRenderer).renderTemplate("winnerLabel").thenReturn(this.winnerLabelHtml);
 
 	when(this.jqueryWrapper).getElement(this.previousTrickHtml).thenReturn(this.previousTrickElement);
 	when(this.jqueryWrapper).getElement("<div />").thenReturn(this.errorElement);
