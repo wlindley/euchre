@@ -1,7 +1,27 @@
-<div class="gameComplete">
-	<div>
-		<span class="winner0 playerName"/> %and% <span class="winner1 playerName"/>
+<div class="gameComplete ui center middle aligned inverted segment">
+	<div class="ui middle center aligned one column grid">
+
+		<div class="row">
+			<div class="column">
+				<h3 clas="ui center aligned header">Game Over</h3>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="column">
+				%won%
+				<div class="winner0 playerName ui label"/>
+				<div class="winner1 playerName ui label"/>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="column">
+				<div class="dismissButton ui left labeled icon button">
+					<i class="close icon"/>%dismiss%
+				</div>
+			</div>
+		</div>
+
 	</div>
-	<div>%won%</div>
-	<button class="dismiss">%dismiss%</button>
 </div>

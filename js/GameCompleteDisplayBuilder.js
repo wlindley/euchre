@@ -19,16 +19,16 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 		var winningTeamId = localPlayerTeamId;
 		if (scores[otherTeamId] > scores[localPlayerTeamId]) {
 			winningTeamId = otherTeamId;
-			gameCompleteElement.addClass("gameLost");
+			gameCompleteElement.addClass("red");
 		} else {
-			gameCompleteElement.addClass("gameWon");
+			gameCompleteElement.addClass("green");
 		}
 		for (var i in teams[winningTeamId]) {
 			var namePromise = playerNameDirectory.getNamePromise(teams[winningTeamId][i]);
 			namePromise.registerForUpdates(gameCompleteElement.find(".winner" + i));
 		}
 
-		gameCompleteElement.find("button.dismiss").click(self.buildDismissClickHandler(gameId));
+		gameCompleteElement.find(".dismissButton").click(self.buildDismissClickHandler(gameId));
 
 		return gameCompleteElement;
 	};

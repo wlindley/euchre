@@ -62,7 +62,7 @@ GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamW
 		when(this.gameCompleteElement).find(".winner" + i).thenReturn(this.winnerNameElements[i]);
 	}
 
-	when(this.gameCompleteElement).find("button.dismiss").thenReturn(this.dismissButtonElement);
+	when(this.gameCompleteElement).find(".dismissButton").thenReturn(this.dismissButtonElement);
 };
 
 GameCompleteDisplayBuilderTest.prototype.buildTestObj = function() {
@@ -96,18 +96,18 @@ GameCompleteDisplayBuilderTest.prototype.testIncludesOtherTeamNamesIfLocalPlayer
 	}
 };
 
-GameCompleteDisplayBuilderTest.prototype.testAddsWonClassToElementIfLocalPlayersTeamWon = function() {
+GameCompleteDisplayBuilderTest.prototype.testAddsWinColorToElementIfLocalPlayersTeamWon = function() {
 	this.scores[0] = 10;
 	this.trigger();
-	verify(this.gameCompleteElement).addClass("gameWon");
-	verify(this.gameCompleteElement, never()).addClass("gameLost");
+	verify(this.gameCompleteElement).addClass("green");
+	verify(this.gameCompleteElement, never()).addClass("red");
 };
 
-GameCompleteDisplayBuilderTest.prototype.testAddsWonClassToElementIfLocalPlayersTeamLost = function() {
+GameCompleteDisplayBuilderTest.prototype.testAddsLoseColorToElementIfLocalPlayersTeamLost = function() {
 	this.scores[1] = 10;
 	this.trigger();
-	verify(this.gameCompleteElement).addClass("gameLost");
-	verify(this.gameCompleteElement, never()).addClass("gameWon");
+	verify(this.gameCompleteElement).addClass("red");
+	verify(this.gameCompleteElement, never()).addClass("green");
 };
 
 GameCompleteDisplayBuilderTest.prototype.testAddClickHandlerToDismissButton = function() {

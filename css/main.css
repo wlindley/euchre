@@ -23,17 +23,3 @@ body {
 	cursor: hand;
 	cursor: pointer;
 }
-
-.gameComplete {
-	width: 1000px;
-	height: 250px;
-	text-align: center;
-}
-
-.gameLost {
-	background-color: #EE4444;
-}
-
-.gameWon {
-	background-color: #44EE44;
-}
