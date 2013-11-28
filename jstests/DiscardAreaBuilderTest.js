@@ -63,7 +63,7 @@ DiscardAreaBuilderTest.prototype.testAddsClickHandlersAndClassToCardImages = fun
 
 	this.trigger();
 
-	verify(this.cardElements).addClass("clickableCard");
+	verify(this.cardElements).addClass("clickable");
 	verify(this.cardElements).click(cardClickHandler);
 };
 
@@ -111,7 +111,7 @@ DiscardAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectlyAft
 DiscardAreaBuilderTest.prototype.testDoesNotBindClickHandlersIfNotCurrentPlayersTurn = function() {
 	this.currentPlayerId = "7890123";
 	this.trigger();
-	verify(this.cardElements, never()).addClass("clickableCard");
+	verify(this.cardElements, never()).addClass("clickable");
 	verify(this.cardElements, never()).click(func());
 };
 

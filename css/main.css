@@ -18,8 +18,3 @@ body {
 .gameListEntry {
 	width: 700px;
 }
-
-.clickableCard img {
-	cursor: hand;
-	cursor: pointer;
-}

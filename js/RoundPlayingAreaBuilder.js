@@ -11,7 +11,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 		}
 
 		if (currentPlayerId == facebook.getSignedInPlayerId()) {
-			cardElements.addClass("clickableCard");
+			cardElements.addClass("clickable");
 			cardElements.click(self.buildCardClickHandler(gameId));
 		}
 

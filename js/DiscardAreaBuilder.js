@@ -10,7 +10,7 @@ AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locString
 			return null;
 		}
 
-		cardElements.addClass("clickableCard");
+		cardElements.addClass("clickable");
 		cardElements.click(self.buildCardClickHandler(gameId));
 
 		var discardAreaHtml = templateRenderer.renderTemplate("discard", {"discardMessage" : locStrings.discardMessage});
