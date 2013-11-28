@@ -126,7 +126,7 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 		when(this.templateRenderer).renderTemplate("trickElement", hasMember("card", this.cardHtmls[i])).thenReturn(this.trickElementHtmls[i]);
 	}
 
-	when(this.previousTrickElement).find("button.continue").thenReturn(this.buttonElement);
+	when(this.previousTrickElement).find(".continueButton").thenReturn(this.buttonElement);
 
 	when(this.templateRenderer).renderTemplate("previousTrick", allOf(
 		hasMember("card0", this.trickElementHtmls[0]),

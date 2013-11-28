@@ -28,7 +28,7 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 		setWinningCard(element, playedCards[winnerId]);
 
-		element.find("button.continue").click(this.buildContinueClickHandler(element));
+		element.find(".continueButton").click(this.buildContinueClickHandler(element));
 
 		return element;
 	};
@@ -42,6 +42,8 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 	this.buildHideCompleteHandler = function(rootElement) {
 		return function(event) {
+			console.log("removing");
+			console.log(rootElement.parent());
 			rootElement.parent().remove();
 		};
 	};

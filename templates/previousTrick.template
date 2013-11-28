@@ -9,5 +9,5 @@
 		<div class="column">%card3%</div>
 	</div>
 
-	<div class="continue ui center aligned positive button">Dismiss</div>
+	<div class="continueButton ui center aligned positive button">Dismiss</div>
 </div>
