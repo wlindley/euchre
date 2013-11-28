@@ -41,6 +41,8 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 	when(this.trumpSelectionElement).find(".dealer").thenReturn(this.dealerElement);
 	this.dealerNameElement = mock(TEST.FakeJQueryElement);
 	when(this.dealerElement).find(".playerName").thenReturn(this.dealerNameElement);
+	this.dealerLabelElement = mock(TEST.FakeJQueryElement);
+	when(this.dealerElement).find(".label").thenReturn(this.dealerLabelElement);
 	this.suitDropdownElement = mock(TEST.FakeJQueryElement);
 	when(this.trumpSelectionElement).find(".ui.dropdown").thenReturn(this.suitDropdownElement);
 	this.trumpSelectionActionsElement = mock(TEST.FakeJQueryElement);
@@ -102,6 +104,7 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenV
 	verify(this.passButtonElement).click(passClickHandler);
 	verify(this.dealerPicksUpButtonElement).click(dealerPicksUpClickHandler);
 	verify(this.suitDropdownElement).dropdown();
+	verify(this.dealerLabelElement).addClass("green");
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenDealerIsOnOtherTeam = function() {
@@ -110,6 +113,7 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenDealer
 	this.train(this.trumpSelection1ActionHtml);
 
 	assertEquals(this.trumpSelectionElement, this.trigger(this.upCard));
+	verify(this.dealerLabelElement).addClass("red");
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildHooksUpDealerNamePromise = function() {

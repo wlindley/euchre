@@ -4,7 +4,7 @@
 		<div class="column">
 			<div class="dealer">
 				<h4 class="ui header">Dealer</h4>
-				<div class="ui teal label">
+				<div class="ui label">
 					<span class="playerName"></span> <div class="detail">(%dealerTeam%)</div>
 				</div>
 			</div>

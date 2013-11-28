@@ -43,6 +43,11 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 		var dealerNamePromise = playerNameDirectory.getNamePromise(dealerId);
 		var dealerNameElement = trumpSelectionElement.find(".dealer").find(".playerName");
 		dealerNamePromise.registerForUpdates(dealerNameElement);
+		if ((-1 == teams[0].indexOf(facebook.getSignedInPlayerId())) == (-1 == teams[0].indexOf(dealerId))) {
+			trumpSelectionElement.find(".dealer").find(".label").addClass("green");
+		} else {
+			trumpSelectionElement.find(".dealer").find(".label").addClass("red");
+		}
 
 		trumpSelectionElement.find(".ui.dropdown").dropdown();
 
