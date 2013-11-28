@@ -1,7 +1,7 @@
 GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
-	this.locStrings = {"trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c"};
+	this.locStrings = {"trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c", "n/a" : "na na na nananana"};
 	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
@@ -113,7 +113,11 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
 	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams).thenReturn(this.trumpSelectionElement);
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", this.locStrings["suit_" + this.trumpSuit]))).thenReturn(this.gameHtml);
+	var trumpString = this.locStrings["suit_" + this.trumpSuit];
+	if (!(("suit_" + this.trumpSuit) in this.locStrings)) {
+		trumpString = this.locStrings["n/a"];
+	}
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", trumpString))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
@@ -216,9 +220,12 @@ GamePlayViewTest.prototype.testHandlesNullTurn = function() {
 	this.testObj.show({"gameId" : this.gameId});
 
 	this.verifyCorrectView(this.status);
+	verify(this.turnNameElement).text(this.locStrings["n/a"]);
 };
 
 GamePlayViewTest.prototype.testHandlesCompletedGame = function() {
+	this.trumpSuit = 100;
+
 	this.status = "complete";
 	this.currentPlayerId = null;
 

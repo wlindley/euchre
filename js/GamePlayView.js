@@ -36,13 +36,20 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 		var gameScoresHtml = templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[0], "otherScore" : gameScores[1]});
 		var roundScoresHtml = templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[0], "otherScore" : roundScores[1]});
 
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml, "trump" : locStrings["suit_" + response.round.trump]});
+		var trumpString = locStrings["suit_" + response.round.trump];
+		if (undefined === trumpString) {
+			trumpString = locStrings["n/a"];
+		}
+
+		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml, "trump" : trumpString});
 		var gameElement = jqueryWrapper.getElement(gameHtml);
 		gameElement.find(".hand").find(".card").addClass("handElement");
 
 		if (null !== response.round.currentPlayerId && undefined !== response.round.currentPlayerId) {
 			var namePromise = playerNameDirectory.getNamePromise(response.round.currentPlayerId);
 			namePromise.registerForUpdates(gameElement.find(".turn").find(".playerName"));
+		} else {
+			gameElement.find(".turn").find(".playerName").text(locStrings["n/a"]);
 		}
 
 		var cardElements = gameElement.find(".card");
