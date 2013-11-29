@@ -30,6 +30,8 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.tableElement = mock(TEST.FakeJQueryElement);
 	this.tableDataElements = [];
 	this.tableDataNameElements = [];
+	this.team0Element = mock(TEST.FakeJQueryElement);
+	this.team1Element = mock(TEST.FakeJQueryElement);
 
 	this.showGameDataFunc = mockFunction();
 
@@ -80,6 +82,8 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 	when(this.element).find(".viewGameData").thenReturn(this.linkElement);
 	when(this.element).find(".gameListElementTeams").thenReturn(this.tableElement);
 	when(this.element).find(".turn").thenReturn(this.turnElement);
+	when(this.element).find(".team0").thenReturn(this.team0Element);
+	when(this.element).find(".team1").thenReturn(this.team1Element);
 	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 	var tableDataSelector = mock(TEST.FakeJQueryElement);
 	when(this.tableElement).find(".playerNameContainer").thenReturn(tableDataSelector);
@@ -164,4 +168,19 @@ GameListElementBuilderTest.prototype.testSetsCorrectClassesIfNotLocalPlayersTurn
 	this.trigger();
 	verify(this.element).addClass("secondary");
 	verify(this.element).addClass("clickable");
+};
+
+GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeams = function() {
+	this.doTraining("round_in_progress");
+	this.trigger();
+	verify(this.team0Element).addClass("red");
+	verify(this.team1Element).addClass("green");
+};
+
+GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeamsWhenLocalPlayerIsOnOtherTeam = function() {
+	this.team = [this.team[1], this.team[0]];
+	this.doTraining("round_in_progress");
+	this.trigger();
+	verify(this.team0Element).addClass("green");
+	verify(this.team1Element).addClass("red");
 };

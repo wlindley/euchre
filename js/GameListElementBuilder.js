@@ -46,6 +46,14 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 			}
 		}
 
+		if (-1 != gameData.teams[0].indexOf(facebook.getSignedInPlayerId())) {
+			element.find(".team0").addClass("green");
+			element.find(".team1").addClass("red");
+		} else {
+			element.find(".team0").addClass("red");
+			element.find(".team1").addClass("green");
+		}
+
 		return element;
 	};
 };

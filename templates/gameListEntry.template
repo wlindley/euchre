@@ -1,29 +1,33 @@
 <div class="gameListEntry ui inverted blue segment">
 	<a class="viewGameData" id="gameId_%gameId%">
 	<div class="gameListElementTeams ui middle center aligned grid">
+
 		<div class="seven wide column">
 			<div>
-			<div class="ui top attached inverted black segment">
+			<div class="team0 ui top inverted segment">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></div>
 			</div>
-			<div class="ui bottom attached inverted black segment">
+			<div class="team0 ui bottom inverted segment">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="1" class="index"/></div>
 			</div>
 			</div>
 		</div>
+
 		<div class="two wide column">
 			<div class="ui segment">
 				%vs%
 			</div>
 		</div>
+
 		<div class="seven wide column">
-			<div class="ui top attached inverted black segment">
+			<div class="team1 ui top inverted segment">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="0" class="index"/></div>
 			</div>
-			<div class="ui bottom attached inverted black segment">
+			<div class="team1 ui bottom inverted segment">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></div>
 			</div>
 		</div>
+
 	</div>
 	<div class="turn">Turn: <span class="playerName"></span></div>
 	<div>Status: %status%</div>
