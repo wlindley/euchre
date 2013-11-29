@@ -1,4 +1,4 @@
-<div class="hand">
+<div class="hand ui center aligned inverted black secondary segment">
 	<h3 class="ui center aligned header">Hand</h3>
 	<div class="cards ui center aligned images">%hand%</div>
 </div>

@@ -31,6 +31,7 @@ GamePlayViewTest.prototype.setUp = function() {
 		this.completeCardHtml += curHtml;
 	}
 	this.handHtml = "the whole hand";
+	this.handElement = mock(TEST.FakeJQueryElement);
 	this.viewGameListElement = mock(TEST.FakeJQueryElement);
 	this.trumpSelectionElement = mock(TEST.FakeJQueryElement);
 	this.gameHtml = "the whole game";
@@ -104,9 +105,8 @@ GamePlayViewTest.prototype.doTraining = function() {
 		when(this.playerNameDirectory).getNamePromise(this.playerIds[i]).thenReturn(this.playerNamePromises[i]);
 	}
 
-	var handElement = mock(TEST.FakeJQueryElement);
-	when(this.gameElement).find(".hand").thenReturn(handElement);
-	when(handElement).find(".card").thenReturn(this.cardsElement);
+	when(this.gameElement).find(".hand").thenReturn(this.handElement);
+	when(this.handElement).find(".card").thenReturn(this.cardsElement);
 	for (var i = 0; i < this.hand.length; i++) {
 		when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.hand[i].suit), hasMember("value", this.hand[i].value))).thenReturn(this.cardHtmls[i]);
 	}
@@ -249,6 +249,7 @@ GamePlayViewTest.prototype.testHandlesCompletedGame = function() {
 	this.testObj.show({"gameId" : this.gameId});
 
 	this.verifyCorrectView(this.status);
+	verify(this.handElement).hide();
 };
 
 GamePlayViewTest.prototype.testHooksUpNamePromiseForTurn = function() {

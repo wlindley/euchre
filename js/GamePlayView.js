@@ -65,6 +65,8 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 
 			var gameCompleteInsertionPoint = gameElement.find(".gameCompleteWrapper");
 			gameCompleteInsertionPoint.append(gameCompleteElement);
+
+			gameElement.find(".hand").hide();
 		} else {
 			var trumpSelectionElement = trumpSelectionAreaBuilder.buildTrumpSelectionArea(response.round.upCard, response.status, response.gameId, response.round.dealerId, response.round.currentPlayerId, response.teams);
 			var roundPlayingElement = roundPlayingAreaBuilder.buildRoundPlayingArea(response.status, response.round.currentTrick.ledSuit, response.round.currentTrick.playedCards, cardElements, response.gameId, response.round.currentPlayerId, response.round.currentTrick.leaderId, response.teams);

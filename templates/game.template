@@ -23,7 +23,7 @@
 	<div class="previousTrickWrapper"/>
 	<div class="gameCompleteWrapper"/>
 	<div class="discard"/>
-	<div class="ui center aligned inverted black secondary segment">%hand%</div>
+	<div class="">%hand%</div>
 	<div class="trumpSelection"/>
 	<div class="playingRound"/>
 </div>
