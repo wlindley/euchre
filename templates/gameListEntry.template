@@ -1,4 +1,4 @@
-<div class="gameListEntry ui inverted blue segment">
+<div class="gameListEntry ui inverted black segment">
 	<a class="viewGameData" id="gameId_%gameId%">
 	<div class="gameListElementTeams ui middle center aligned grid">
 
