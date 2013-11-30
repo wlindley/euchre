@@ -3,6 +3,7 @@ JQueryWrapperTest = TestCase("JQueryWrapperTest")
 TestableJQuery = function() {
 	this.ajax = function(url, params) {};
 	this.Deferred = function() {};
+	this.parseJSON = function(json) {};
 };
 
 JQueryWrapperTest.prototype.setUp = function() {
@@ -33,7 +34,7 @@ JQueryWrapperTest.prototype.testGetElementPassesThrough = function() {
 	assertEquals(selector, params);
 };
 
-JQueryWrapperTest.prototype.testBuildDeferred = function() {
+JQueryWrapperTest.prototype.testBuildDeferredPassesThrough = function() {
 	when(this.mockJQuery).Deferred().thenReturn($.Deferred());
 	var result = this.testObj.buildDeferred();
 	assertTrue(result.hasOwnProperty("done"));
@@ -43,6 +44,14 @@ JQueryWrapperTest.prototype.testBuildDeferred = function() {
 	assertTrue(result.hasOwnProperty("reject"));
 	assertTrue(result.hasOwnProperty("notify"));
 	assertTrue(result.hasOwnProperty("promise"));
+};
+
+JQueryWrapperTest.prototype.testJsonDecodePassesThrough = function() {
+	var json = '{"foo" : "bar"}';
+	var expectedResult = {"foo" : "bar"};
+	when(this.mockJQuery).parseJSON(json).thenReturn(expectedResult);
+	var result = this.testObj.jsonDecode(json);
+	assertEquals(expectedResult, result);
 };
 
 JQueryWrapperTest.prototype.buildTestObj = function() {

@@ -16,6 +16,10 @@ AVOCADO.JQueryWrapper = function(jquery) {
 	this.buildDeferred = function() {
 		return jquery.Deferred();
 	};
+
+	this.jsonDecode = function(json) {
+		return jquery.parseJSON(json);
+	};
 };
 
 AVOCADO.JQueryWrapper.getInstance = function(jquery) {
