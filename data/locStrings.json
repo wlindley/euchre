@@ -18,6 +18,6 @@
 	"complete" : "Game Over",
 	"won" : "Winners:",
 	"dismiss" : "Dismiss",
-	"gameInviteTitle" : "Join Game",
-	"gameInviteMessage" : "Invite your friends to join your Euchre game!"
+	"gameInviteTitle" : "Play Euchre!",
+	"gameInviteMessage" : "Join my game of Euchre!"
 }
