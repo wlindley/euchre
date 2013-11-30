@@ -2,6 +2,17 @@ if (AVOCADO === undefined) {
 	var AVOCADO = {};
 }
 
+AVOCADO.FacebookRequest = function(requestId, gameId, message) {
+	this.requestId = requestId;
+	this.gameId = gameId;
+	this.message = message;
+};
+
+AVOCADO.FacebookRequest.getInstance = function(jqueryWrapper, rawRequest) {
+	var data = jqueryWrapper.jsonDecode(rawRequest["data"]);
+	return new AVOCADO.FacebookRequest(rawRequest["id"], data["gameId"], rawRequest["message"]);
+};
+
 AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var self = this;
 	var signedInPlayerId = "";
@@ -81,6 +92,22 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 			} else {
 				deferred.resolve(toList);
 			}
+		};
+	};
+
+	this.getAppRequests = function() {
+		var deferred = jqueryWrapper.buildDeferred();
+		FB.api("/" + signedInPlayerId + "/apprequests", this.buildGetAppRequestsCallback(deferred));
+		return deferred.promise();
+	};
+
+	this.buildGetAppRequestsCallback = function(deferred) {
+		return function(response) {
+			requests = [];
+			for (var i in response.data) {
+				requests.push(AVOCADO.FacebookRequest.getInstance(jqueryWrapper, response.data[i]));
+			}
+			deferred.resolve(requests);
 		};
 	};
 };
