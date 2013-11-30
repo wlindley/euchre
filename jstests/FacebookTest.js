@@ -266,3 +266,16 @@ FacebookTest.prototype.testSendRequestsCallbackResolvesDeferred = function() {
 
 	verify(this.sendRequestsDeferred).resolve(toList);
 };
+
+FacebookTest.prototype.testSendRequestsCallbackRejectsDeferredIfUserCancels = function() {
+	this.setupAjaxCall();
+	this.setupSendRequests();
+
+	var requestId = null;
+	var toList = undefined;
+
+	this.triggerInit();
+	this.testObj.buildSendRequestsCallback(this.sendRequestsDeferred)(requestId, toList);
+
+	verify(this.sendRequestsDeferred).reject();
+};

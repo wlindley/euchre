@@ -76,7 +76,11 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 
 	this.buildSendRequestsCallback = function(deferred) {
 		return function(requestId, toList) {
-			deferred.resolve(toList);
+			if (null === requestId) {
+				deferred.reject();
+			} else {
+				deferred.resolve(toList);
+			}
 		};
 	};
 };
