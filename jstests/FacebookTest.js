@@ -15,6 +15,8 @@ FacebookTest.prototype.setUp = function() {
 	this.channelUrl = "http://my.awesome.com/channel.html";
 	this.otherPlayerId = "slajf323409imsde3";
 	this.otherPlayerName = "Foobing Barbazi";
+	this.otherPlayerFirstName = "Foobing";
+	this.otherPlayerLastName = "Barbazi";
 
 	this.requestTitle = "bestest request title";
 	this.requestMessage = "send this awesome request";
@@ -71,14 +73,14 @@ FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
 
 FacebookTest.prototype.setupGetNameCallSuccess = function() {
 	var testHarness = this;
-	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
-		testHarness.testObj.getPlayerDataCallback({"name" : testHarness.otherPlayerName, "id" : testHarness.otherPlayerId});
+	when(FB).api("/" + this.otherPlayerId + "?fields=name,id,first_name,last_name", func()).then(function() {
+		testHarness.testObj.getPlayerDataCallback({"name" : testHarness.otherPlayerName, "id" : testHarness.otherPlayerId, "first_name" : testHarness.otherPlayerFirstName, "last_name" : testHarness.otherPlayerLastName});
 	});
 };
 
 FacebookTest.prototype.setupGetNameCallError = function() {
 	var testHarness = this;
-	when(FB).api("/" + this.otherPlayerId + "?fields=name,id", func()).then(function() {
+	when(FB).api("/" + this.otherPlayerId + "?fields=name,id,first_name,last_name", func()).then(function() {
 		testHarness.testObj.getPlayerDataCallback({"error" : {"message" : "foo"}});
 	});
 };
@@ -193,9 +195,14 @@ FacebookTest.prototype.testGetPlayerDataResolvesPromiseOnSuccess = function() {
 	this.triggerInit();
 	this.setupGetNameCallSuccess();
 
+	var expectedName = this.otherPlayerFirstName + " " + this.otherPlayerLastName[0] + ".";
+
 	this.testObj.getPlayerData(this.otherPlayerId);
 
-	verify(this.getPlayerDataDeferred).resolve();
+	verify(this.getPlayerDataDeferred).resolve(allOf(
+		hasMember("playerId", this.otherPlayerId),
+		hasMember("name", expectedName)
+	));
 };
 
 FacebookTest.prototype.testGetPlayerDataDoesNotResolvePromiseOnFailure = function() {

@@ -44,7 +44,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		if (!(playerId in getPlayerDataDeferreds)) {
 			var deferred = jqueryWrapper.buildDeferred();
 			getPlayerDataDeferreds[playerId] = deferred;
-			FB.api("/" + playerId + "?fields=name,id", this.getPlayerDataCallback);
+			FB.api("/" + playerId + "?fields=name,id,first_name,last_name", this.getPlayerDataCallback);
 		}
 		return getPlayerDataDeferreds[playerId].promise();
 	};
@@ -52,7 +52,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	this.getPlayerDataCallback = function(response) {
 		var data = {};
 		if (!("error" in response)) {
-			data["name"] = response["name"];
+			data["name"] = response["first_name"] + " " + response["last_name"][0] + ".";
 			data["playerId"] = response["id"];
 			getPlayerDataDeferreds[response["id"]].resolve(data);
 		}
