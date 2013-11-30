@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper) {
+AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
 	var self = this;
 
 	this.buildGameCreator = function() {
@@ -21,6 +21,7 @@ AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRende
 
 	function handleCreateGameResponse(response) {
 		if (response.success) {
+			facebook.sendRequests(locStrings["gameInviteTitle"], locStrings["gameInviteMessage"], {"gameId" : response.gameId});
 			setTimeout(function() {
 				viewManager.showView("gameList");
 			}, 100);
@@ -28,6 +29,6 @@ AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRende
 	}
 };
 
-AVOCADO.GameCreatorBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper) {
-	return new AVOCADO.GameCreatorBuilder(facebook, ajax, viewManager, templateRenderer, jqueryWrapper);
+AVOCADO.GameCreatorBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
+	return new AVOCADO.GameCreatorBuilder(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
 };

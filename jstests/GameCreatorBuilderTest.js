@@ -2,12 +2,21 @@ GameCreatorBuilderTest = TestCase("GameCreatorBuilderTest")
 
 GameCreatorBuilderTest.prototype.setUp = function() {
 	this.playerId = "12345";
+	this.requestTitle = "title";
+	this.requestMessage = "message";
+
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.facebook = mock(AVOCADO.Facebook);
+	this.locStrings = {
+		"gameInviteTitle" : this.requestTitle,
+		"gameInviteMessage" : this.requestMessage
+	};
+
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
+
 	this.origSetTimeout = setTimeout;
 	this.origSetTimeout = function(func, time, lang) {
 		func();
@@ -46,7 +55,7 @@ GameCreatorBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = func
 	assertEquals(0, params["team"]);
 };
 
-GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListView = function() {
+GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListViewAndTriggersFBRequestSend = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -55,13 +64,15 @@ GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameL
 		hasCalledAsync = true;
 		verify(testHarness.viewManager).showView("gameList");
 	};
+	var gameId = "20394lskajd";
 
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true};
+	this.ajax.callbackResponse = {"success" : true, "gameId" : gameId};
 	this.buildTestObj();
 
 	this.testObj.createGameClickHandler();
 	assertTrue(hasCalledAsync);
+	verify(this.facebook).sendRequests(this.requestTitle, this.requestMessage, hasMember("gameId", gameId));
 };
 
 GameCreatorBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
@@ -91,5 +102,5 @@ GameCreatorBuilderTest.prototype.trigger = function() {
 };
 
 GameCreatorBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper);
+	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper, this.locStrings);
 };
