@@ -4,6 +4,7 @@ FakeFB = function() {
 	this.init = function() {};
 	this.login = function() {};
 	this.api = function() {};
+	this.ui = function() {};
 };
 
 FacebookTest.prototype.setUp = function() {
@@ -15,12 +16,18 @@ FacebookTest.prototype.setUp = function() {
 	this.otherPlayerId = "slajf323409imsde3";
 	this.otherPlayerName = "Foobing Barbazi";
 
+	this.requestTitle = "bestest request title";
+	this.requestMessage = "send this awesome request";
+	this.data = {"key" : "value"};
+
 	this.initDeferred = mock(TEST.FakeDeferred);
 	this.initPromise = mock(TEST.FakePromise);
 	this.getPlayerDataDeferred = mock(TEST.FakeDeferred);
 	this.getPlayerDataPromise = mock(TEST.FakePromise);
+	this.sendRequestsDeferred = mock(TEST.FakeDeferred);
+	this.sendRequestsPromise = mock(TEST.FakePromise);
 
-	this.getPlayerDataCallback = mockFunction();
+	this.sendRequestCallback = mockFunction();
 
 	this.doTraining();
 	this.buildTestObj();
@@ -35,12 +42,20 @@ FacebookTest.prototype.buildTestObj = function() {
 };
 
 FacebookTest.prototype.doTraining = function() {
+	when(this.initDeferred).id().thenReturn("init deferred");
+	when(this.initPromise).id().thenReturn("init promised");
+	when(this.getPlayerDataDeferred).id().thenReturn("getplayerdata deferred");
+	when(this.getPlayerDataPromise).id().thenReturn("getplayerdata promise");
+	when(this.sendRequestsDeferred).id().thenReturn("sendrequests deferred");
+	when(this.sendRequestsPromise).id().thenReturn("sendrequests promise");
+
 	when(this.initDeferred).promise().thenReturn(this.initPromise);
 	when(this.getPlayerDataDeferred).promise().thenReturn(this.getPlayerDataPromise);
+	when(this.sendRequestsDeferred).promise().thenReturn(this.sendRequestsPromise);
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred);
 };
 
-FacebookTest.prototype.trigger = function() {
+FacebookTest.prototype.triggerInit = function() {
 	return this.testObj.init();
 };
 
@@ -75,8 +90,12 @@ FacebookTest.prototype.setupGetNameCallError = function() {
 	});
 };
 
+FacebookTest.prototype.setupSendRequests = function() {
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.sendRequestsDeferred);
+};
+
 FacebookTest.prototype.testInitLoadsFBScript = function() {
-	this.trigger();
+	this.triggerInit();
 	verify(this.jqueryWrapper).ajax("//connect.facebook.net/en_US/all.js", allOf(
 		hasMember("dataType", "script"),
 		hasMember("success", this.testObj.handleAjaxResponse),
@@ -87,19 +106,20 @@ FacebookTest.prototype.testInitLoadsFBScript = function() {
 FacebookTest.prototype.testHandleAjaxResponseInitializesFB = function() {
 	this.setupAjaxCall();
 
-	this.trigger();
+	this.triggerInit();
 	verify(window.FB).init(allOf(
 		hasMember("appId", this.appId),
 		hasMember("channelUrl", this.channelUrl),
 		hasMember("status", true),
-		hasMember("cookie", true)
+		hasMember("cookie", true),
+		hasMember("frictionlessRequests", true)
 	));
 };
 
 FacebookTest.prototype.testHandleAjaxResponseLogsIn = function() {
 	this.setupAjaxCall();
 
-	this.trigger();
+	this.triggerInit();
 
 	verify(window.FB).login(func());
 };
@@ -112,7 +132,7 @@ FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 	when(window.FB).init().thenThrow("Exception!");
 
 	try {
-		this.trigger();
+		this.triggerInit();
 	} catch (e) {
 		//ignore
 	}
@@ -122,14 +142,14 @@ FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 };
 
 FacebookTest.prototype.testInitReturnsExpectedPromise = function() {
-	var result = this.trigger();
+	var result = this.triggerInit();
 	assertEquals(this.initPromise, result);
 };
 
 FacebookTest.prototype.testMultipleInitsReturnsSamePromiseAndDoesNotReinitialize = function() {
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(null);
-	var firstResult = this.trigger();
-	var secondResult = this.trigger();
+	var firstResult = this.triggerInit();
+	var secondResult = this.triggerInit();
 	verify(this.jqueryWrapper, once()).ajax(anything(), anything());
 	assertEquals(this.initPromise, firstResult);
 	assertEquals(this.initPromise, secondResult);
@@ -137,20 +157,20 @@ FacebookTest.prototype.testMultipleInitsReturnsSamePromiseAndDoesNotReinitialize
 
 FacebookTest.prototype.testPromiseResolvedOnSuccessfulLogin = function() {
 	this.setupAjaxCall(true);
-	this.trigger();
+	this.triggerInit();
 	verify(this.initDeferred).resolve();
 };
 
 FacebookTest.prototype.testPromiseRejectedOnFailedLogin = function() {
 	this.setupAjaxCall(false);
-	this.trigger();
+	this.triggerInit();
 	verify(this.initDeferred).reject();
 };
 
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsExpectedDataAfterLoggingIn = function() {
 	this.setupAjaxCall(true);
 
-	this.trigger();
+	this.triggerInit();
 
 	assertEquals(this.localPlayerId, this.testObj.getSignedInPlayerId());
 };
@@ -158,26 +178,26 @@ FacebookTest.prototype.testGetSignedInPlayerIdReturnsExpectedDataAfterLoggingIn 
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringAfterLoginFailure = function() {
 	this.setupAjaxCall(false);
 
-	this.trigger();
+	this.triggerInit();
 
 	assertEquals("", this.testObj.getSignedInPlayerId());
 };
 
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsEmptyStringIfHaveNotLoggedIn = function() {
-	this.trigger();
+	this.triggerInit();
 	assertEquals("", this.testObj.getSignedInPlayerId());
 };
 
 FacebookTest.prototype.testGetPlayerDataReturnsPromise = function() {
 	this.setupAjaxCall();
-	this.trigger();
+	this.triggerInit();
 	var result = this.testObj.getPlayerData(this.otherPlayerId);
 	assertEquals(this.getPlayerDataPromise, result);
 };
 
 FacebookTest.prototype.testGetPlayerDataResolvesPromiseOnSuccess = function() {
 	this.setupAjaxCall();
-	this.trigger();
+	this.triggerInit();
 	this.setupGetNameCallSuccess();
 
 	this.testObj.getPlayerData(this.otherPlayerId);
@@ -187,7 +207,7 @@ FacebookTest.prototype.testGetPlayerDataResolvesPromiseOnSuccess = function() {
 
 FacebookTest.prototype.testGetPlayerDataDoesNotResolvePromiseOnFailure = function() {
 	this.setupAjaxCall();
-	this.trigger();
+	this.triggerInit();
 	this.setupGetNameCallError();
 
 	this.testObj.getPlayerData(this.otherPlayerId);
@@ -198,7 +218,7 @@ FacebookTest.prototype.testGetPlayerDataDoesNotResolvePromiseOnFailure = functio
 FacebookTest.prototype.testRepeatedGetPlayerDataReturnsSamePromiseAndOnlyCallsFacebookOnce = function() {
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred).thenReturn(null);
 	this.setupAjaxCall();
-	this.trigger();
+	this.triggerInit();
 	this.setupGetNameCallSuccess();
 
 	var firstResult = this.testObj.getPlayerData(this.otherPlayerId);
@@ -207,4 +227,49 @@ FacebookTest.prototype.testRepeatedGetPlayerDataReturnsSamePromiseAndOnlyCallsFa
 	verify(FB, once()).api(anything(), anything());
 	assertEquals(this.getPlayerDataPromise, firstResult);
 	assertEquals(this.getPlayerDataPromise, secondResult);
+};
+
+FacebookTest.prototype.triggerSendRequests = function() {
+	return this.testObj.sendRequests(this.requestTitle, this.requestMessage, this.requestData);
+}
+
+FacebookTest.prototype.testSendRequestsReturnsExpectedPromise = function() {
+	this.setupAjaxCall();
+	this.setupSendRequests();
+	this.triggerInit();
+
+	var result = this.triggerSendRequests();
+
+	assertEquals(this.sendRequestsPromise, result);
+};
+
+FacebookTest.prototype.testSendRequestsCallsFBUI = function() {
+	this.setupAjaxCall();
+	this.setupSendRequests();
+	this.testObj.buildSendRequestsCallback = mockFunction();
+	when(this.testObj.buildSendRequestsCallback)(this.sendRequestsDeferred).thenReturn(this.sendRequestCallback);
+
+	this.triggerInit();
+	this.triggerSendRequests();
+
+	verify(FB).ui(allOf(
+		hasMember("method", "apprequests"),
+		hasMember("app_id", this.appId),
+		hasMember("title", this.requestTitle),
+		hasMember("message", this.requestMessage),
+		hasMember("data", this.requestData)
+	), this.sendRequestCallback);
+};
+
+FacebookTest.prototype.testSendRequestsCallbackResolvesDeferred = function() {
+	this.setupAjaxCall();
+	this.setupSendRequests();
+
+	var requestId = "203942034alfj";
+	var toList = ["3lm3l2"];
+
+	this.triggerInit();
+	this.testObj.buildSendRequestsCallback(this.sendRequestsDeferred)(requestId, toList);
+
+	verify(this.sendRequestsDeferred).resolve(toList);
 };

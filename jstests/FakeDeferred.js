@@ -10,7 +10,7 @@ TEST.FakeDeferred = function() {
 	this.resolve = function() {};
 	this.reject = function() {};
 	this.notify = function() {};
-	this.promise = function() {};	
+	this.promise = function() {};
 };
 
 TEST.FakeDeferred.getInstance = function() {

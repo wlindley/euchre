@@ -20,8 +20,24 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		return initDeferred.promise();
 	};
 
-	this.getSignedInPlayerId = function() {
-		return signedInPlayerId;
+	function handleAjaxResponse() {
+		FB.init({
+			"appId" : appId,
+			"channelUrl" : channelUrl,
+			"status" : true,
+			"cookie" : true,
+			"frictionlessRequests" : true
+		});
+		FB.login(handleLoginResponse);
+	};
+
+	function handleLoginResponse(response) {
+		if (response.authResponse) {
+			signedInPlayerId = response.authResponse.userID;
+			initDeferred.resolve();
+		} else {
+			initDeferred.reject();
+		}
 	};
 
 	this.getPlayerData = function(playerId) {
@@ -42,23 +58,26 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 		}
 	};
 
-	function handleAjaxResponse() {
-		FB.init({
-			"appId" : appId,
-			"channelUrl" : channelUrl,
-			"status" : true,
-			"cookie" : true
-		});
-		FB.login(handleLoginResponse);
+	this.getSignedInPlayerId = function() {
+		return signedInPlayerId;
 	};
 
-	function handleLoginResponse(response) {
-		if (response.authResponse) {
-			signedInPlayerId = response.authResponse.userID;
-			initDeferred.resolve();
-		} else {
-			initDeferred.reject();
-		}
+	this.sendRequests = function(title, message, data) {
+		var deferred = jqueryWrapper.buildDeferred();
+		FB.ui({
+			"method" : "apprequests",
+			"app_id" : appId,
+			"title" : title,
+			"message" : message,
+			"data" : data
+		}, this.buildSendRequestsCallback(deferred));
+		return deferred.promise();
+	};
+
+	this.buildSendRequestsCallback = function(deferred) {
+		return function(requestId, toList) {
+			deferred.resolve(toList);
+		};
 	};
 };
 
