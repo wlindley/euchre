@@ -1,19 +1,6 @@
 GameListElementBuilderTest = TestCase("GameListElementBuilderTest");
 
 GameListElementBuilderTest.prototype.setUp = function() {
-	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.locStrings = {
-		"vs" : "some versus",
-		"n/a" : "N/A",
-		"inviteCTA" : "invite",
-		"round_in_progress" : "foo",
-		"waiting_for_more_players" : "bar",
-		"trump_selection" : "baz"
-	};
-	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
-	this.facebook = mock(AVOCADO.Facebook);
-
 	this.elementHtml = "html for list element";
 	this.element = mock(TEST.FakeJQueryElement);
 	this.gameId = "asdlkj324";
@@ -21,6 +8,8 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.otherPlayerId = "23klsadf39";
 	this.team = [[this.otherPlayerId, "3456"], [this.playerId, "1234"]];
 	this.currentPlayerId = this.playerId;
+	this.requestTitle = "request title";
+	this.requestMessage = "all of the request messages";
 
 	this.element = mock(TEST.FakeJQueryElement);
 	this.linkElement = mock(TEST.FakeJQueryElement);
@@ -33,7 +22,23 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.team0Element = mock(TEST.FakeJQueryElement);
 	this.team1Element = mock(TEST.FakeJQueryElement);
 
+	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.locStrings = {
+		"vs" : "some versus",
+		"n/a" : "N/A",
+		"inviteCTA" : "invite",
+		"round_in_progress" : "foo",
+		"waiting_for_more_players" : "bar",
+		"trump_selection" : "baz",
+		"gameInviteTitle" : this.requestTitle,
+		"gameInviteMessage" : this.requestMessage
+	};
+	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.facebook = mock(AVOCADO.Facebook);
+
 	this.showGameDataFunc = mockFunction();
+	this.gameInviteClickHandler = mockFunction();
 
 	this.buildTestObj();
 };
@@ -120,6 +125,8 @@ GameListElementBuilderTest.prototype.testSetsExpectedStringForNullCurrentPlayer 
 };
 
 GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAs = function() {
+	this.testObj.buildGameInviteClickHandler = mockFunction();
+	when(this.testObj.buildGameInviteClickHandler)(this.gameId).thenReturn(this.gameInviteClickHandler);
 	this.team = [this.team[0], [this.team[1][0]]];
 	this.doTraining("waiting_for_more_players");
 	this.trigger();
@@ -130,6 +137,8 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAs = functi
 				verify(this.namePromises[pid]).registerForUpdates(this.tableDataNameElements[j][k]);
 			} else {
 				verify(this.tableDataNameElements[j][k]).text(this.locStrings["inviteCTA"]);
+				verify(this.tableDataElements[j][k]).addClass("clickable");
+				verify(this.tableDataElements[j][k]).click(this.gameInviteClickHandler);
 			}
 		}
 	}
@@ -183,4 +192,13 @@ GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeamsWhenLocalPlay
 	this.trigger();
 	verify(this.team0Element).addClass("green");
 	verify(this.team1Element).addClass("red");
+};
+
+GameListElementBuilderTest.prototype.testHandleGameInviteClickCallsFacebook = function() {
+	this.team = [this.team[0], [this.team[1][0]]];
+	this.doTraining("waiting_for_more_players");
+
+	this.testObj.buildGameInviteClickHandler(this.gameId)();
+
+	verify(this.facebook).sendRequests(this.requestTitle, this.requestMessage, hasMember("gameId", this.gameId));
 };

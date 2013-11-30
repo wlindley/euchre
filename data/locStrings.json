@@ -17,5 +17,7 @@
 	"waiting_for_more_players" : "Waiting for more players",
 	"complete" : "Game Over",
 	"won" : "Winners:",
-	"dismiss" : "Dismiss"
+	"dismiss" : "Dismiss",
+	"gameInviteTitle" : "Join Game",
+	"gameInviteMessage" : "Invite your friends to join your Euchre game!"
 }

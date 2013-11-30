@@ -42,6 +42,8 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 					namePromise.registerForUpdates(dataNameElement);
 				} else {
 					dataNameElement.text(locStrings["inviteCTA"]);
+					dataElement.addClass("clickable");
+					dataElement.click(this.buildGameInviteClickHandler(gameData.gameId));
 				}
 			}
 		}
@@ -55,6 +57,12 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		}
 
 		return element;
+	};
+
+	this.buildGameInviteClickHandler = function(gameId) {
+		return function(event) {
+			facebook.sendRequests(locStrings["gameInviteTitle"], locStrings["gameInviteMessage"], {"gameId" : gameId});
+		};
 	};
 };
 
