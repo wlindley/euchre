@@ -42,13 +42,6 @@ FacebookTest.prototype.buildTestObj = function() {
 };
 
 FacebookTest.prototype.doTraining = function() {
-	when(this.initDeferred).id().thenReturn("init deferred");
-	when(this.initPromise).id().thenReturn("init promised");
-	when(this.getPlayerDataDeferred).id().thenReturn("getplayerdata deferred");
-	when(this.getPlayerDataPromise).id().thenReturn("getplayerdata promise");
-	when(this.sendRequestsDeferred).id().thenReturn("sendrequests deferred");
-	when(this.sendRequestsPromise).id().thenReturn("sendrequests promise");
-
 	when(this.initDeferred).promise().thenReturn(this.initPromise);
 	when(this.getPlayerDataDeferred).promise().thenReturn(this.getPlayerDataPromise);
 	when(this.sendRequestsDeferred).promise().thenReturn(this.sendRequestsPromise);
