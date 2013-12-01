@@ -44,7 +44,7 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 
 	this.buildDismissClickHandler = function(gameId) {
 		return function() {
-			ajax.call("dismissCompletedGame", {"gameId" : gameId, "playerId" : facebook.getSignedInPlayerId()}, handleDismissResponseHandler);
+			ajax.call("dismissCompletedGame", {"gameId" : gameId, "playerId" : facebook.getSignedInPlayerId()}).done(handleDismissResponseHandler);
 		};
 	};
 

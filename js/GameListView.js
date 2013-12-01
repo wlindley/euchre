@@ -10,7 +10,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 	};
 
 	this.show = function() {
-		gameLister.getGameList(handleGameListResponse);
+		gameLister.getGameList().done(handleGameListResponse);
 	};
 
 	this.hide = function() {

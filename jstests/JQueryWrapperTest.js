@@ -12,14 +12,19 @@ JQueryWrapperTest.prototype.setUp = function() {
 };
 
 JQueryWrapperTest.prototype.testAjaxPassesThrough = function() {
+	var promise = mock(TEST.FakePromise);
 	var url = "my favorite URL";
 	var params = {"foo" : "bar", "bin" : "baz"};
-	this.testObj.ajax(url, params);
+
 	var paramMatchers = [];
 	for (var key in params) {
 		paramMatchers.push(hasMember(key, equalTo(params[key])));
 	}
-	verify(this.mockJQuery).ajax(url, allOf(paramMatchers));
+	when(this.mockJQuery).ajax(url, allOf(paramMatchers)).thenReturn(promise);
+
+	var result = this.testObj.ajax(url, params);
+
+	assertEquals(promise, result);
 };
 
 JQueryWrapperTest.prototype.testGetElementPassesThrough = function() {

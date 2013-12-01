@@ -82,7 +82,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 				"gameId" : gameId,
 				"team" : teamId,
 				"playerId" : facebook.getSignedInPlayerId()
-			}, self.handleJoinGameResponse);
+			}).done(self.handleJoinGameResponse);
 		};
 	};
 

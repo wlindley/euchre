@@ -10,7 +10,7 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 	};
 
 	this.show = function(params) {
-		ajax.call("getGameData", {"gameId" : params.gameId, "playerId" : facebook.getSignedInPlayerId()}, handleGetGameDataResponse);
+		ajax.call("getGameData", {"gameId" : params.gameId, "playerId" : facebook.getSignedInPlayerId()}).done(handleGetGameDataResponse);
 	};
 
 	this.hide = function() {

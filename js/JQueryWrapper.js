@@ -6,7 +6,7 @@ AVOCADO.JQueryWrapper = function(jquery) {
 	var self = this;
 
 	this.ajax = function(url, params) {
-		jquery.ajax(url, params);
+		return jquery.ajax(url, params);
 	};
 
 	this.getElement = function(elementOrSelector) {

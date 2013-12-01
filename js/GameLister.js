@@ -5,8 +5,8 @@ if (AVOCADO == undefined) {
 AVOCADO.GameLister = function(facebook, ajax) {
 	var self = this;
 
-	this.getGameList = function(callback) {
-		ajax.call("listGames", {"playerId" : facebook.getSignedInPlayerId()}, callback);
+	this.getGameList = function() {
+		return ajax.call("listGames", {"playerId" : facebook.getSignedInPlayerId()});
 	};
 };
 

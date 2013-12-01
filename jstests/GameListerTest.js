@@ -4,29 +4,33 @@ GameListerTest.prototype.setUp = function() {
 	this.fbId = "12345";
 	this.ajax = new TEST.FakeAjax();
 	this.facebook = mock(AVOCADO.Facebook);
+
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.fbId);
+
 	this.buildTestObj();
 };
 
 GameListerTest.prototype.testListsGamesFromServer = function() {
-	var responseData = {"foo" : "bar"};
-	this.ajax.callbackResponse = responseData;
 	var wasCalled = false;
+	var responseData = {"foo" : "bar"};
 	var callback = function(data) {
 		if (responseData == data) {
 			wasCalled = true;
 		}
 	};
-	this.testObj.getGameList(callback);
+	this.testObj.getGameList().done(callback);
+	this.ajax.resolveCall(responseData);
+
 	assertTrue(wasCalled);
 };
 
 GameListerTest.prototype.testCallsAjaxCorrectly = function() {
 	this.ajax = mock(AVOCADO.Ajax);
 	this.buildTestObj();
-	var callback = function(data) {};
-	this.testObj.getGameList(callback);
-	verify(this.ajax).call("listGames", hasMember("playerId", equalTo(this.fbId)), callback);
+
+	this.testObj.getGameList();
+
+	verify(this.ajax).call("listGames", hasMember("playerId", equalTo(this.fbId)));
 };
 
 GameListerTest.prototype.buildTestObj = function() {

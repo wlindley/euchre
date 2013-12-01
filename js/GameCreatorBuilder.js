@@ -16,7 +16,7 @@ AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRende
 			"playerId" : facebook.getSignedInPlayerId(),
 			"team" : 0
 		};
-		ajax.call("createGame", params, handleCreateGameResponse);
+		ajax.call("createGame", params).done(handleCreateGameResponse);
 	};
 
 	function handleCreateGameResponse(response) {

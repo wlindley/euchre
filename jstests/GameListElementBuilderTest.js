@@ -43,6 +43,9 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.showGameDataFunc = mockFunction();
 	this.gameInviteClickHandler = mockFunction();
 
+	this.ajaxPromise = mock(TEST.FakePromise);
+	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
+
 	this.origSetTimeout = setTimeout;
 	setTimeout = function(func, time, lang) {
 		func();
@@ -60,7 +63,7 @@ GameListElementBuilderTest.prototype.buildTestObj = function() {
 };
 
 GameListElementBuilderTest.prototype.doTraining = function(status) {
-	this.status = status
+	this.status = status;
 	this.gameData = {
 		"gameId" : this.gameId,
 		"status" : this.status,
@@ -254,7 +257,7 @@ GameListElementBuilderTest.prototype.testHandleGameJoinClickCallsAjax = function
 		hasMember("gameId", this.gameId),
 		hasMember("team", expectedTeam),
 		hasMember("playerId", this.playerId)
-	), this.testObj.handleJoinGameResponse);
+	));
 };
 
 GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
@@ -268,7 +271,6 @@ GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGame
 	};
 
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true};
 	this.buildTestObj();
 
 	this.team = [this.team[0], [this.team[1][1]]];
@@ -276,6 +278,7 @@ GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGame
 	this.doTraining("waiting_for_more_players");
 
 	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam)();
+	this.ajax.resolveCall({"success" : true});
 
 	assertTrue(hasCalledAsync);
 };

@@ -5,17 +5,7 @@ if (AVOCADO == undefined) {
 AVOCADO.Ajax = function(jqueryWrapper, ajaxUrl) {
 	var self = this;
 
-	this.call = function(action, data, callback, delay) {
-		if (delay) {
-			setTimeout(function() {
-				doAjax(action, data, callback);
-			}, delay);
-		} else {
-			doAjax(action, data, callback);
-		}
-	};
-
-	function doAjax(action, data, callback) {
+	this.call = function(action, data) {
 		var finalData = {};
 		for (var key in data) {
 			finalData[key] = data[key];
@@ -24,11 +14,10 @@ AVOCADO.Ajax = function(jqueryWrapper, ajaxUrl) {
 		var params = {
 			"type" : 'POST',
 			"dataType" : 'json',
-			"data" : finalData,
-			"success" : callback
+			"data" : finalData
 		};
-		jqueryWrapper.ajax(ajaxUrl, params);
-	}
+		return jqueryWrapper.ajax(ajaxUrl, params);
+	};
 };
 
 AVOCADO.Ajax.getInstance = function(jqueryWrapper, ajaxUrl) {

@@ -26,6 +26,8 @@ GameCreatorBuilderTest.prototype.setUp = function() {
 	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
 	this.createGameButton = mock(TEST.FakeJQueryElement);
 
+	this.ajaxPromise = mock(TEST.FakePromise);
+
 	this.buildTestObj();
 	this.doTraining();
 };
@@ -46,13 +48,12 @@ GameCreatorBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = func
 };
 
 GameCreatorBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
-	var params = null;
-	when(this.ajax).call("createGame", anything(), anything()).then(function(action, data, callback) {
-		params = data;
-	});
 	this.testObj.createGameClickHandler();
-	assertEquals(this.playerId, params["playerId"]);
-	assertEquals(0, params["team"]);
+
+	verify(this.ajax).call("createGame", allOf(
+		hasMember("playerId", this.playerId),
+		hasMember("team", 0)
+	));
 };
 
 GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListViewAndTriggersFBRequestSend = function() {
@@ -67,10 +68,11 @@ GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameL
 	var gameId = "20394lskajd";
 
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true, "gameId" : gameId};
 	this.buildTestObj();
 
 	this.testObj.createGameClickHandler();
+	this.ajax.resolveCall({"success" : true, "gameId" : gameId});
+
 	assertTrue(hasCalledAsync);
 	verify(this.facebook).sendRequests(this.requestTitle, this.requestMessage, hasMember("gameId", gameId));
 };
@@ -83,15 +85,17 @@ GameCreatorBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefre
 	};
 
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : false};
 	this.buildTestObj();
 
 	this.testObj.createGameClickHandler();
+	this.ajax.resolveCall({"success" : false});
+
 	verify(this.viewManager, never()).showView("gameList");
 	assertFalse(hasCalledAsync);
 };
 
 GameCreatorBuilderTest.prototype.doTraining = function() {
+	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
 	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(this.gameCreatorHtml);
 	when(this.jqueryWrapper).getElement(this.gameCreatorHtml).thenReturn(this.gameCreatorElement);
 	when(this.gameCreatorElement).find("#btnCreateGame").thenReturn(this.createGameButton);

@@ -35,6 +35,8 @@ GameListViewTest.prototype.setUp = function() {
 	this.clickTargetGameId = 2345;
 	this.clickEvent = {"currentTarget" : this.clickTargetHtml};
 
+	this.ajaxResponse = {"games" : [this.gameData], "success" : true};
+
 	this.buildTestObj();
 	this.doTraining();
 };
@@ -45,8 +47,6 @@ GameListViewTest.prototype.buildTestObj = function() {
 
 GameListViewTest.prototype.doTraining = function() {
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
-
-	this.ajax.callbackResponse = {"games" : [this.gameData], "success" : true};
 
 	when(this.templateRenderer).renderTemplate("gameListHeader").thenReturn(this.listHeaderHtml);
 	when(this.gameListElementBuilder).buildListElement(allOf(
@@ -68,6 +68,7 @@ GameListViewTest.prototype.doTraining = function() {
 
 GameListViewTest.prototype.trigger = function() {
 	this.testObj.show();
+	this.ajax.resolveCall(this.ajaxResponse);
 };
 
 GameListViewTest.prototype.testInitRegistersWithViewManager = function() {

@@ -4,11 +4,15 @@ if (TEST == undefined) {
 
 TEST.FakeAjax = function() {
 	var self = this;
+	var callDeferred = null;
 
-	this.callbackResponse = null;
+	this.call = function(action, data) {
+		callDeferred = $.Deferred();
+		return callDeferred.promise();
+	};
 
-	this.call = function(action, data, callback, delay) {
-		callback(self.callbackResponse);
+	this.resolveCall = function(response) {
+		callDeferred.resolve(response);
 	};
 };  
 

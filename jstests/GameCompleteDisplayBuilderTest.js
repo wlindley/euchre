@@ -42,9 +42,13 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 	this.winnerNameElements = [mock(TEST.FakeJQueryElement), mock(TEST.FakeJQueryElement)];
 
 	this.dismissButtonElement = mock(TEST.FakeJQueryElement);
+
+	this.ajaxPromise = mock(TEST.FakePromise);
 };
 
 GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamWon) {
+	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
+
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
 
 	when(this.templateRenderer).renderTemplate("gameComplete", allOf(
@@ -136,9 +140,10 @@ GameCompleteDisplayBuilderTest.prototype.testClickHandlerCallsViewManagerAfterAj
 	};
 
 	this.ajax = new TEST.FakeAjax();
-	this.ajax.callbackResponse = {"success" : true};
 	this.buildTestObj();
 
 	this.testObj.buildDismissClickHandler(this.gameId)();
+	this.ajax.resolveCall({"success" : true});
+
 	assertTrue(hasCalledAsync);
 };

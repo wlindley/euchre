@@ -65,6 +65,9 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.gameCompleteDisplayBuilder = mock(AVOCADO.GameCompleteDisplayBuilder);
 
+	this.ajaxPromise = mock(TEST.FakePromise);
+	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
+
 	this.buildResponseObj();
 	this.doTraining();
 	this.buildTestObj();
@@ -146,6 +149,20 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 };
 
+GamePlayViewTest.prototype.trigger = function() {
+	this.testObj.show({"gameId" : this.gameId});
+	this.ajax.resolveCall(this.response);
+};
+
+GamePlayViewTest.prototype.setupFakeAjax = function() {
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	this.ajax = new TEST.FakeAjax();
+
+	this.buildResponseObj();
+	this.doTraining();
+	this.buildTestObj();
+};
+
 GamePlayViewTest.prototype.verifyCorrectView = function(status) {
 	verify(this.gamePlayDiv).empty();
 	if ("complete" == status) {
@@ -181,16 +198,14 @@ GamePlayViewTest.prototype.testInitRegistersWithViewManager = function() {
 
 GamePlayViewTest.prototype.testShowCallsAjaxCorrectly = function() {
 	this.testObj.show({"gameId" : this.gameId});
-	verify(this.ajax).call("getGameData", allOf(hasMember("playerId", equalTo(this.playerId)), hasMember("gameId", equalTo(this.gameId))), func());
+	verify(this.ajax).call("getGameData", allOf(hasMember("playerId", equalTo(this.playerId)), hasMember("gameId", equalTo(this.gameId))));
 };
 
 GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 	this.ajax = new TEST.FakeAjax();
 	this.buildTestObj();
 
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 };
@@ -198,34 +213,18 @@ GamePlayViewTest.prototype.testShowRendersResponseCorrectly = function() {
 GamePlayViewTest.prototype.testHandlesOtherTurn = function() {
 	var otherPlayerId = this.playerIds[2];
 	this.currentPlayerId = otherPlayerId;
+	this.setupFakeAjax();
 
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.ajax = new TEST.FakeAjax();
-
-	this.buildResponseObj();
-	this.doTraining();
-	this.buildTestObj();
-
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 };
 
 GamePlayViewTest.prototype.testHandlesNullTurn = function() {
 	this.currentPlayerId = null;
+	this.setupFakeAjax();
 
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.ajax = new TEST.FakeAjax();
-
-	this.buildResponseObj();
-	this.doTraining();
-	this.buildTestObj();
-
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 	verify(this.turnNameElement).text(this.locStrings["n/a"]);
@@ -233,20 +232,11 @@ GamePlayViewTest.prototype.testHandlesNullTurn = function() {
 
 GamePlayViewTest.prototype.testHandlesCompletedGame = function() {
 	this.trumpSuit = 100;
-
 	this.status = "complete";
 	this.currentPlayerId = null;
+	this.setupFakeAjax();
 
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.ajax = new TEST.FakeAjax();
-
-	this.buildResponseObj();
-	this.doTraining();
-	this.buildTestObj();
-
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 	verify(this.handElement).hide();
@@ -255,16 +245,9 @@ GamePlayViewTest.prototype.testHandlesCompletedGame = function() {
 GamePlayViewTest.prototype.testHooksUpNamePromiseForTurn = function() {
 	for (var i = 0; i < this.playerIds.length; i++) {
 		this.currentPlayerId = this.playerIds[i];
+		this.setupFakeAjax();
 
-		this.ajax = new TEST.FakeAjax();
-
-		this.buildResponseObj();
-		this.doTraining();
-		this.buildTestObj();
-
-		this.ajax.callbackResponse = this.response;
-
-		this.testObj.show({"gameId" : this.gameId});
+		this.trigger();
 
 		verify(this.playerNamePromises[i]).registerForUpdates(this.turnNameElement);
 	}
@@ -272,34 +255,18 @@ GamePlayViewTest.prototype.testHooksUpNamePromiseForTurn = function() {
 
 GamePlayViewTest.prototype.testSwapsScoresWhenPlayerIsOnSecondTeam = function() {
 	this.teams = [this.teams[1], this.teams[0]];
+	this.setupFakeAjax();
 
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.ajax = new TEST.FakeAjax();
-
-	this.buildResponseObj();
-	this.doTraining();
-	this.buildTestObj();
-
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 };
 
 GamePlayViewTest.prototype.testShowsNoTrumpSuitWhenNoTrumpSelected = function() {
 	this.trumpSuit = 0;
+	this.setupFakeAjax();
 
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	this.ajax = new TEST.FakeAjax();
-
-	this.buildResponseObj();
-	this.doTraining();
-	this.buildTestObj();
-
-	this.ajax.callbackResponse = this.response;
-
-	this.testObj.show({"gameId" : this.gameId});
+	this.trigger();
 
 	this.verifyCorrectView(this.status);
 };
