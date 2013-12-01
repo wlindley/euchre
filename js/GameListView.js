@@ -22,7 +22,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, gameListDiv, jquer
 		gameListDiv.append(templateRenderer.renderTemplate("gameListHeader"));
 
 		for (var i = 0; i < response.games.length; i++) {
-			var element = gameListElementBuilder.buildListElement(response.games[i], self.showGameData);
+			var element = gameListElementBuilder.buildListElement(response.games[i], self.showGameData, true);
 			element.appendTo(gameListDiv);
 		}
 

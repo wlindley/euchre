@@ -57,7 +57,7 @@ GameListViewTest.prototype.doTraining = function() {
 		hasMember("status", this.status),
 		hasMember("teams", this.teams),
 		hasMember("currentPlayerId", this.currentPlayerId)
-	), this.testObj.showGameData).thenReturn(this.gameListElement);
+	), this.testObj.showGameData, true).thenReturn(this.gameListElement);
 
 	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
 	when(this.gameJoinerBuilder).buildGameJoiner().thenReturn(this.gameJoinerElement);

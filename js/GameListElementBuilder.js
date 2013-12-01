@@ -2,8 +2,10 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook) {
-	this.buildListElement = function(gameData, clickHandler) {
+AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
+	var self = this;
+
+	this.buildListElement = function(gameData, viewClickHandler, isInvite) {
 		var templateParams = {
 			"vs" : locStrings["vs"],
 			"gameId" : gameData.gameId,
@@ -15,7 +17,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		if ("waiting_for_more_players" == gameData.status) {
 			element.addClass("tertiary");
 		} else {
-			element.find(".viewGameData").click(clickHandler);
+			element.find(".viewGameData").click(viewClickHandler);
 			element.addClass("clickable");
 			if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
 				element.addClass("primary");
@@ -41,9 +43,18 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 					var namePromise = playerNameDirectory.getNamePromise(gameData.teams[teamId][index]);
 					namePromise.registerForUpdates(dataNameElement);
 				} else {
-					dataNameElement.text(locStrings["inviteCTA"]);
+					var message = "";
+					var clickHandler = null;
+					if (isInvite) {
+						message = locStrings["inviteCTA"];
+						clickHandler = this.buildGameInviteClickHandler(gameData.gameId);
+					} else {
+						message = locStrings["joinCTA"];
+						clickHandler = this.buildGameJoinClickHandler(gameData.gameId, teamId);
+					}
+					dataNameElement.text(message);
 					dataElement.addClass("clickable");
-					dataElement.click(this.buildGameInviteClickHandler(gameData.gameId));
+					dataElement.click(clickHandler);
 				}
 			}
 		}
@@ -64,8 +75,24 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 			facebook.sendRequests(locStrings["gameInviteTitle"], locStrings["gameInviteMessage"], {"gameId" : gameId});
 		};
 	};
+
+	this.buildGameJoinClickHandler = function(gameId, teamId) {
+		return function(event) {
+			ajax.call("addPlayer", {
+				"gameId" : gameId,
+				"team" : teamId,
+				"playerId" : facebook.getSignedInPlayerId()
+			}, self.handleJoinGameResponse);
+		};
+	};
+
+	this.handleJoinGameResponse = function(response) {
+		setTimeout(function() {
+			viewManager.showView("gameList");
+		}, 100);
+	};
 };
 
-AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook) {
-	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook);
+AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
+	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager);
 };
