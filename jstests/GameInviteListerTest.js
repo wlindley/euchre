@@ -63,8 +63,20 @@ GameInviteListerTest.prototype.testCallsAjaxCorrectly = function() {
 };
 
 GameInviteListerTest.prototype.testResolvesPromiseWithExpectedData = function() {
+	var resultMatcher = allOf(
+		hasMember(0, allOf(
+			hasMember("requestId", this.requests[0].requestId),
+			hasMember("data", this.gameDatas[0])
+		)),
+		hasMember(1, allOf(
+			hasMember("requestId", this.requests[1].requestId),
+			hasMember("data", this.gameDatas[1])
+		))
+	);
+
 	this.trigger();
 	this.getAppRequestsPromise.resolve(this.requests);
 	this.ajax.resolveCall({"success" : true, "games" : this.gameDatas});
-	verify(this.deferred).resolve(this.gameDatas);
+
+	verify(this.deferred).resolve(resultMatcher);
 };

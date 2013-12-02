@@ -19,13 +19,20 @@ AVOCADO.GameInviteLister = function(facebook, ajax, jqueryWrapper) {
 				}
 			}
 			gameIds += "]";
-			ajax.call("getBasicGameData", {"gameIds" : gameIds}).done(buildAjaxResponseHandler(deferred));
+			ajax.call("getBasicGameData", {"gameIds" : gameIds}).done(buildAjaxResponseHandler(deferred, requests));
 		};
 	};
 
-	function buildAjaxResponseHandler(deferred) {
+	function buildAjaxResponseHandler(deferred, requests) {
 		return function(response) {
-			deferred.resolve(response.games);
+			var result = [];
+			for (var i in requests) {
+				result.push({
+					"requestId" : requests[i].requestId,
+					"data" : response.games[i]
+				});
+			}
+			deferred.resolve(result);
 		};
 	};
 };

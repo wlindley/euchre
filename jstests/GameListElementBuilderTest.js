@@ -119,25 +119,25 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 	}
 };
 
-GameListElementBuilderTest.prototype.trigger = function(isInvite) {
-	return this.testObj.buildListElement(this.gameData, isInvite);
+GameListElementBuilderTest.prototype.trigger = function(isInvite, requestId) {
+	return this.testObj.buildListElement(this.gameData, isInvite, requestId);
 };
 
 GameListElementBuilderTest.prototype.testBuildListElementReturnsExpectedObject = function() {
 	this.doTraining("round_in_progress");
-	assertEquals(this.element, this.trigger(true));
+	assertEquals(this.element, this.trigger(true, undefined));
 };
 
 GameListElementBuilderTest.prototype.testHooksUpTurnNamePromise = function() {
 	this.doTraining("trump_selection");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.namePromises[this.currentPlayerId]).registerForUpdates(this.turnNameElement);
 };
 
 GameListElementBuilderTest.prototype.testSetsExpectedStringForNullCurrentPlayer = function() {
 	this.currentPlayerId = null;
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.turnNameElement).text(this.locStrings["n/a"]);
 };
 
@@ -146,7 +146,7 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAs = functi
 	when(this.testObj.buildGameInviteClickHandler)(this.gameId).thenReturn(this.gameInviteClickHandler);
 	this.team = [this.team[0], [this.team[1][0]]];
 	this.doTraining("waiting_for_more_players");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	for (var j = 0; j < 2; j++) {
 		for (var k = 0; k < 2; k++) {
 			if ((j in this.team) && (k in this.team[j])) {
@@ -162,17 +162,18 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAs = functi
 };
 
 GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAsForJoining = function() {
+	var requestId = "230948d_da03983";
 	this.testObj.buildGameJoinClickHandler = mockFunction();
 	var gameJoinClickHandlers = [[], []];
 	for (var j = 0; j < 2; j++) {
 		for (var k = 0; k < 2; k++) {
 			gameJoinClickHandlers[j][k] = mockFunction();
-			when(this.testObj.buildGameJoinClickHandler)(this.gameId, j).thenReturn(gameJoinClickHandlers[j][k]);
+			when(this.testObj.buildGameJoinClickHandler)(this.gameId, j, requestId).thenReturn(gameJoinClickHandlers[j][k]);
 		}
 	}
 	this.team = [this.team[0], [this.team[1][1]]];
 	this.doTraining("waiting_for_more_players");
-	this.trigger(false);
+	this.trigger(false, requestId);
 	for (var j = 0; j < 2; j++) {
 		for (var k = 0; k < 2; k++) {
 			if ((j in this.team) && (k in this.team[j])) {
@@ -192,20 +193,20 @@ GameListElementBuilderTest.prototype.testHooksUpClickHandler = function() {
 	when(this.testObj.buildShowGameDataHandler)(this.gameId).thenReturn(this.showGameDataFunc);
 
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.linkElement).click(this.showGameDataFunc);
 };
 
 GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStarted = function() {
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.linkElement, never()).click(this.showGameDataFunc);
 };
 
 GameListElementBuilderTest.prototype.testSetsCorrectClassesIfCurrentPlayersTurn = function() {
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.element).addClass("primary");
 	verify(this.element).addClass("clickable");
 };
@@ -213,21 +214,21 @@ GameListElementBuilderTest.prototype.testSetsCorrectClassesIfCurrentPlayersTurn 
 GameListElementBuilderTest.prototype.testSetsCorrectClassesIfStatusIsWaitingForMorePlayers = function() {
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.element).addClass("tertiary");
 };
 
 GameListElementBuilderTest.prototype.testSetsCorrectClassesIfNotLocalPlayersTurn = function() {
 	this.currentPlayerId = this.otherPlayerId;
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.element).addClass("secondary");
 	verify(this.element).addClass("clickable");
 };
 
 GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeams = function() {
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.team0Element).addClass("red");
 	verify(this.team1Element).addClass("green");
 };
@@ -235,7 +236,7 @@ GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeams = function()
 GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeamsWhenLocalPlayerIsOnOtherTeam = function() {
 	this.team = [this.team[1], this.team[0]];
 	this.doTraining("round_in_progress");
-	this.trigger(true);
+	this.trigger(true, undefined);
 	verify(this.team0Element).addClass("green");
 	verify(this.team1Element).addClass("red");
 };
@@ -252,9 +253,10 @@ GameListElementBuilderTest.prototype.testHandleGameInviteClickCallsFacebook = fu
 GameListElementBuilderTest.prototype.testHandleGameJoinClickCallsAjax = function() {
 	this.team = [this.team[0], [this.team[1][1]]];
 	var expectedTeam = 1;
+	var requestId = "230948d_da03983";
 	this.doTraining("waiting_for_more_players");
 
-	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam)();
+	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam, requestId)();
 
 	verify(this.ajax).call("addPlayer", allOf(
 		hasMember("gameId", this.gameId),
@@ -263,7 +265,7 @@ GameListElementBuilderTest.prototype.testHandleGameJoinClickCallsAjax = function
 	));
 };
 
-GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListView = function() {
+GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGameListViewAndDeletesRequest = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -278,12 +280,29 @@ GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGame
 
 	this.team = [this.team[0], [this.team[1][1]]];
 	var expectedTeam = 1;
+	var requestId = "230948d_da03983";
 	this.doTraining("waiting_for_more_players");
 
-	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam)();
+	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam, requestId)();
 	this.ajax.resolveCall({"success" : true});
 
+	verify(this.facebook).deleteAppRequest(requestId);
 	assertTrue(hasCalledAsync);
+};
+
+GameListElementBuilderTest.prototype.testFailedJoinGameResponseDoesNotDeleteRequest = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.buildTestObj();
+
+	this.team = [this.team[0], [this.team[1][1]]];
+	var expectedTeam = 1;
+	var requestId = "230948d_da03983";
+	this.doTraining("waiting_for_more_players");
+
+	this.testObj.buildGameJoinClickHandler(this.gameId, expectedTeam, requestId)();
+	this.ajax.resolveCall({"success" : false});
+
+	verify(this.facebook, never()).deleteAppRequest(requestId);
 };
 
 GameListElementBuilderTest.prototype.testHandleShowGameDataCallsViewManager = function() {

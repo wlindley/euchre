@@ -5,7 +5,7 @@ if (AVOCADO == undefined) {
 AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
 	var self = this;
 
-	this.buildListElement = function(gameData, isInvite) {
+	this.buildListElement = function(gameData, isInvite, requestId) {
 		var templateParams = {
 			"vs" : locStrings["vs"],
 			"gameId" : gameData.gameId,
@@ -50,7 +50,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 						clickHandler = this.buildGameInviteClickHandler(gameData.gameId);
 					} else {
 						message = locStrings["joinCTA"];
-						clickHandler = this.buildGameJoinClickHandler(gameData.gameId, teamId);
+						clickHandler = this.buildGameJoinClickHandler(gameData.gameId, teamId, requestId);
 					}
 					dataNameElement.text(message);
 					dataElement.addClass("clickable");
@@ -82,20 +82,25 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		};
 	};
 
-	this.buildGameJoinClickHandler = function(gameId, teamId) {
+	this.buildGameJoinClickHandler = function(gameId, teamId, requestId) {
 		return function(event) {
 			ajax.call("addPlayer", {
 				"gameId" : gameId,
 				"team" : teamId,
 				"playerId" : facebook.getSignedInPlayerId()
-			}).done(self.handleJoinGameResponse);
+			}).done(self.buildHandleJoinGameResponse(requestId));
 		};
 	};
 
-	this.handleJoinGameResponse = function(response) {
-		setTimeout(function() {
-			viewManager.showView("gameList");
-		}, 100);
+	this.buildHandleJoinGameResponse = function(requestId) {
+		return function(response) {
+			if (response.success) {
+				facebook.deleteAppRequest(requestId);
+			}
+			setTimeout(function() {
+				viewManager.showView("gameList");
+			}, 100);
+		};
 	};
 };
 

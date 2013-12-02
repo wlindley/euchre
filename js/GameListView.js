@@ -30,7 +30,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jquer
 	function handleGameListResponse(response) {
 		var gameListElement = rootElement.find(".gameListContainer");
 		for (var i = 0; i < response.games.length; i++) {
-			var curElement = gameListElementBuilder.buildListElement(response.games[i], true);
+			var curElement = gameListElementBuilder.buildListElement(response.games[i], true, undefined);
 			gameListElement.append(curElement);
 		}
 	}
@@ -38,7 +38,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jquer
 	this.handleGameInviteListResponse = function(invitedGameDatas) {
 		var gameListElement = rootElement.find(".gameListContainer");
 		for (var i = 0; i < invitedGameDatas.length; i++) {
-			var curElement = gameListElementBuilder.buildListElement(invitedGameDatas[i], false);
+			var curElement = gameListElementBuilder.buildListElement(invitedGameDatas[i].data, false, invitedGameDatas[i].requestId);
 			gameListElement.prepend(curElement);
 		}
 	};

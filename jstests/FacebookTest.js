@@ -49,6 +49,8 @@ FacebookTest.prototype.setUp = function() {
 	when(this.jqueryWrapper).jsonDecode('{"gameId" : "23lkjasl3k"}').thenReturn({"gameId" : "23lkjasl3k"});
 	when(this.jqueryWrapper).jsonDecode('{"gameId" : "fsal3230sdfa"}').thenReturn({"gameId" : "fsal3230sdfa"});
 
+	this.deleteRequestId = "320948adlkjf_203948adj";
+
 	this.initDeferred = mock(TEST.FakeDeferred);
 	this.initPromise = mock(TEST.FakePromise);
 	this.getPlayerDataDeferred = mock(TEST.FakeDeferred);
@@ -57,6 +59,8 @@ FacebookTest.prototype.setUp = function() {
 	this.sendRequestsPromise = mock(TEST.FakePromise);
 	this.getAppRequestsDeferred = mock(TEST.FakeDeferred);
 	this.getAppRequestsPromise = mock(TEST.FakePromise);
+	this.deleteAppRequestDeferred = mock(TEST.FakeDeferred);
+	this.deleteAppRequestPromise = mock(TEST.FakePromise);
 
 	this.sendRequestCallback = mockFunction();
 	this.getAppRequestsCallback = mockFunction();
@@ -78,6 +82,7 @@ FacebookTest.prototype.doTraining = function() {
 	when(this.getPlayerDataDeferred).promise().thenReturn(this.getPlayerDataPromise);
 	when(this.sendRequestsDeferred).promise().thenReturn(this.sendRequestsPromise);
 	when(this.getAppRequestsDeferred).promise().thenReturn(this.getAppRequestsPromise);
+	when(this.deleteAppRequestDeferred).promise().thenReturn(this.deleteAppRequestPromise);
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred);
 };
 
@@ -91,6 +96,10 @@ FacebookTest.prototype.triggerSendRequests = function() {
 
 FacebookTest.prototype.triggerGetAppRequests = function() {
 	return this.testObj.getAppRequests();
+};
+
+FacebookTest.prototype.triggerDeleteAppRequest = function() {
+	return this.testObj.deleteAppRequest(this.deleteRequestId);
 };
 
 FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
@@ -130,6 +139,10 @@ FacebookTest.prototype.setupSendRequests = function() {
 
 FacebookTest.prototype.setupGetAppRequests = function() {
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getAppRequestsDeferred);
+};
+
+FacebookTest.prototype.setupDeleteAppRequest = function() {
+	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.deleteAppRequestDeferred);
 };
 
 FacebookTest.prototype.testInitLoadsFBScript = function() {
@@ -329,8 +342,8 @@ FacebookTest.prototype.testSendRequestsCallbackRejectsDeferredIfUserCancels = fu
 FacebookTest.prototype.testGetAppRequestsReturnsExpectedPromise = function() {
 	this.setupAjaxCall();
 	this.setupGetAppRequests();
-	this.triggerInit();
 
+	this.triggerInit();
 	var result = this.triggerGetAppRequests();
 
 	assertEquals(this.getAppRequestsPromise, result);
@@ -356,4 +369,47 @@ FacebookTest.prototype.testGetAppRequestsCallbackResolvesDeferred = function() {
 	this.testObj.buildGetAppRequestsCallback(this.getAppRequestsDeferred)({"data" : this.rawRequests});
 
 	verify(this.getAppRequestsDeferred).resolve(this.requestsVerifier);
+};
+
+FacebookTest.prototype.testDeleteAppRequestReturnsExpectedPromise = function() {
+	this.setupAjaxCall();
+	this.setupDeleteAppRequest();
+
+	this.triggerInit();
+	var result = this.triggerDeleteAppRequest();
+
+	assertEquals(this.deleteAppRequestPromise, result);
+};
+
+FacebookTest.prototype.testDeleteAppRequestCallsFBAPI = function() {
+	var deleteAppRequestCallback = mockFunction();
+	this.setupAjaxCall(true);
+	this.setupDeleteAppRequest();
+	this.testObj.buildDeleteAppRequestCallback = mockFunction();
+	when(this.testObj.buildDeleteAppRequestCallback)(this.deleteAppRequestDeferred).thenReturn(deleteAppRequestCallback);
+
+	this.triggerInit();
+	this.triggerDeleteAppRequest();
+
+	verify(FB).api("/" + this.deleteRequestId, "delete", deleteAppRequestCallback);
+};
+
+FacebookTest.prototype.testDeleteAppRequestCallbackResolvesDeferredWhenFBCallSucceeds = function() {
+	this.setupAjaxCall(true);
+	this.setupDeleteAppRequest();
+
+	this.triggerInit();
+	this.testObj.buildDeleteAppRequestCallback(this.deleteAppRequestDeferred)(true);
+
+	verify(this.deleteAppRequestDeferred).resolve();
+};
+
+FacebookTest.prototype.testDeleteAppRequestCallbackRejectsDeferredWhenFBCallFails = function() {
+	this.setupAjaxCall(true);
+	this.setupDeleteAppRequest();
+
+	this.triggerInit();
+	this.testObj.buildDeleteAppRequestCallback(this.deleteAppRequestDeferred)({"error" : {"message" : "foo", "code" : 803}});
+
+	verify(this.deleteAppRequestDeferred).reject();
 };

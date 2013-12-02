@@ -62,7 +62,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 
 	this.getPlayerDataCallback = function(response) {
 		var data = {};
-		if (!("error" in response)) {
+		if (!response.hasOwnProperty("error")) {
 			data["name"] = response["first_name"] + " " + response["last_name"][0] + ".";
 			data["playerId"] = response["id"];
 			getPlayerDataDeferreds[response["id"]].resolve(data);
@@ -108,6 +108,22 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 				requests.push(AVOCADO.FacebookRequest.getInstance(jqueryWrapper, response.data[i]));
 			}
 			deferred.resolve(requests);
+		};
+	};
+
+	this.deleteAppRequest = function(requestId) {
+		var deferred = jqueryWrapper.buildDeferred();
+		FB.api("/" + requestId, "delete", this.buildDeleteAppRequestCallback(deferred));
+		return deferred.promise();
+	};
+
+	this.buildDeleteAppRequestCallback = function(deferred) {
+		return function(response) {
+			if (response.hasOwnProperty("error")) {
+				deferred.reject();
+			} else {
+				deferred.resolve();
+			}
 		};
 	};
 };

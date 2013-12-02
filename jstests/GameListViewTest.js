@@ -24,15 +24,19 @@ GameListViewTest.prototype.setUp = function() {
 		"currentPlayerId" : this.currentPlayerId
 	};
 
+	this.requestId = "aslskje32_234oasd";
 	this.inviteGameId = "14klj234";
 	this.inviteStatus = "round_in_progress";
 	this.inviteTeams = [["2345", "3456"], [this.playerId, "1234"]];
 	this.inviteCurrentPlayerId = this.playerId;
 	this.inviteGameData = {
-		"gameId" : this.inviteGameId,
-		"status" : this.inviteStatus,
-		"teams" : this.inviteTeams,
-		"currentPlayerId" : this.inviteCurrentPlayerId
+		"requestId" : this.requestId,
+		"data" : {
+			"gameId" : this.inviteGameId,
+			"status" : this.inviteStatus,
+			"teams" : this.inviteTeams,
+			"currentPlayerId" : this.inviteCurrentPlayerId
+		}
 	};
 
 	this.rootElement = mock(TEST.FakeJQueryElement);
@@ -74,13 +78,13 @@ GameListViewTest.prototype.doTraining = function() {
 		hasMember("status", this.status),
 		hasMember("teams", this.teams),
 		hasMember("currentPlayerId", this.currentPlayerId)
-	), true).thenReturn(this.gameListElement);
+	), true, undefined).thenReturn(this.gameListElement);
 	when(this.gameListElementBuilder).buildListElement(allOf(
 		hasMember("gameId", this.inviteGameId),
 		hasMember("status", this.inviteStatus),
 		hasMember("teams", this.inviteTeams),
 		hasMember("currentPlayerId", this.inviteCurrentPlayerId)
-	), false).thenReturn(this.inviteGameListElement);
+	), false, this.requestId).thenReturn(this.inviteGameListElement);
 
 	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
 
