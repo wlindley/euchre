@@ -6,6 +6,7 @@ js/Ajax.js
 js/PlayerNamePromise.js
 js/PlayerNameDirectory.js
 js/GameLister.js
+js/GameInviteLister.js
 js/GameListView.js
 js/GameCreatorBuilder.js
 js/TemplateRenderer.js
