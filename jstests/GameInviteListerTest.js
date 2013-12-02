@@ -59,7 +59,7 @@ GameInviteListerTest.prototype.testCallsAjaxCorrectly = function() {
 	this.trigger();
 	this.getAppRequestsPromise.resolve(this.requests);
 
-	verify(this.ajax).call("getBasicGameData", hasMember("gameIds", [this.requests[0].gameId, this.requests[1].gameId]));
+	verify(this.ajax).call("getBasicGameData", hasMember("gameIds", '["' + this.requests[0].gameId + '", "' + this.requests[1].gameId + '"]'));
 };
 
 GameInviteListerTest.prototype.testResolvesPromiseWithExpectedData = function() {

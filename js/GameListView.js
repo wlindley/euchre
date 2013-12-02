@@ -46,7 +46,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jquer
 
 AVOCADO.GameListView.getInstance = function(templateRenderer, rootElement, jqueryWrapper, viewManager, ajax, locStrings, facebook, playerNameDirectory) {
 	var gameLister = AVOCADO.GameLister.getInstance(facebook, ajax);
-	var gameInviteLister = AVOCADO.GameInviteLister.getInstance(facebook, ajax);
+	var gameInviteLister = AVOCADO.GameInviteLister.getInstance(facebook, ajax, jqueryWrapper);
 	var gameCreator = AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
 	var gameListElementBuilder = AVOCADO.GameListElementBuilder.getInstance(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook);
 	return new AVOCADO.GameListView(gameLister, templateRenderer, rootElement, jqueryWrapper, viewManager, gameCreator, gameListElementBuilder, gameInviteLister);

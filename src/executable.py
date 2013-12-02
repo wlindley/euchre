@@ -148,7 +148,8 @@ class GetBasicGameDataExecutable(AbstractExecutable):
 		self._gameStatusRetriever = gameStatusRetriever
 
 	def execute(self):
-		gameIds = self._requestDataAccessor.get("gameIds")
+		gameIds = json.loads(self._requestDataAccessor.get("gameIds"))
+		logging.info("Getting basic game data for game IDs: %s" % gameIds)
 		gameDatas = [self._buildGameData(self._gameModelFinder.getGameByGameId(gameId)) for gameId in gameIds]
 		self._writeResponse({"success" : True, "games" : gameDatas})
 

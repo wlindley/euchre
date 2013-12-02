@@ -11,10 +11,14 @@ AVOCADO.GameInviteLister = function(facebook, ajax, jqueryWrapper) {
 
 	function buildGetRequestsHandler(deferred) {
 		return function(requests) {
-			var gameIds = [];
+			var gameIds = "[";
 			for (var i in requests) {
-				gameIds.push(requests[i].gameId);
+				gameIds += '"' + requests[i].gameId + '"';
+				if (i != requests.length - 1) {
+					gameIds += ", ";
+				}
 			}
+			gameIds += "]";
 			ajax.call("getBasicGameData", {"gameIds" : gameIds}).done(buildAjaxResponseHandler(deferred));
 		};
 	};

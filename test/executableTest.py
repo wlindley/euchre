@@ -208,6 +208,7 @@ class GetBasicGameDataExecutableTest(BaseExecutableTestCase):
 		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
 
 		self.gameIds = ["342l3ka", "23094asldk"]
+		self.gameIdsString = json.dumps(self.gameIds)
 		self.teams = [["2343dksla"], []]
 		self.gameModels = []
 		self.gameModelKeys = []
@@ -231,7 +232,7 @@ class GetBasicGameDataExecutableTest(BaseExecutableTestCase):
 			when(self.turnRetriever).retrieveTurn(self.games[i], "").thenReturn(self.currentPlayerIds[i])
 			when(self.gameStatusRetriever).retrieveGameStatus(self.games[i]).thenReturn(self.statuses[i])
 
-		when(self.requestDataAccessor).get("gameIds").thenReturn(self.gameIds)
+		when(self.requestDataAccessor).get("gameIds").thenReturn(self.gameIdsString)
 
 		self._buildTestObj()
 
