@@ -40,6 +40,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsListGamesWhenActionIsListGames(self):
 		self._runTestForAction("listGames", "ListGamesExecutable")
 
+	def testCallsGetBasicGameDataWhenActionIsGetBasicGameData(self):
+		self._runTestForAction("getBasicGameData", "GetBasicGameDataExecutable")
+
 	def testCallsAddPlayerExecutableWhenActionIsAddPlayer(self):
 		self._runTestForAction("addPlayer", "AddPlayerExecutable")
 
@@ -195,6 +198,57 @@ class ListGamesExecutableTest(BaseExecutableTestCase):
 		expectedResponse["games"][3]["teams"] = [teams[0]]
 
 		verify(self.responseWriter).write(json.dumps(expectedResponse, sort_keys=True))
+
+class GetBasicGameDataExecutableTest(BaseExecutableTestCase):
+	def setUp(self):
+		super(GetBasicGameDataExecutableTest, self).setUp()
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
+		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
+
+		self.gameIds = ["342l3ka", "23094asldk"]
+		self.teams = [["2343dksla"], []]
+		self.gameModels = []
+		self.gameModelKeys = []
+		self.serializedGames = [None, "serialized game"]
+		self.games = [None, testhelper.createMock(euchre.Game)]
+		self.currentPlayerIds = [None, "2343dksla"]
+		self.statuses = ["waiting_for_more_players", "round_in_progress"]
+
+		for i in range(len(self.gameIds)):
+			curModel = testhelper.createMock(model.GameModel)
+			curKey = testhelper.createMock(ndb.Key)
+			curModel.teams = json.dumps(self.teams)
+			curModel.key = curKey
+			curModel.serializedGame = self.serializedGames[i]
+			when(curKey).urlsafe().thenReturn(self.gameIds[i])
+			self.gameModels.append(curModel)
+			self.gameModelKeys.append(curKey)
+
+			when(self.gameModelFinder).getGameByGameId(self.gameIds[i]).thenReturn(curModel)
+			when(self.gameSerializer).deserialize(self.serializedGames[i]).thenReturn(self.games[i])
+			when(self.turnRetriever).retrieveTurn(self.games[i], "").thenReturn(self.currentPlayerIds[i])
+			when(self.gameStatusRetriever).retrieveGameStatus(self.games[i]).thenReturn(self.statuses[i])
+
+		when(self.requestDataAccessor).get("gameIds").thenReturn(self.gameIds)
+
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.testObj = executable.GetBasicGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+
+	def testReturnsExpectedResults(self):
+		self.testObj.execute()
+		expectedData = []
+		for i in range(len(self.gameIds)):
+			curData = {}
+			curData["gameId"] = self.gameIds[i]
+			curData["teams"] = self.teams
+			curData["status"] = self.statuses[i]
+			curData["currentPlayerId"] = self.currentPlayerIds[i]
+			expectedData.append(curData)
+		verify(self.responseWriter).write(json.dumps({"success" : True, "games" : expectedData}, sort_keys=True))
 
 class DefaultExecutableTest(BaseExecutableTestCase):
 	def setUp(self):

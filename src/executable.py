@@ -31,6 +31,7 @@ class ExecutableFactory(object):
 		self._executables = {
 			"createGame" : CreateGameExecutable,
 			"listGames" : ListGamesExecutable,
+			"getBasicGameData" : GetBasicGameDataExecutable,
 			"addPlayer" : AddPlayerExecutable,
 			"getGameData" : GetGameDataExecutable,
 			"selectTrump" : SelectTrumpExecutable,
@@ -129,6 +130,40 @@ class ListGamesExecutable(FacebookUserExecutable):
 			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
 			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
 			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj, playerId)
+		return gameData
+
+class GetBasicGameDataExecutable(AbstractExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
+		if None != cls.instance:
+			return cls.instance
+		return GetBasicGameDataExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE))
+
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, turnRetriever, gameStatusRetriever):
+		super(GetBasicGameDataExecutable, self).__init__(requestDataAccessor, responseWriter, session)
+		self._gameModelFinder = gameModelFinder
+		self._gameSerializer = gameSerializer
+		self._turnRetriever = turnRetriever
+		self._gameStatusRetriever = gameStatusRetriever
+
+	def execute(self):
+		gameIds = self._requestDataAccessor.get("gameIds")
+		gameDatas = [self._buildGameData(self._gameModelFinder.getGameByGameId(gameId)) for gameId in gameIds]
+		self._writeResponse({"success" : True, "games" : gameDatas})
+
+	def _buildGameData(self, gameModel):
+		gameData = {
+			"gameId" : gameModel.key.urlsafe(),
+			"teams" : json.loads(gameModel.teams)
+		}
+		if None == gameModel.serializedGame or "" == gameModel.serializedGame:
+			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(None)
+			gameData["currentPlayerId"] = None
+		else:
+			gameObj = self._gameSerializer.deserialize(gameModel.serializedGame)
+			gameData["status"] = self._gameStatusRetriever.retrieveGameStatus(gameObj)
+			gameData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj, "")
 		return gameData
 
 class DefaultExecutable(AbstractExecutable):

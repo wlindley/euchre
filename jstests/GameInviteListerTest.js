@@ -65,6 +65,6 @@ GameInviteListerTest.prototype.testCallsAjaxCorrectly = function() {
 GameInviteListerTest.prototype.testResolvesPromiseWithExpectedData = function() {
 	this.trigger();
 	this.getAppRequestsPromise.resolve(this.requests);
-	this.ajax.resolveCall({"success" : true, "data" : this.gameDatas});
+	this.ajax.resolveCall({"success" : true, "games" : this.gameDatas});
 	verify(this.deferred).resolve(this.gameDatas);
 };

@@ -21,7 +21,7 @@ AVOCADO.GameInviteLister = function(facebook, ajax, jqueryWrapper) {
 
 	function buildAjaxResponseHandler(deferred) {
 		return function(response) {
-			deferred.resolve(response.data);
+			deferred.resolve(response.games);
 		};
 	};
 };
