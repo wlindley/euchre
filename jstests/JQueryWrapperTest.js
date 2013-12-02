@@ -4,6 +4,7 @@ TestableJQuery = function() {
 	this.ajax = function(url, params) {};
 	this.Deferred = function() {};
 	this.parseJSON = function(json) {};
+	this.when = function() {};
 };
 
 JQueryWrapperTest.prototype.setUp = function() {
@@ -57,6 +58,18 @@ JQueryWrapperTest.prototype.testJsonDecodePassesThrough = function() {
 	when(this.mockJQuery).parseJSON(json).thenReturn(expectedResult);
 	var result = this.testObj.jsonDecode(json);
 	assertEquals(expectedResult, result);
+};
+
+JQueryWrapperTest.prototype.testCombinePromisesPassesThrough = function() {
+	var deferred1 = mock(TEST.FakeDeferred);
+	var deferred2 = mock(TEST.FakeDeferred);
+	var promise = mock(TEST.FakePromise);
+
+	when(this.mockJQuery).when(deferred1, deferred2).thenReturn(promise);
+
+	var result = this.testObj.combinePromises(deferred1, deferred2);
+
+	assertEquals(promise, result);
 };
 
 JQueryWrapperTest.prototype.buildTestObj = function() {

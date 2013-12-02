@@ -5,7 +5,7 @@ if (AVOCADO == undefined) {
 AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
 	var self = this;
 
-	this.buildListElement = function(gameData, viewClickHandler, isInvite) {
+	this.buildListElement = function(gameData, isInvite) {
 		var templateParams = {
 			"vs" : locStrings["vs"],
 			"gameId" : gameData.gameId,
@@ -17,7 +17,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		if ("waiting_for_more_players" == gameData.status) {
 			element.addClass("tertiary");
 		} else {
-			element.find(".viewGameData").click(viewClickHandler);
+			element.find(".viewGameData").click(this.buildShowGameDataHandler(gameData.gameId));
 			element.addClass("clickable");
 			if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
 				element.addClass("primary");
@@ -68,6 +68,12 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		}
 
 		return element;
+	};
+
+	this.buildShowGameDataHandler = function(gameId) {
+		return function(event) {
+			viewManager.showView("gamePlay", {"gameId" : gameId});
+		};
 	};
 
 	this.buildGameInviteClickHandler = function(gameId) {

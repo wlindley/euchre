@@ -1,0 +1,7 @@
+<div>
+	<h1 class="ui black dividing header">Euchre - Your Games</h1>
+	<div class="gameListMenu ui middle center aligned basic segment">
+		<div class="gameCreatorContainer" />
+	</div>
+	<div class="gameListContainer"/>
+</div>

@@ -120,7 +120,7 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 };
 
 GameListElementBuilderTest.prototype.trigger = function(isInvite) {
-	return this.testObj.buildListElement(this.gameData, this.showGameDataFunc, isInvite);
+	return this.testObj.buildListElement(this.gameData, isInvite);
 };
 
 GameListElementBuilderTest.prototype.testBuildListElementReturnsExpectedObject = function() {
@@ -188,6 +188,9 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAsForJoinin
 };
 
 GameListElementBuilderTest.prototype.testHooksUpClickHandler = function() {
+	this.testObj.buildShowGameDataHandler = mockFunction();
+	when(this.testObj.buildShowGameDataHandler)(this.gameId).thenReturn(this.showGameDataFunc);
+
 	this.doTraining("round_in_progress");
 	this.trigger(true);
 	verify(this.linkElement).click(this.showGameDataFunc);
@@ -281,4 +284,9 @@ GameListElementBuilderTest.prototype.testSuccessfulJoinGameResponseRefreshesGame
 	this.ajax.resolveCall({"success" : true});
 
 	assertTrue(hasCalledAsync);
+};
+
+GameListElementBuilderTest.prototype.testHandleShowGameDataCallsViewManager = function() {
+	this.testObj.buildShowGameDataHandler(this.gameId)();
+	verify(this.viewManager).showView("gamePlay", hasMember("gameId", this.gameId));
 };

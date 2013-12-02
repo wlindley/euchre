@@ -17,6 +17,10 @@ AVOCADO.JQueryWrapper = function(jquery) {
 		return jquery.Deferred();
 	};
 
+	this.combinePromises = function() {
+		return jquery.when.apply(jquery, arguments);
+	};
+
 	this.jsonDecode = function(json) {
 		return jquery.parseJSON(json);
 	};
