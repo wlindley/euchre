@@ -27,10 +27,14 @@ AVOCADO.GameInviteLister = function(facebook, ajax, jqueryWrapper) {
 		return function(response) {
 			var result = [];
 			for (var i in requests) {
-				result.push({
-					"requestId" : requests[i].requestId,
-					"data" : response.games[i]
-				});
+				if (-1 == response.games[i].teams[0].indexOf(facebook.getSignedInPlayerId()) && -1 == response.games[i].teams[1].indexOf(facebook.getSignedInPlayerId())) {
+					result.push({
+						"requestId" : requests[i].requestId,
+						"data" : response.games[i]
+					});
+				} else {
+					facebook.deleteAppRequest(requests[i].requestId)
+				}
 			}
 			deferred.resolve(result);
 		};
