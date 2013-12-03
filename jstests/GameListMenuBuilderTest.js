@@ -1,6 +1,6 @@
-GameCreatorBuilderTest = TestCase("GameCreatorBuilderTest")
+GameListMenuBuilderTest = TestCase("GameListMenuBuilderTest")
 
-GameCreatorBuilderTest.prototype.setUp = function() {
+GameListMenuBuilderTest.prototype.setUp = function() {
 	this.playerId = "12345";
 	this.requestTitle = "title";
 	this.requestMessage = "message";
@@ -32,22 +32,22 @@ GameCreatorBuilderTest.prototype.setUp = function() {
 	this.doTraining();
 };
 
-GameCreatorBuilderTest.prototype.tearDown = function() {
+GameListMenuBuilderTest.prototype.tearDown = function() {
 	setTimeout = this.origSetTimeout;
 };
 
-GameCreatorBuilderTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
+GameListMenuBuilderTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
 	var element = this.trigger();
 	assertEquals(this.gameCreatorElement, element);
 };
 
-GameCreatorBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
+GameListMenuBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
 	this.trigger();
 
 	verify(this.createGameButton).click(this.testObj.createGameClickHandler);
 };
 
-GameCreatorBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
+GameListMenuBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
 	this.testObj.createGameClickHandler();
 
 	verify(this.ajax).call("createGame", allOf(
@@ -56,7 +56,7 @@ GameCreatorBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = func
 	));
 };
 
-GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListViewAndTriggersFBRequestSend = function() {
+GameListMenuBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameListViewAndTriggersFBRequestSend = function() {
 	var testHarness = this;
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
@@ -77,7 +77,7 @@ GameCreatorBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGameL
 	verify(this.facebook).sendRequests(this.requestTitle, this.requestMessage, hasMember("gameId", gameId));
 };
 
-GameCreatorBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
+GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefreshesGameListView = function() {
 	var hasCalledAsync = false;
 	setTimeout = function(func, time, lang) {
 		hasCalledAsync = true;
@@ -94,17 +94,17 @@ GameCreatorBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefre
 	assertFalse(hasCalledAsync);
 };
 
-GameCreatorBuilderTest.prototype.doTraining = function() {
+GameListMenuBuilderTest.prototype.doTraining = function() {
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
 	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(this.gameCreatorHtml);
 	when(this.jqueryWrapper).getElement(this.gameCreatorHtml).thenReturn(this.gameCreatorElement);
 	when(this.gameCreatorElement).find("#btnCreateGame").thenReturn(this.createGameButton);
 };
 
-GameCreatorBuilderTest.prototype.trigger = function() {
+GameListMenuBuilderTest.prototype.trigger = function() {
 	return this.testObj.buildGameCreator();
 };
 
-GameCreatorBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.GameCreatorBuilder.getInstance(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper, this.locStrings);
+GameListMenuBuilderTest.prototype.buildTestObj = function() {
+	this.testObj = AVOCADO.GameListMenuBuilder.getInstance(this.facebook, this.ajax, this.viewManager, this.templateRenderer, this.jqueryWrapper, this.locStrings);
 };

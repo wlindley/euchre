@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
+AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
 	var self = this;
 
 	this.buildGameCreator = function() {
@@ -29,6 +29,6 @@ AVOCADO.GameCreatorBuilder = function(facebook, ajax, viewManager, templateRende
 	}
 };
 
-AVOCADO.GameCreatorBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
-	return new AVOCADO.GameCreatorBuilder(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
+AVOCADO.GameListMenuBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
+	return new AVOCADO.GameListMenuBuilder(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
 };

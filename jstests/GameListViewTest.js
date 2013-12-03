@@ -5,7 +5,7 @@ GameListViewTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.viewManager = mock(AVOCADO.ViewManager);
-	this.gameCreatorBuilder = mock(AVOCADO.GameCreatorBuilder);
+	this.gameListMenuBuilder = mock(AVOCADO.GameListMenuBuilder);
 	this.facebook = mock(AVOCADO.Facebook);
 	this.gameLister = AVOCADO.GameLister.getInstance(this.facebook, this.ajax);
 	this.gameListElementBuilder = mock(AVOCADO.GameListElementBuilder);
@@ -65,7 +65,7 @@ GameListViewTest.prototype.setUp = function() {
 };
 
 GameListViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.rootElement, this.jqueryWrapper, this.viewManager, this.gameCreatorBuilder, this.gameListElementBuilder, this.gameInviteLister);
+	this.testObj = new AVOCADO.GameListView(this.gameLister, this.templateRenderer, this.rootElement, this.jqueryWrapper, this.viewManager, this.gameListMenuBuilder, this.gameListElementBuilder, this.gameInviteLister);
 };
 
 GameListViewTest.prototype.doTraining = function() {
@@ -86,7 +86,7 @@ GameListViewTest.prototype.doTraining = function() {
 		hasMember("currentPlayerId", this.inviteCurrentPlayerId)
 	), false, this.requestId).thenReturn(this.inviteGameListElement);
 
-	when(this.gameCreatorBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
+	when(this.gameListMenuBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
 
 	when(this.jqueryWrapper).getElement(this.clickTargetHtml).thenReturn(this.clickTargetElement);
 	when(this.clickTargetElement).attr("id").thenReturn("gameId_" + this.clickTargetGameId);

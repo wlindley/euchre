@@ -10,8 +10,8 @@ js/ViewManager.js
 js/GameLister.js
 js/GameInviteLister.js
 js/GameListElementBuilder.js
+js/GameListMenuBuilder.js
 js/GameListView.js
-js/GameCreatorBuilder.js
 js/GamePlayView.js
 js/TrumpSelectionAreaBuilder.js
 js/RoundPlayingAreaBuilder.js

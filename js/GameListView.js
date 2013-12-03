@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jqueryWrapper, viewManager, gameCreator, gameListElementBuilder, gameInviteLister) {
+AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jqueryWrapper, viewManager, gameListMenuBuilder, gameListElementBuilder, gameInviteLister) {
 	var self = this;
 
 	this.init = function() {
@@ -15,7 +15,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jquer
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameList"));
 		rootElement.append(element);
 
-		element.find(".gameCreatorContainer").append(gameCreator.buildGameCreator());
+		element.find(".gameCreatorContainer").append(gameListMenuBuilder.buildGameCreator());
 
 		gameLister.getGameList().done(handleGameListResponse);
 		gameInviteLister.getGameInviteList().done(this.handleGameInviteListResponse);
@@ -47,7 +47,7 @@ AVOCADO.GameListView = function(gameLister, templateRenderer, rootElement, jquer
 AVOCADO.GameListView.getInstance = function(templateRenderer, rootElement, jqueryWrapper, viewManager, ajax, locStrings, facebook, playerNameDirectory) {
 	var gameLister = AVOCADO.GameLister.getInstance(facebook, ajax);
 	var gameInviteLister = AVOCADO.GameInviteLister.getInstance(facebook, ajax, jqueryWrapper);
-	var gameCreator = AVOCADO.GameCreatorBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
+	var gameListMenuBuilder = AVOCADO.GameMenuBuilder.getInstance(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings);
 	var gameListElementBuilder = AVOCADO.GameListElementBuilder.getInstance(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager);
-	return new AVOCADO.GameListView(gameLister, templateRenderer, rootElement, jqueryWrapper, viewManager, gameCreator, gameListElementBuilder, gameInviteLister);
+	return new AVOCADO.GameListView(gameLister, templateRenderer, rootElement, jqueryWrapper, viewManager, gameListMenuBuilder, gameListElementBuilder, gameInviteLister);
 };
