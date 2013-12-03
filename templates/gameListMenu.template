@@ -1,0 +1,5 @@
+<div class="gameListMenu ui middle center aligned basic segment">
+	<div class="createGameButton ui green left labeled icon button">
+		<i class="add icon"></i>Create Game
+	</div>
+</div>

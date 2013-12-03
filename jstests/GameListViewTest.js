@@ -47,9 +47,8 @@ GameListViewTest.prototype.setUp = function() {
 	this.gameListElement = mock(TEST.FakeJQueryElement);
 	this.inviteGameListElement = mock(TEST.FakeJQueryElement);
 
-	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
 	this.gameListMenuElement = mock(TEST.FakeJQueryElement);
-	this.gameCreatorInsertionElement = mock(TEST.FakeJQueryElement);
+	this.gameListMenuContainerElement = mock(TEST.FakeJQueryElement);
 
 	this.clickTargetHtml = "click target html";
 	this.clickTargetElement = mock(TEST.FakeJQueryElement);
@@ -86,15 +85,14 @@ GameListViewTest.prototype.doTraining = function() {
 		hasMember("currentPlayerId", this.inviteCurrentPlayerId)
 	), false, this.requestId).thenReturn(this.inviteGameListElement);
 
-	when(this.gameListMenuBuilder).buildGameCreator().thenReturn(this.gameCreatorElement);
+	when(this.gameListMenuBuilder).buildGameMenu().thenReturn(this.gameListMenuElement);
 
 	when(this.jqueryWrapper).getElement(this.clickTargetHtml).thenReturn(this.clickTargetElement);
 	when(this.clickTargetElement).attr("id").thenReturn("gameId_" + this.clickTargetGameId);
 
 	when(this.templateRenderer).renderTemplate("gameList").thenReturn(this.gameListHtml);
-	when(this.jqueryWrapper).getElement().thenReturn(this.viewElement);
-	when(this.viewElement).find(".gameListMenu").thenReturn(this.gameListMenuElement);
-	when(this.viewElement).find(".gameCreatorContainer").thenReturn(this.gameCreatorInsertionElement);
+	when(this.jqueryWrapper).getElement(this.gameListHtml).thenReturn(this.viewElement);
+	when(this.viewElement).find(".gameListMenuContainer").thenReturn(this.gameListMenuContainerElement);
 	when(this.viewElement).find(".gameListContainer").thenReturn(this.gameListDiv);
 	when(this.rootElement).find(".gameListContainer").thenReturn(this.gameListDiv);
 };
@@ -139,7 +137,7 @@ GameListViewTest.prototype.testShowEmptiesContainerDivBeforeAttachingView = func
 
 GameListViewTest.prototype.testShowInsertsMenuElements = function() {
 	this.testObj.show();
-	verify(this.gameCreatorInsertionElement).append(this.gameCreatorElement);
+	verify(this.gameListMenuContainerElement).append(this.gameListMenuElement)
 };
 
 GameListViewTest.prototype.testShowCallsShowOnContainerDiv = function() {

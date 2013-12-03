@@ -1,5 +1,0 @@
-<div class="gameCreator">
-	<div id="btnCreateGame" class="ui green left labeled icon button">
-		<i class="add icon"></i>Create Game
-	</div>
-</div>

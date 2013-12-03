@@ -22,9 +22,9 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 		func();
 	};
 
-	this.gameCreatorHtml = "game creator";
-	this.gameCreatorElement = mock(TEST.FakeJQueryElement);
-	this.createGameButton = mock(TEST.FakeJQueryElement);
+	this.createGameElement = mock(TEST.FakeJQueryElement);
+	this.gameMenuElement = mock(TEST.FakeJQueryElement);
+	this.gameMenuHtml = "game menu html";
 
 	this.ajaxPromise = mock(TEST.FakePromise);
 
@@ -38,13 +38,13 @@ GameListMenuBuilderTest.prototype.tearDown = function() {
 
 GameListMenuBuilderTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
 	var element = this.trigger();
-	assertEquals(this.gameCreatorElement, element);
+	assertEquals(this.gameMenuElement, element);
 };
 
 GameListMenuBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
 	this.trigger();
 
-	verify(this.createGameButton).click(this.testObj.createGameClickHandler);
+	verify(this.createGameElement).click(this.testObj.createGameClickHandler);
 };
 
 GameListMenuBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
@@ -96,13 +96,13 @@ GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefr
 
 GameListMenuBuilderTest.prototype.doTraining = function() {
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
-	when(this.templateRenderer).renderTemplate("gameCreator").thenReturn(this.gameCreatorHtml);
-	when(this.jqueryWrapper).getElement(this.gameCreatorHtml).thenReturn(this.gameCreatorElement);
-	when(this.gameCreatorElement).find("#btnCreateGame").thenReturn(this.createGameButton);
+	when(this.templateRenderer).renderTemplate("gameListMenu").thenReturn(this.gameMenuHtml);
+	when(this.jqueryWrapper).getElement(this.gameMenuHtml).thenReturn(this.gameMenuElement);
+	when(this.gameMenuElement).find(".createGameButton").thenReturn(this.createGameElement);
 };
 
 GameListMenuBuilderTest.prototype.trigger = function() {
-	return this.testObj.buildGameCreator();
+	return this.testObj.buildGameMenu();
 };
 
 GameListMenuBuilderTest.prototype.buildTestObj = function() {

@@ -5,9 +5,9 @@ if (AVOCADO == undefined) {
 AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
 	var self = this;
 
-	this.buildGameCreator = function() {
-		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameCreator"));
-		element.find("#btnCreateGame").click(self.createGameClickHandler);
+	this.buildGameMenu = function() {
+		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
+		element.find(".createGameButton").click(self.createGameClickHandler);
 		return element;
 	};
 
