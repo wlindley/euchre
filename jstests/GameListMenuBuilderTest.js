@@ -4,6 +4,8 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 	this.playerId = "12345";
 	this.requestTitle = "title";
 	this.requestMessage = "message";
+	this.appInviteRequestTitle = "app invite title";
+	this.appInviteRequestMessage = "app invite message";
 
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
@@ -12,7 +14,9 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 	this.facebook = mock(AVOCADO.Facebook);
 	this.locStrings = {
 		"gameInviteTitle" : this.requestTitle,
-		"gameInviteMessage" : this.requestMessage
+		"gameInviteMessage" : this.requestMessage,
+		"appInviteTitle" : this.appInviteRequestTitle,
+		"appInviteMessage" : this.appInviteRequestMessage
 	};
 
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
@@ -23,6 +27,7 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 	};
 
 	this.createGameElement = mock(TEST.FakeJQueryElement);
+	this.inviteElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuHtml = "game menu html";
 
@@ -36,15 +41,16 @@ GameListMenuBuilderTest.prototype.tearDown = function() {
 	setTimeout = this.origSetTimeout;
 };
 
-GameListMenuBuilderTest.prototype.testBuildGameCreatorReturnsExpectedElement = function() {
+GameListMenuBuilderTest.prototype.testBuildGameMenuReturnsExpectedElement = function() {
 	var element = this.trigger();
 	assertEquals(this.gameMenuElement, element);
 };
 
-GameListMenuBuilderTest.prototype.testBuildGameCreatorAttachesClickHandler = function() {
+GameListMenuBuilderTest.prototype.testBuildGameMenuAttachesClickHandlers = function() {
 	this.trigger();
 
 	verify(this.createGameElement).click(this.testObj.createGameClickHandler);
+	verify(this.inviteElement).click(this.testObj.appInviteClickHandler);
 };
 
 GameListMenuBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
@@ -94,11 +100,17 @@ GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefr
 	assertFalse(hasCalledAsync);
 };
 
+GameListMenuBuilderTest.prototype.testAppInviteHandlerTriggersFBRequestSend = function() {
+	this.testObj.appInviteClickHandler();
+	verify(this.facebook).sendRequests(this.appInviteRequestTitle, this.appInviteRequestMessage, anything());
+};
+
 GameListMenuBuilderTest.prototype.doTraining = function() {
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
 	when(this.templateRenderer).renderTemplate("gameListMenu").thenReturn(this.gameMenuHtml);
 	when(this.jqueryWrapper).getElement(this.gameMenuHtml).thenReturn(this.gameMenuElement);
 	when(this.gameMenuElement).find(".createGameButton").thenReturn(this.createGameElement);
+	when(this.gameMenuElement).find(".inviteButton").thenReturn(this.inviteElement);
 };
 
 GameListMenuBuilderTest.prototype.trigger = function() {

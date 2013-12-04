@@ -20,5 +20,7 @@
 	"won" : "Winners:",
 	"dismiss" : "Dismiss",
 	"gameInviteTitle" : "Play Euchre!",
-	"gameInviteMessage" : "Join my game of Euchre!"
+	"gameInviteMessage" : "Join my game of Euchre!",
+	"appInviteTitle" : "Check out Euchre!",
+	"appInviteMessage" : "Come check out this awesome, free card game!"
 }

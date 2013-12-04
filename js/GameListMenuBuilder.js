@@ -8,6 +8,7 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 	this.buildGameMenu = function() {
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
 		element.find(".createGameButton").click(self.createGameClickHandler);
+		element.find(".inviteButton").click(self.appInviteClickHandler);
 		return element;
 	};
 
@@ -27,6 +28,10 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 			}, 100);
 		}
 	}
+
+	this.appInviteClickHandler = function() {
+		facebook.sendRequests(locStrings["appInviteTitle"], locStrings["appInviteMessage"], {});
+	};
 };
 
 AVOCADO.GameListMenuBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
