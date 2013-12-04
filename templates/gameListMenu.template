@@ -6,8 +6,11 @@
 		<div class="inviteButton ui blue left labeled icon button">
 			<i class="users icon"/>Invite Friends
 		</div>
-		<div class="findGame ui red left labeled icon button">
+		<div class="findGameButton ui red left labeled icon button">
 			<i class="search icon"/>Find Game
+		</div>
+		<div class="findGameStatus ui disabled red left labeled icon button">
+			<i class="search icon"/>In Queue
 		</div>
 	</div>
 </div>

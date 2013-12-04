@@ -9,12 +9,13 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
 		element.find(".createGameButton").click(self.createGameClickHandler);
 		element.find(".inviteButton").click(self.appInviteClickHandler);
+		element.find(".findGameButton").click(self.findGameClickHandler);
+		element.find(".findGameStatus").hide();
 		return element;
 	};
 
 	this.createGameClickHandler = function() {
 		var params = {
-			"playerId" : facebook.getSignedInPlayerId(),
 			"team" : 0
 		};
 		ajax.call("createGame", params).done(handleCreateGameResponse);
@@ -32,6 +33,16 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 	this.appInviteClickHandler = function() {
 		facebook.sendRequests(locStrings["appInviteTitle"], locStrings["appInviteMessage"], {});
 	};
+
+	this.findGameClickHandler = function() {
+		ajax.call("matchmake").done(handleFindGameResponse);
+	};
+
+	function handleFindGameResponse(response) {
+		setTimeout(function() {
+			viewManager.showView("gameList");
+		}, 100);
+	}
 };
 
 AVOCADO.GameListMenuBuilder.getInstance = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {

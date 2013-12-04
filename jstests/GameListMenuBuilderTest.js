@@ -28,6 +28,8 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 
 	this.createGameElement = mock(TEST.FakeJQueryElement);
 	this.inviteElement = mock(TEST.FakeJQueryElement);
+	this.findGameElement = mock(TEST.FakeJQueryElement);
+	this.findGameStatusElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuHtml = "game menu html";
 
@@ -51,13 +53,20 @@ GameListMenuBuilderTest.prototype.testBuildGameMenuAttachesClickHandlers = funct
 
 	verify(this.createGameElement).click(this.testObj.createGameClickHandler);
 	verify(this.inviteElement).click(this.testObj.appInviteClickHandler);
+	verify(this.findGameElement).click(this.testObj.findGameClickHandler);
+};
+
+GameListMenuBuilderTest.prototype.testBuildGameMenuHidesFindGameStatus = function() {
+	this.trigger();
+
+	verify(this.findGameStatusElement).hide();
+	verify(this.findGameElement, never()).hide();
 };
 
 GameListMenuBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
 	this.testObj.createGameClickHandler();
 
 	verify(this.ajax).call("createGame", allOf(
-		hasMember("playerId", this.playerId),
 		hasMember("team", 0)
 	));
 };
@@ -100,17 +109,45 @@ GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefr
 	assertFalse(hasCalledAsync);
 };
 
-GameListMenuBuilderTest.prototype.testAppInviteHandlerTriggersFBRequestSend = function() {
+GameListMenuBuilderTest.prototype.testAppInviteTriggersFBRequestSend = function() {
 	this.testObj.appInviteClickHandler();
 	verify(this.facebook).sendRequests(this.appInviteRequestTitle, this.appInviteRequestMessage, anything());
 };
 
+GameListMenuBuilderTest.prototype.testFindGameCallsServerWithCorrectData = function() {
+	this.testObj.findGameClickHandler();
+
+	verify(this.ajax).call("matchmake");
+};
+
+GameListMenuBuilderTest.prototype.testFindGameResponseRefreshesGameListView = function() {
+	var testHarness = this;
+	var hasCalledAsync = false;
+	setTimeout = function(func, time, lang) {
+		verify(testHarness.viewManager, never()).showView("gameList");
+		func();
+		hasCalledAsync = true;
+		verify(testHarness.viewManager).showView("gameList");
+	};
+
+	this.ajax = new TEST.FakeAjax();
+	this.buildTestObj();
+
+	this.testObj.findGameClickHandler();
+	this.ajax.resolveCall({"success" : true});
+
+	assertTrue(hasCalledAsync);
+};
+
 GameListMenuBuilderTest.prototype.doTraining = function() {
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
+	when(this.ajax).call(anything()).thenReturn(this.ajaxPromise);
 	when(this.templateRenderer).renderTemplate("gameListMenu").thenReturn(this.gameMenuHtml);
 	when(this.jqueryWrapper).getElement(this.gameMenuHtml).thenReturn(this.gameMenuElement);
 	when(this.gameMenuElement).find(".createGameButton").thenReturn(this.createGameElement);
 	when(this.gameMenuElement).find(".inviteButton").thenReturn(this.inviteElement);
+	when(this.gameMenuElement).find(".findGameButton").thenReturn(this.findGameElement);
+	when(this.gameMenuElement).find(".findGameStatus").thenReturn(this.findGameStatusElement);
 };
 
 GameListMenuBuilderTest.prototype.trigger = function() {
