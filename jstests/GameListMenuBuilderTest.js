@@ -30,6 +30,7 @@ GameListMenuBuilderTest.prototype.setUp = function() {
 	this.inviteElement = mock(TEST.FakeJQueryElement);
 	this.findGameElement = mock(TEST.FakeJQueryElement);
 	this.findGameStatusElement = mock(TEST.FakeJQueryElement);
+	this.findGameLoadingElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuElement = mock(TEST.FakeJQueryElement);
 	this.gameMenuHtml = "game menu html";
 
@@ -60,10 +61,51 @@ GameListMenuBuilderTest.prototype.testBuildGameMenuHidesFindGameStatus = functio
 	this.trigger();
 
 	verify(this.findGameStatusElement).hide();
-	verify(this.findGameElement, never()).hide();
+	verify(this.findGameElement).hide();
+};
+
+GameListMenuBuilderTest.prototype.testBuildGameMenuChecksServerToSeeIfPlayerInQueue = function() {
+	this.trigger();
+
+	verify(this.ajax).call("playerQueued");
+};
+
+GameListMenuBuilderTest.prototype.testShowsFindGameStatusIfPlayerInQueue = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.buildTestObj();
+
+	this.trigger();
+	this.ajax.resolveCall({"success" : true, "playerInQueue" : true});
+
+	verify(this.findGameLoadingElement).hide();
+	verify(this.findGameStatusElement).show();
+};
+
+GameListMenuBuilderTest.prototype.testShowsFindGameButtonIfPlayerNotInQueue = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.buildTestObj();
+
+	this.trigger();
+	this.ajax.resolveCall({"success" : true, "playerInQueue" : false});
+
+	verify(this.findGameLoadingElement).hide();
+	verify(this.findGameElement).show();
+};
+
+GameListMenuBuilderTest.prototype.testShowsFindGameLoadingIfPlayerQueuedFails = function() {
+	this.ajax = new TEST.FakeAjax();
+	this.buildTestObj();
+
+	this.trigger();
+	this.ajax.resolveCall({"success" : false});
+
+	verify(this.findGameLoadingElement, never()).hide();
+	verify(this.findGameStatusElement, never()).show();
+	verify(this.findGameElement, never()).show();
 };
 
 GameListMenuBuilderTest.prototype.testCreateGameCallsServerWithCorrectData = function() {
+	this.trigger();
 	this.testObj.createGameClickHandler();
 
 	verify(this.ajax).call("createGame", allOf(
@@ -85,6 +127,7 @@ GameListMenuBuilderTest.prototype.testSuccessfullCreateGameResponseRefreshesGame
 	this.ajax = new TEST.FakeAjax();
 	this.buildTestObj();
 
+	this.trigger();
 	this.testObj.createGameClickHandler();
 	this.ajax.resolveCall({"success" : true, "gameId" : gameId});
 
@@ -102,6 +145,7 @@ GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefr
 	this.ajax = new TEST.FakeAjax();
 	this.buildTestObj();
 
+	this.trigger();
 	this.testObj.createGameClickHandler();
 	this.ajax.resolveCall({"success" : false});
 
@@ -110,14 +154,18 @@ GameListMenuBuilderTest.prototype.testUnsuccessfullCreateGameResponseDoesNotRefr
 };
 
 GameListMenuBuilderTest.prototype.testAppInviteTriggersFBRequestSend = function() {
+	this.trigger();
 	this.testObj.appInviteClickHandler();
 	verify(this.facebook).sendRequests(this.appInviteRequestTitle, this.appInviteRequestMessage, anything());
 };
 
-GameListMenuBuilderTest.prototype.testFindGameCallsServerWithCorrectData = function() {
+GameListMenuBuilderTest.prototype.testFindGameCallsServerWithCorrectDataAndSwapsButtons = function() {
+	this.trigger();
 	this.testObj.findGameClickHandler();
 
 	verify(this.ajax).call("matchmake");
+	verify(this.findGameElement, times(2)).hide();
+	verify(this.findGameLoadingElement).show();
 };
 
 GameListMenuBuilderTest.prototype.testFindGameResponseRefreshesGameListView = function() {
@@ -133,6 +181,7 @@ GameListMenuBuilderTest.prototype.testFindGameResponseRefreshesGameListView = fu
 	this.ajax = new TEST.FakeAjax();
 	this.buildTestObj();
 
+	this.trigger();
 	this.testObj.findGameClickHandler();
 	this.ajax.resolveCall({"success" : true});
 
@@ -148,6 +197,7 @@ GameListMenuBuilderTest.prototype.doTraining = function() {
 	when(this.gameMenuElement).find(".inviteButton").thenReturn(this.inviteElement);
 	when(this.gameMenuElement).find(".findGameButton").thenReturn(this.findGameElement);
 	when(this.gameMenuElement).find(".findGameStatus").thenReturn(this.findGameStatusElement);
+	when(this.gameMenuElement).find(".findGameLoading").thenReturn(this.findGameLoadingElement);
 };
 
 GameListMenuBuilderTest.prototype.trigger = function() {

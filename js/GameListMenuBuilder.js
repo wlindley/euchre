@@ -4,14 +4,28 @@ if (AVOCADO == undefined) {
 
 AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRenderer, jqueryWrapper, locStrings) {
 	var self = this;
+	var element = null;
 
 	this.buildGameMenu = function() {
-		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
+		element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
 		element.find(".createGameButton").click(self.createGameClickHandler);
 		element.find(".inviteButton").click(self.appInviteClickHandler);
 		element.find(".findGameButton").click(self.findGameClickHandler);
+		element.find(".findGameButton").hide();
 		element.find(".findGameStatus").hide();
+		ajax.call("playerQueued").done(handlePlayerQueuedResponse);
 		return element;
+	};
+
+	function handlePlayerQueuedResponse(response) {
+		if (response.success) {
+			element.find(".findGameLoading").hide();
+			if (response.playerInQueue) {
+				element.find(".findGameStatus").show();
+			} else {
+				element.find(".findGameButton").show();
+			}
+		}
 	};
 
 	this.createGameClickHandler = function() {
@@ -36,6 +50,8 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 
 	this.findGameClickHandler = function() {
 		ajax.call("matchmake").done(handleFindGameResponse);
+		element.find(".findGameButton").hide();
+		element.find(".findGameLoading").show();
 	};
 
 	function handleFindGameResponse(response) {

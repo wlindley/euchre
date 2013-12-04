@@ -12,5 +12,8 @@
 		<div class="findGameStatus ui disabled red left labeled icon button">
 			<i class="search icon"/>In Queue
 		</div>
+		<div class="findGameLoading ui disabled red icon button">
+			<i class="loading icon"/>
+		</div>
 	</div>
 </div>
