@@ -29,8 +29,7 @@
 		</div>
 
 	</div>
-	<div class="turn">Turn: <span class="playerName"></span></div>
+	<div class="turn">Turn: <span class="playerName"/></div>
 	<div>Status: %status%</div>
-	<div>Game id: %gameId%</div>
 	</a>
 </div>
