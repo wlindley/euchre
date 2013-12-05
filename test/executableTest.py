@@ -1036,14 +1036,14 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		when(self.gameModelFactory).create().thenReturn(self.gameModel)
 		when(self.gameSerializer).serialize(self.gameObj).thenReturn(self.serializedGame)
 
-	def testWritesFailureIfUserAlreadyInQueue(self):
+	def testExecuteWritesFailureIfUserAlreadyInQueue(self):
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(True)
 
 		self.testObj.execute()
 
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
-	def testCreatesStartsAndSerializesGameIfEnoughPlayersInQueue(self):
+	def testExecuteCreatesStartsAndSerializesGameIfEnoughPlayersInQueue(self):
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
 		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
@@ -1063,7 +1063,7 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
 
-	def testAddsUserToQueueIfNotEnoughPlayersInQueue(self):
+	def testExecuteAddsUserToQueueIfNotEnoughPlayersInQueue(self):
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
 		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn([])
 		
@@ -1117,3 +1117,18 @@ class GetMatchmakingStatusExecutableTest(BaseExecutableTestCase):
 	def _doTraining(self):
 		when(self.user).getId().thenReturn(self.playerId)
 		when(self.facebook).getUser("me").thenReturn(self.user)
+
+	def testExecuteWritesExpectedDataWhenPlayerIsInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(True)
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : True, "playerInQueue" : True}))
+
+	def testExecuteWritesExpectedDataWhenPlayerIsNotInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : True, "playerInQueue" : False}))
+
+	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
+		when(self.user).getId().thenReturn("")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))

@@ -598,10 +598,16 @@ class GetMatchmakingStatusExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return GetMatchmakingStatusExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session))
+		return GetMatchmakingStatusExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session), model.MatchmakingTicketFinder.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook, ticketFinder):
 		super(GetMatchmakingStatusExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
+		self._ticketFinder = ticketFinder
 
 	def execute(self):
-		raise Exception("Not Yet Implemented")
+		playerId = self.getSignedInFacebookUser().getId()
+		if None == playerId or "" == playerId:
+			self._writeResponse({"success" : False})
+			return
+
+		self._writeResponse({"success" : True, "playerInQueue" : self._ticketFinder.isPlayerInQueue(playerId)})
