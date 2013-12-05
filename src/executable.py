@@ -38,7 +38,9 @@ class ExecutableFactory(object):
 			"playCard" : PlayCardExecutable,
 			"discard" : DiscardExecutable,
 			"getName" : GetNameExecutable,
-			"dismissCompletedGame" : RemoveCompletedGameExecutable
+			"dismissCompletedGame" : RemoveCompletedGameExecutable,
+			"matchmake" : MatchmakingExecutable,
+			"getMatchmakingStatus" : GetMatchmakingStatusExecutable
 		}
 
 	def createExecutable(self):
@@ -538,3 +540,68 @@ class RemoveCompletedGameExecutable(FacebookUserExecutable):
 			gameModel.put()
 
 		self._writeResponse({"success" : True})
+
+class MatchmakingExecutable(FacebookUserExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
+		if None != cls.instance:
+			return cls.instance
+		return MatchmakingExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session), model.MatchmakingTicketFinder.getInstance(), model.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook, ticketFinder, gameModelFactory, gameSerializer):
+		super(MatchmakingExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
+		self._ticketFinder = ticketFinder
+		self._gameModelFactory = gameModelFactory
+		self._gameSerializer = gameSerializer
+
+	ADDITIONAL_PLAYERS = 3
+
+	def execute(self):
+		playerId = self.getSignedInFacebookUser().getId()
+
+		if None == playerId or "" == playerId:
+			logging.info("Invalid player id when attempting matchmaking")
+			self._writeResponse({"success" : False})
+			return
+
+		if self._ticketFinder.isPlayerInQueue(playerId):
+			logging.info("Attempted matchmaking while player already in queue")
+			self._writeResponse({"success" : False})
+			return
+
+		players = self._ticketFinder.getMatchmakingGroup(MatchmakingExecutable.ADDITIONAL_PLAYERS)
+		if MatchmakingExecutable.ADDITIONAL_PLAYERS == len(players):
+			gameModel = self._gameModelFactory.create()
+			gameModel.playerId = [playerId] + players
+			teams = [[], []]
+			for pid in gameModel.playerId:
+				tid = random.randint(0, 1)
+				if MAX_TEAM_SIZE <= len(teams[tid]):
+					tid = (tid + 1) % 2
+				teams[tid].append(pid)
+			gameModel.teams = json.dumps(teams)
+
+			gameObj = euchre.Game.getInstance(players, teams)
+			gameObj.startGame()
+			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
+
+			gameModel.put()
+		else:
+			self._ticketFinder.addPlayerToQueue(playerId)
+
+		self._writeResponse({"success" : True})
+
+class GetMatchmakingStatusExecutable(FacebookUserExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
+		if None != cls.instance:
+			return cls.instance
+		return GetMatchmakingStatusExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session))
+
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook):
+		super(GetMatchmakingStatusExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
+
+	def execute(self):
+		raise Exception("Not Yet Implemented")

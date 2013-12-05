@@ -67,7 +67,7 @@ GameListMenuBuilderTest.prototype.testBuildGameMenuHidesFindGameStatus = functio
 GameListMenuBuilderTest.prototype.testBuildGameMenuChecksServerToSeeIfPlayerInQueue = function() {
 	this.trigger();
 
-	verify(this.ajax).call("playerQueued");
+	verify(this.ajax).call("getMatchmakingStatus");
 };
 
 GameListMenuBuilderTest.prototype.testShowsFindGameStatusIfPlayerInQueue = function() {

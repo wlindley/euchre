@@ -13,7 +13,7 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 		element.find(".findGameButton").click(self.findGameClickHandler);
 		element.find(".findGameButton").hide();
 		element.find(".findGameStatus").hide();
-		ajax.call("playerQueued").done(handlePlayerQueuedResponse);
+		ajax.call("getMatchmakingStatus").done(handlePlayerQueuedResponse);
 		return element;
 	};
 

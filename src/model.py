@@ -12,6 +12,11 @@ class GameModel(ndb.Model):
 	version = ndb.IntegerProperty(default=1)
 	readyToRemove = ndb.StringProperty(repeated=True)
 
+class MatchmakingTicketModel(ndb.Model):
+	playerId = ndb.StringProperty(required=True)
+	lookingForMatch = ndb.BooleanProperty(default=True)
+	searchStartTime = ndb.DateTimeProperty(auto_now_add=True)
+
 class GameModelFactory(object):
 	instance = None
 	@classmethod
@@ -56,3 +61,20 @@ class GameModelFinder(object):
 			return False
 		key.delete()
 		return True
+
+class MatchmakingTicketFinder(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return MatchmakingTicketFinder()
+
+	def isPlayerInQueue(self, playerId):
+		raise Exception("Not Yet Implemented")
+
+	def addPlayerToQueue(self, playerId):
+		raise Exception("Not Yet Implemented")
+
+	def getMatchmakingGroup(self, numPlayers):
+		raise Exception("Not Yet Implemented")

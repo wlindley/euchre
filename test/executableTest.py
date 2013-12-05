@@ -64,6 +64,12 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsRemoveCompletedGameExecutableWhenActionIsDismissCompletedGame(self):
 		self._runTestForAction("dismissCompletedGame", "RemoveCompletedGameExecutable")
 
+	def testCallsMatchmakingExecutableWhenActionIsMatchmake(self):
+		self._runTestForAction("matchmake", "MatchmakingExecutable")
+
+	def testCallsGetMatchmakingStatusExecutableWhenActionIsGetMatchmakingStatus(self):
+		self._runTestForAction("getMatchmakingStatus", "GetMatchmakingStatusExecutable")
+
 class BaseExecutableTestCase(testhelper.TestCase):
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
@@ -1000,3 +1006,114 @@ class RemoveCompletedGameExecutableTest(BaseExecutableTestCase):
 		self.testObj.execute()
 		self._verifyReadyToRemoveDidNotChange()
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+class MatchmakingExecutableTest(BaseExecutableTestCase):
+	def setUp(self):
+		super(MatchmakingExecutableTest, self).setUp()
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.ticketFinder = testhelper.createSingletonMock(model.MatchmakingTicketFinder)
+		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
+		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+
+		self.gameModel = testhelper.createMock(model.GameModel)
+		self.gameObj = testhelper.createMock(euchre.Game)
+
+		self.serializedGame = "correct game serialized"
+		self.playerId = "234lkasdfl3"
+		self.user = testhelper.createMock(social.User)
+
+		self.otherPlayerIds = ["2309asdlkj", "098345sdalkfj", "12309salk3j24"]
+
+		self._doTraining()
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.testObj = executable.MatchmakingExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+
+	def _doTraining(self):
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
+		when(self.gameModelFactory).create().thenReturn(self.gameModel)
+		when(self.gameSerializer).serialize(self.gameObj).thenReturn(self.serializedGame)
+
+	def testWritesFailureIfUserAlreadyInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(True)
+
+		self.testObj.execute()
+
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testCreatesStartsAndSerializesGameIfEnoughPlayersInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), any(list)).thenReturn(self.gameObj)
+		
+		self.testObj.execute()
+
+		resultTeams = json.loads(self.gameModel.teams)
+		players = [self.playerId] + self.otherPlayerIds
+		for pid in players:
+			self.assertTrue(pid in self.gameModel.playerId)
+			self.assertTrue(pid in resultTeams[0] or pid in resultTeams[1])
+
+		verify(self.gameObj).startGame()
+		self.assertEqual(self.serializedGame, self.gameModel.serializedGame)
+		verify(self.gameModel).put()
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
+
+	def testAddsUserToQueueIfNotEnoughPlayersInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn([])
+		
+		self.testObj.execute()
+
+		verify(self.ticketFinder).addPlayerToQueue(self.playerId)
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+		verify(self.gameModel, never).put()
+
+	def testExecuteWritesFailureIfPlayerIdIsInvalidAndPlayerNotInQueueAndEnoughPlayersToStart(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
+		when(self.user).getId().thenReturn("")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
+		verify(self.gameModel, never).put()
+
+	def testExecuteWritesFailureIfPlayerIdIsInvalidAndPlayerNotInQueueAndNotEnoughPlayersToStart(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn([])
+		when(self.user).getId().thenReturn("")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
+		verify(self.gameModel, never).put()
+
+	def testExecuteWritesFailureIfPlayerIdIsInvalidAndPlayerInQueue(self):
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(True)
+		when(self.user).getId().thenReturn("")
+		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
+		verify(self.gameModel, never).put()
+
+class GetMatchmakingStatusExecutableTest(BaseExecutableTestCase):
+	def setUp(self):
+		super(GetMatchmakingStatusExecutableTest, self).setUp()
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
+		self.ticketFinder = testhelper.createSingletonMock(model.MatchmakingTicketFinder)
+
+		self.playerId = "234lkasdfl3"
+		self.user = testhelper.createMock(social.User)
+
+		self._doTraining()
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.testObj = executable.GetMatchmakingStatusExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+
+	def _doTraining(self):
+		when(self.user).getId().thenReturn(self.playerId)
+		when(self.facebook).getUser("me").thenReturn(self.user)
