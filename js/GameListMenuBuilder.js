@@ -10,9 +10,14 @@ AVOCADO.GameListMenuBuilder = function(facebook, ajax, viewManager, templateRend
 		element = jqueryWrapper.getElement(templateRenderer.renderTemplate("gameListMenu"));
 		element.find(".createGameButton").click(self.createGameClickHandler);
 		element.find(".inviteButton").click(self.appInviteClickHandler);
-		element.find(".findGameButton").click(self.findGameClickHandler);
-		element.find(".findGameButton").hide();
-		element.find(".findGameStatus").hide();
+
+		var findGameButton = element.find(".findGameButton");
+		var findGameStatus = element.find(".findGameStatus");
+		var findGameLoading = element.find(".findGameLoading");
+		findGameButton.click(self.findGameClickHandler);
+		findGameButton.hide();
+		findGameStatus.hide();
+
 		ajax.call("getMatchmakingStatus").done(handlePlayerQueuedResponse);
 		return element;
 	};

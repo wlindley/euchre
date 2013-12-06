@@ -10,3 +10,7 @@ body {
 	cursor: hand;
 	cursor: pointer;
 }
+
+.findGameLoading {
+	width: 11em;
+}
