@@ -68,7 +68,10 @@ class MatchmakingTicketFinderTest(testhelper.TestCase):
 		self.playerId = "asdlkj432"
 		self.ticketModel.playerId = self.playerId
 
-		self.ticketModelSearchResults = [testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel)]
+		self.ticketModelSearchResult = [testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel)]
+		self.ticketModelSearchResultIds = ["23409asflkj", "659wlkj", "1094234lkjad"]
+		for i in range(len(self.ticketModelSearchResult)):
+			self.ticketModelSearchResult[i].playerId = self.ticketModelSearchResultIds[i]
 
 		self._buildTestObj()
 		self._doTraining()
@@ -116,6 +119,6 @@ class MatchmakingTicketFinderTest(testhelper.TestCase):
 		verify(self.ticketModel).put()
 
 	def testGetMatchmakingGroupReturnsRequestedNumberOfPlayersIfAvailable(self):
-		when(self.ticketQuery).fetch(3).thenReturn(self.ticketModelSearchResults)
+		when(self.ticketQuery).fetch(3).thenReturn(self.ticketModelSearchResult)
 		result = self.testObj.getMatchmakingGroup(3)
-		self.assertEqual(self.ticketModelSearchResults, result)
+		self.assertEqual(self.ticketModelSearchResultIds, result)

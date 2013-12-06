@@ -92,7 +92,8 @@ class MatchmakingTicketFinder(object):
 			ticketModel.put()
 
 	def getMatchmakingGroup(self, numPlayers):
-		return self._getQuery().fetch(3)
+		models = self._getQuery().fetch(3)
+		return [m.playerId for m in models]
 
 	def _getKey(self, playerId):
 		return ndb.Key(RootModel, "matchmaking_tickets", MatchmakingTicketModel, "matchmaking_ticket_" + playerId)

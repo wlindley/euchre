@@ -573,16 +573,19 @@ class MatchmakingExecutable(FacebookUserExecutable):
 		players = self._ticketFinder.getMatchmakingGroup(MatchmakingExecutable.ADDITIONAL_PLAYERS)
 		if MatchmakingExecutable.ADDITIONAL_PLAYERS == len(players):
 			gameModel = self._gameModelFactory.create()
-			gameModel.playerId = [playerId] + players
+			gameModel.playerId.extend([playerId] + players)
 			teams = [[], []]
 			for pid in gameModel.playerId:
 				tid = random.randint(0, 1)
 				if MAX_TEAM_SIZE <= len(teams[tid]):
 					tid = (tid + 1) % 2
 				teams[tid].append(pid)
+			logging.info("teams:")
+			logging.info(teams)
 			gameModel.teams = json.dumps(teams)
 
-			gameObj = euchre.Game.getInstance(players, teams)
+			orderedPlayers = self._buildPlayersFromTeams(teams)
+			gameObj = euchre.Game.getInstance(orderedPlayers, teams)
 			gameObj.startGame()
 			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 
@@ -591,6 +594,16 @@ class MatchmakingExecutable(FacebookUserExecutable):
 			self._ticketFinder.addPlayerToQueue(playerId)
 
 		self._writeResponse({"success" : True})
+
+	def _buildPlayersFromTeams(self, teams):
+		firstTeam = random.randint(0, 1)
+		teamFirstIndeces = [random.randint(0, 1), random.randint(0, 1)]
+		players = []
+		for i in range(MAX_TEAM_SIZE * 2):
+			currentTeam = (firstTeam + (i % 2)) % 2
+			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
+			players.append(game.Player(teams[currentTeam][currentIndex]))
+		return players
 
 class GetMatchmakingStatusExecutable(FacebookUserExecutable):
 	instance = None

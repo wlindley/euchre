@@ -1044,6 +1044,7 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testExecuteCreatesStartsAndSerializesGameIfEnoughPlayersInQueue(self):
+		self.gameModel.playerId = []
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
 		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
@@ -1056,6 +1057,8 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		for pid in players:
 			self.assertTrue(pid in self.gameModel.playerId)
 			self.assertTrue(pid in resultTeams[0] or pid in resultTeams[1])
+		self.assertEqual(2, len(resultTeams[0]))
+		self.assertEqual(2, len(resultTeams[1]))
 
 		verify(self.gameObj).startGame()
 		self.assertEqual(self.serializedGame, self.gameModel.serializedGame)
