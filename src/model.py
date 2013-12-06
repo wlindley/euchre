@@ -92,7 +92,12 @@ class MatchmakingTicketFinder(object):
 			ticketModel.put()
 
 	def getMatchmakingGroup(self, numPlayers):
-		models = self._getQuery().fetch(3)
+		models = self._getQuery().fetch(numPlayers)
+		if len(models) < numPlayers:
+			return []
+		for ticketModel in models:
+			ticketModel.lookingForMatch = False
+			ticketModel.put()
 		return [m.playerId for m in models]
 
 	def _getKey(self, playerId):
