@@ -3,6 +3,8 @@ from google.appengine.ext import ndb
 import testhelper
 from mockito import *
 
+import google.appengine.ext.ndb
+
 from src import model
 
 class GameModelFactoryTest(testhelper.TestCase):
@@ -55,3 +57,65 @@ class GameModelFinderTest(testhelper.TestCase):
 
 		verify(key).delete()
 		self.assertTrue(result)
+
+class MatchmakingTicketFinderTest(testhelper.TestCase):
+	def setUp(self):
+		self.ticketModel = testhelper.createMock(model.MatchmakingTicketModel)
+		self.ticketKey = testhelper.createMock(ndb.Key)
+		self.ticketMetaKey = testhelper.createMock(ndb.Key)
+		self.ticketQuery = testhelper.createMock(ndb.Query)
+
+		self.playerId = "asdlkj432"
+		self.ticketModel.playerId = self.playerId
+
+		self.ticketModelSearchResults = [testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel), testhelper.createMock(model.MatchmakingTicketModel)]
+
+		self._buildTestObj()
+		self._doTraining()
+
+	def _buildTestObj(self):
+		self.testObj = model.MatchmakingTicketFinder.getInstance()
+
+	def _doTraining(self):
+		self.testObj._getQuery = lambda: self.ticketQuery
+		when(model).MatchmakingTicketModel(key=self.ticketKey).thenReturn(self.ticketModel)
+		when(google.appengine.ext.ndb).Key(model.RootModel, "matchmaking_tickets").thenReturn(self.ticketMetaKey)
+		when(google.appengine.ext.ndb).Key(model.RootModel, "matchmaking_tickets", model.MatchmakingTicketModel, "matchmaking_ticket_" + self.playerId).thenReturn(self.ticketKey)
+		when(self.ticketKey).get().thenReturn(self.ticketModel)
+
+	def testIsPlayerInQueueReturnsTrueIfModelSaysSo(self):
+		self.ticketModel.lookingForMatch = True
+		self.assertTrue(self.testObj.isPlayerInQueue(self.playerId))
+
+	def testIsPlayerInQueueReturnsFalseIfModelSaysSo(self):
+		self.ticketModel.lookingForMatch = False
+		self.assertFalse(self.testObj.isPlayerInQueue(self.playerId))
+
+	def testIsPlayerInQueueReturnsFalseIfModelNotFound(self):
+		when(self.ticketKey).get().thenReturn(None)
+		self.assertFalse(self.testObj.isPlayerInQueue(self.playerId))
+
+	def testAddPlayerToQueueUpdatesTicketModelIfItExists(self):
+		self.ticketModel.lookingForMatch = False
+		self.testObj.addPlayerToQueue(self.playerId)
+		self.assertTrue(self.ticketModel.lookingForMatch)
+		verify(self.ticketModel).put()
+
+	def testAddPlayerToQueueDoesNotUpdateTicketModelIfPlayerInQueue(self):
+		self.ticketModel.lookingForMatch = True
+		self.testObj.addPlayerToQueue(self.playerId)
+		verify(self.ticketModel, never).put()
+
+	def testAddPlayerToQueueCreateModelIfItDoesNotExist(self):
+		when(self.ticketKey).get().thenReturn(None)
+
+		self.testObj.addPlayerToQueue(self.playerId)
+
+		self.assertEqual(self.playerId, self.ticketModel.playerId)
+		self.assertTrue(self.ticketModel.lookingForMatch)
+		verify(self.ticketModel).put()
+
+	def testGetMatchmakingGroupReturnsRequestedNumberOfPlayersIfAvailable(self):
+		when(self.ticketQuery).fetch(3).thenReturn(self.ticketModelSearchResults)
+		result = self.testObj.getMatchmakingGroup(3)
+		self.assertEqual(self.ticketModelSearchResults, result)

@@ -2,6 +2,9 @@ from google.appengine.ext import ndb
 
 CURRENT_GAME_MODEL_VERSION = 3
 
+class RootModel(ndb.Model):
+	pass
+
 class PlayerModel(ndb.Model):
 	playerId = ndb.StringProperty(required=True)
 
@@ -12,10 +15,12 @@ class GameModel(ndb.Model):
 	version = ndb.IntegerProperty(default=1)
 	readyToRemove = ndb.StringProperty(repeated=True)
 
+MatchmakingTicketRootKey = ndb.Key(RootModel, "matchmaking_tickets")
+
 class MatchmakingTicketModel(ndb.Model):
 	playerId = ndb.StringProperty(required=True)
 	lookingForMatch = ndb.BooleanProperty(default=True)
-	searchStartTime = ndb.DateTimeProperty(auto_now_add=True)
+	searchStartTime = ndb.DateTimeProperty(auto_now=True)
 
 class GameModelFactory(object):
 	instance = None
@@ -71,10 +76,29 @@ class MatchmakingTicketFinder(object):
 		return MatchmakingTicketFinder()
 
 	def isPlayerInQueue(self, playerId):
-		raise Exception("Not Yet Implemented")
+		ticketModel = self._getModel(playerId)
+		if None == ticketModel:
+			return False
+		return ticketModel.lookingForMatch
 
 	def addPlayerToQueue(self, playerId):
-		raise Exception("Not Yet Implemented")
+		ticketModel = self._getModel(playerId)
+		if None == ticketModel:
+			ticketModel = MatchmakingTicketModel(key=self._getKey(playerId))
+			ticketModel.playerId = playerId
+			ticketModel.lookingForMatch = False
+		if not ticketModel.lookingForMatch:
+			ticketModel.lookingForMatch = True
+			ticketModel.put()
 
 	def getMatchmakingGroup(self, numPlayers):
-		raise Exception("Not Yet Implemented")
+		return self._getQuery().fetch(3)
+
+	def _getKey(self, playerId):
+		return ndb.Key(RootModel, "matchmaking_tickets", MatchmakingTicketModel, "matchmaking_ticket_" + playerId)
+
+	def _getModel(self, playerId):
+		return self._getKey(playerId).get()
+
+	def _getQuery(self):
+		return MatchmakingTicketModel.query(MatchmakingTicketModel.lookingForMatch == True, ancestor=MatchmakingTicketRootKey).order(-MatchmakingTicketModel.searchStartTime)
