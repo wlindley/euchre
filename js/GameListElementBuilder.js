@@ -22,8 +22,17 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		if ("waiting_for_more_players" == gameData.status) {
 			if (isInvite) {
 				element.find(".inviteToGame").show();
+				element.click(this.buildGameInviteClickHandler(gameData.gameId));
 			} else {
 				element.find(".joinGame").show();
+				var openTeams = [];
+				for (var i = 0; i < 2; i++) {
+					if (gameData.teams[i].length < 2) {
+						openTeams.push(i);
+					}
+				}
+				var teamId = openTeams[Math.floor(Math.random() * openTeams.length)];
+				element.click(this.buildGameJoinClickHandler(gameData.gameId, teamId, requestId));
 			}
 		} else {
 			element.click(this.buildShowGameDataHandler(gameData.gameId));
@@ -61,7 +70,6 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 						clickHandler = this.buildGameJoinClickHandler(gameData.gameId, teamId, requestId);
 					}
 					dataNameElement.text(message);
-					dataElement.addClass("clickable");
 					dataElement.click(clickHandler);
 				}
 			}

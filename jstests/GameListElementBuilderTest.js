@@ -45,6 +45,7 @@ GameListElementBuilderTest.prototype.setUp = function() {
 
 	this.showGameDataFunc = mockFunction();
 	this.gameInviteClickHandler = mockFunction();
+	this.gameJoinClickHandler = mockFunction();
 
 	this.ajaxPromise = mock(TEST.FakePromise);
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
@@ -164,7 +165,6 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAs = functi
 				verify(this.namePromises[pid]).registerForUpdates(this.tableDataNameElements[j][k]);
 			} else {
 				verify(this.tableDataNameElements[j][k]).text(this.locStrings["inviteCTA"]);
-				verify(this.tableDataElements[j][k]).addClass("clickable");
 				verify(this.tableDataElements[j][k]).click(this.gameInviteClickHandler);
 			}
 		}
@@ -191,35 +191,65 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAsForJoinin
 				verify(this.namePromises[pid]).registerForUpdates(this.tableDataNameElements[j][k]);
 			} else {
 				verify(this.tableDataNameElements[j][k]).text(this.locStrings["joinCTA"]);
-				verify(this.tableDataElements[j][k]).addClass("clickable");
 				verify(this.tableDataElements[j][k]).click(gameJoinClickHandlers[j][k]);
 			}
 		}
 	}
 };
 
-GameListElementBuilderTest.prototype.testHooksUpClickHandler = function() {
+GameListElementBuilderTest.prototype.testHooksUpCorrectClickHandler = function() {
 	this.testObj.buildShowGameDataHandler = mockFunction();
 	when(this.testObj.buildShowGameDataHandler)(this.gameId).thenReturn(this.showGameDataFunc);
 
 	this.doTraining("round_in_progress");
 	this.trigger(true, undefined);
 	verify(this.element).click(this.showGameDataFunc);
+	verify(this.element, never()).click(this.gameInviteClickHandler);
+	verify(this.element, never()).click(this.gameJoinClickHandler);
 };
 
-GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStarted = function() {
+GameListElementBuilderTest.prototype.testHooksUpCorrectClickHandlerIfGameNotStartedAndTypeIsInvite = function() {
+	this.testObj.buildGameInviteClickHandler = mockFunction();
+	when(this.testObj.buildGameInviteClickHandler)(this.gameId).thenReturn(this.gameInviteClickHandler);
+
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
 	this.trigger(true, undefined);
 	verify(this.element, never()).click(this.showGameDataFunc);
+	verify(this.element).click(this.gameInviteClickHandler);
+	verify(this.element, never()).click(this.gameJoinClickHandler);
 	verify(this.inviteToGameElement).show();
 };
 
-GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStarted = function() {
+GameListElementBuilderTest.prototype.testHooksUpCorrectClickHandlerIfGameNotStartedAndTypeIsJoin = function() {
+	this.team = [[this.team[0][1]], [this.team[1][1]]];
+
+	var requestId = "230948d_da03983";
+	this.testObj.buildGameJoinClickHandler = mockFunction();
+	when(this.testObj.buildGameJoinClickHandler)(this.gameId, between(0).and(1), requestId).thenReturn(this.gameJoinClickHandler);
+
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
-	this.trigger(false, undefined);
+	this.trigger(false, requestId);
 	verify(this.element, never()).click(this.showGameDataFunc);
+	verify(this.element, never()).click(this.gameInviteClickHandler);
+	verify(this.element).click(this.gameJoinClickHandler);
+	verify(this.joinGameElement).show();
+};
+
+GameListElementBuilderTest.prototype.testHooksUpCorrectClickHandlerIfGameNotStartedAndTypeIsJoinAndOnlyOneSpotOpen = function() {
+	this.team = [this.team[0], [this.team[1][1]]];
+
+	var requestId = "230948d_da03983";
+	this.testObj.buildGameJoinClickHandler = mockFunction();
+	when(this.testObj.buildGameJoinClickHandler)(this.gameId, 1, requestId).thenReturn(this.gameJoinClickHandler);
+
+	this.currentPlayerId = null;
+	this.doTraining("waiting_for_more_players");
+	this.trigger(false, requestId);
+	verify(this.element, never()).click(this.showGameDataFunc);
+	verify(this.element, never()).click(this.gameInviteClickHandler);
+	verify(this.element).click(this.gameJoinClickHandler);
 	verify(this.joinGameElement).show();
 };
 
