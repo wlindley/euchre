@@ -12,7 +12,6 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.requestMessage = "all of the request messages";
 
 	this.element = mock(TEST.FakeJQueryElement);
-	this.linkElement = mock(TEST.FakeJQueryElement);
 	this.turnNameElement = mock(TEST.FakeJQueryElement);
 	this.turnElement = mock(TEST.FakeJQueryElement);
 	this.namePromises = {};
@@ -101,7 +100,6 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 		when(this.playerNameDirectory).getNamePromise(pid).thenReturn(this.namePromises[pid]);
 	}
 
-	when(this.element).find(".viewGameData").thenReturn(this.linkElement);
 	when(this.element).find(".gameListElementTeams").thenReturn(this.tableElement);
 	when(this.element).find(".turn").thenReturn(this.turnElement);
 	when(this.element).find(".team0").thenReturn(this.team0Element);
@@ -194,14 +192,14 @@ GameListElementBuilderTest.prototype.testHooksUpClickHandler = function() {
 
 	this.doTraining("round_in_progress");
 	this.trigger(true, undefined);
-	verify(this.linkElement).click(this.showGameDataFunc);
+	verify(this.element).click(this.showGameDataFunc);
 };
 
 GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStarted = function() {
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
 	this.trigger(true, undefined);
-	verify(this.linkElement, never()).click(this.showGameDataFunc);
+	verify(this.element, never()).click(this.showGameDataFunc);
 };
 
 GameListElementBuilderTest.prototype.testSetsCorrectClassesIfCurrentPlayersTurn = function() {

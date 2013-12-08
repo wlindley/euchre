@@ -17,7 +17,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		if ("waiting_for_more_players" == gameData.status) {
 			element.addClass("tertiary");
 		} else {
-			element.find(".viewGameData").click(this.buildShowGameDataHandler(gameData.gameId));
+			element.click(this.buildShowGameDataHandler(gameData.gameId));
 			element.addClass("clickable");
 			if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
 				element.addClass("primary");
