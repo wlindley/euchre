@@ -14,15 +14,23 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		var elementHtml = templateRenderer.renderTemplate("gameListEntry", templateParams);
 		var element = jqueryWrapper.getElement(elementHtml);
 
+		element.find(".playGame").hide();
+		element.find(".joinGame").hide();
+		element.find(".inviteToGame").hide();
+		element.find(".gameOver").hide();
+
 		if ("waiting_for_more_players" == gameData.status) {
-			element.addClass("tertiary");
+			if (isInvite) {
+				element.find(".inviteToGame").show();
+			} else {
+				element.find(".joinGame").show();
+			}
 		} else {
 			element.click(this.buildShowGameDataHandler(gameData.gameId));
-			element.addClass("clickable");
-			if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
-				element.addClass("primary");
-			} else {
-				element.addClass("secondary");
+			if ("complete" == gameData.status) {
+				element.find(".gameOver").show();
+			} else if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
+				element.find(".playGame").show();
 			}
 		}
 

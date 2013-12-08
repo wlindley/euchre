@@ -2,7 +2,14 @@
 
 	<div class="ui middle center aligned grid">
 
-		<div class="four wide column">
+		<div class="one wide column">
+			<i class="playGame play icon"/>
+			<i class="joinGame add icon"/>
+			<i class="inviteToGame users icon"/>
+			<i class="gameOver remove icon"/>
+		</div>
+
+		<div class="three wide column">
 			<h5 class="ui header">Turn</h5>
 			<div class="turn"><div class="playerName ui label"/></div>
 		</div>

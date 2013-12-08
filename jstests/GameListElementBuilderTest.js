@@ -20,6 +20,10 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.tableDataNameElements = [];
 	this.team0Element = mock(TEST.FakeJQueryElement);
 	this.team1Element = mock(TEST.FakeJQueryElement);
+	this.playGameElement = mock(TEST.FakeJQueryElement);
+	this.joinGameElement = mock(TEST.FakeJQueryElement);
+	this.inviteToGameElement = mock(TEST.FakeJQueryElement);
+	this.gameOverElement = mock(TEST.FakeJQueryElement);
 
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
@@ -104,6 +108,10 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 	when(this.element).find(".turn").thenReturn(this.turnElement);
 	when(this.element).find(".team0").thenReturn(this.team0Element);
 	when(this.element).find(".team1").thenReturn(this.team1Element);
+	when(this.element).find(".playGame").thenReturn(this.playGameElement);
+	when(this.element).find(".joinGame").thenReturn(this.joinGameElement);
+	when(this.element).find(".inviteToGame").thenReturn(this.inviteToGameElement);
+	when(this.element).find(".gameOver").thenReturn(this.gameOverElement);
 	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 	var tableDataSelector = mock(TEST.FakeJQueryElement);
 	when(this.tableElement).find(".playerNameContainer").thenReturn(tableDataSelector);
@@ -124,6 +132,10 @@ GameListElementBuilderTest.prototype.trigger = function(isInvite, requestId) {
 GameListElementBuilderTest.prototype.testBuildListElementReturnsExpectedObject = function() {
 	this.doTraining("round_in_progress");
 	assertEquals(this.element, this.trigger(true, undefined));
+	verify(this.playGameElement).hide();
+	verify(this.joinGameElement).hide();
+	verify(this.inviteToGameElement).hide();
+	verify(this.gameOverElement).hide();
 };
 
 GameListElementBuilderTest.prototype.testHooksUpTurnNamePromise = function() {
@@ -200,28 +212,35 @@ GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStart
 	this.doTraining("waiting_for_more_players");
 	this.trigger(true, undefined);
 	verify(this.element, never()).click(this.showGameDataFunc);
+	verify(this.inviteToGameElement).show();
 };
 
-GameListElementBuilderTest.prototype.testSetsCorrectClassesIfCurrentPlayersTurn = function() {
-	this.doTraining("round_in_progress");
-	this.trigger(true, undefined);
-	verify(this.element).addClass("primary");
-	verify(this.element).addClass("clickable");
-};
-
-GameListElementBuilderTest.prototype.testSetsCorrectClassesIfStatusIsWaitingForMorePlayers = function() {
+GameListElementBuilderTest.prototype.testDoesNotHookUpClickHandlerIfGameNotStarted = function() {
 	this.currentPlayerId = null;
 	this.doTraining("waiting_for_more_players");
-	this.trigger(true, undefined);
-	verify(this.element).addClass("tertiary");
+	this.trigger(false, undefined);
+	verify(this.element, never()).click(this.showGameDataFunc);
+	verify(this.joinGameElement).show();
 };
 
-GameListElementBuilderTest.prototype.testSetsCorrectClassesIfNotLocalPlayersTurn = function() {
+GameListElementBuilderTest.prototype.testShowsCorrectIconIfCurrentPlayersTurn = function() {
+	this.doTraining("round_in_progress");
+	this.trigger(true, undefined);
+	verify(this.playGameElement).show();
+};
+
+GameListElementBuilderTest.prototype.testShowsCorrectIconIfStatusIsGameOver = function() {
+	this.currentPlayerId = null;
+	this.doTraining("complete");
+	this.trigger(true, undefined);
+	verify(this.gameOverElement).show();
+};
+
+GameListElementBuilderTest.prototype.testShowsCorrectIconIfNotLocalPlayersTurn = function() {
 	this.currentPlayerId = this.otherPlayerId;
 	this.doTraining("round_in_progress");
 	this.trigger(true, undefined);
-	verify(this.element).addClass("secondary");
-	verify(this.element).addClass("clickable");
+	verify(this.playGameElement, never()).show();
 };
 
 GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeams = function() {
