@@ -1,35 +1,35 @@
-<div class="gameListEntry ui inverted black segment">
-	<a class="viewGameData" id="gameId_%gameId%">
-	<div class="gameListElementTeams ui middle center aligned grid">
+<div class="gameListEntry item">
 
-		<div class="seven wide column">
-			<div>
-			<div class="team0 ui top inverted segment">
+	<div class="ui middle center aligned grid">
+
+		<div class="four wide column">
+			<h5 class="ui header">Turn</h5>
+			<div class="turn"><div class="playerName ui label"/></div>
+		</div>
+	
+		<div class="gameListElementTeams eight wide column">
+			<div class="team0 ui small button">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="0" class="index"/></div>
 			</div>
-			<div class="team0 ui bottom inverted segment">
+			<div class="team0 ui small button">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="0" class="team"/><input type="hidden" value="1" class="index"/></div>
 			</div>
-			</div>
-		</div>
 
-		<div class="two wide column">
-			<div class="ui segment">
-				%vs%
-			</div>
-		</div>
+			%vs%
 
-		<div class="seven wide column">
-			<div class="team1 ui top inverted segment">
+			<div class="team1 ui small button">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="0" class="index"/></div>
 			</div>
-			<div class="team1 ui bottom inverted segment">
+			<div class="team1 ui small button">
 				<div class="playerNameContainer"><span class="playerName"/><input type="hidden" value="1" class="team"/><input type="hidden" value="1" class="index"/></div>
 			</div>
 		</div>
 
+		<div class="four wide column">
+			<h5 class="ui header">Status</h5>
+			<div><div class="ui label">%status%</div></div>
+		</div>
+
 	</div>
-	<div class="turn">Turn: <span class="playerName"/></div>
-	<div>Status: %status%</div>
-	</a>
+	
 </div>
