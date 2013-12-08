@@ -51,6 +51,8 @@ FacebookTest.prototype.setUp = function() {
 
 	this.deleteRequestId = "320948adlkjf_203948adj";
 
+	this.loginCalled = false;
+
 	this.initDeferred = mock(TEST.FakeDeferred);
 	this.initPromise = mock(TEST.FakePromise);
 	this.getPlayerDataDeferred = mock(TEST.FakeDeferred);
@@ -102,17 +104,41 @@ FacebookTest.prototype.triggerDeleteAppRequest = function() {
 	return this.testObj.deleteAppRequest(this.deleteRequestId);
 };
 
-FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin) {
+FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin, authStatus, updatedAuthStatus) {
 	var testHarness = this;
 	this.jqueryWrapper.ajax = function(url, params) {
 		window.FB = mock(FakeFB);
+		window.FB.Event = {}
+		window.FB.Event.subscribe = mockFunction();
 		if (undefined !== trainingValueForLogin) {
-			window.FB.login = function(func) {
-				var response = trainingValueForLogin;
-				if (trainingValueForLogin) {
-					response = {"authResponse" : {"userID" : testHarness.localPlayerId}}; //this structure mimics Facebook's response as of 20131119
+			var response = trainingValueForLogin;
+			if (trainingValueForLogin) {
+				//this structure mimics Facebook's response as of 20131208
+				var status = "connected";
+				if (authStatus) {
+					status = authStatus;
 				}
-				func(response);
+				response = {
+					"status" : status,
+					"authResponse" : {
+						"userID" : testHarness.localPlayerId
+					}
+				};
+			}
+			var callback = mockFunction();
+
+			window.FB.login = function() {
+				if (updatedAuthStatus) {
+					response.status = updatedAuthStatus;
+				} else {
+					response.status = "connected";
+				}
+				testHarness.loginCalled = true;
+				callback(response);
+			};
+			window.FB.Event.subscribe = function(eventName, func) {
+				callback = func;
+				callback(response);
 			};
 		}
 		params["success"]();
@@ -167,16 +193,18 @@ FacebookTest.prototype.testHandleAjaxResponseInitializesFB = function() {
 	));
 };
 
-FacebookTest.prototype.testHandleAjaxResponseLogsIn = function() {
+FacebookTest.prototype.testHandleAjaxResponse = function() {
 	this.setupAjaxCall();
 
 	this.triggerInit();
 
-	verify(window.FB).login(func());
+	verify(window.FB.Event.subscribe)("auth.authResponseChange", func());
 };
 
 FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 	window.FB = mock(FakeFB);
+	window.FB.Event = {};
+	window.FB.Event.subscribe = mockFunction();
 	this.jqueryWrapper.ajax = function(url, params) {
 		params["success"]();
 	};
@@ -189,7 +217,7 @@ FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 	}
 
 	verify(window.FB).init();
-	verify(window.FB, never()).login(anything());
+	verify(window.FB.Event.subscribe, never())(anything());
 };
 
 FacebookTest.prototype.testInitReturnsExpectedPromise = function() {
@@ -207,19 +235,25 @@ FacebookTest.prototype.testMultipleInitsReturnsSamePromiseAndDoesNotReinitialize
 };
 
 FacebookTest.prototype.testPromiseResolvedOnSuccessfulLogin = function() {
-	this.setupAjaxCall(true);
+	this.setupAjaxCall(true, "connected");
 	this.triggerInit();
 	verify(this.initDeferred).resolve();
 };
 
-FacebookTest.prototype.testPromiseRejectedOnFailedLogin = function() {
-	this.setupAjaxCall(false);
+FacebookTest.prototype.testLoginsInIfNotLoggedIn = function() {
+	this.setupAjaxCall(true, "not_authorized", "connected");
+	this.triggerInit();
+	assertTrue(this.loginCalled); //cannot verify since we've replaced the mock function
+};
+
+FacebookTest.prototype.testMultipleLoginFailuresRejectsPromise = function() {
+	this.setupAjaxCall(true, "unknown", "not_authorized");
 	this.triggerInit();
 	verify(this.initDeferred).reject();
 };
 
 FacebookTest.prototype.testGetSignedInPlayerIdReturnsExpectedDataAfterLoggingIn = function() {
-	this.setupAjaxCall(true);
+	this.setupAjaxCall(true, "connected");
 
 	this.triggerInit();
 

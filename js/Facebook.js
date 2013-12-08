@@ -18,6 +18,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	var signedInPlayerId = "";
 	var initDeferred = null;
 	var getPlayerDataDeferreds = {};
+	var loginAttempts = 0;
 
 	this.init = function(params) {
 		if (null == initDeferred) {
@@ -39,15 +40,20 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 			"cookie" : true,
 			"frictionlessRequests" : true
 		});
-		FB.login(handleLoginResponse);
+		FB.Event.subscribe("auth.authResponseChange", handleLoginResponse);
 	};
 
 	function handleLoginResponse(response) {
-		if (response.authResponse) {
+		if ("connected" == response.status) {
 			signedInPlayerId = response.authResponse.userID;
 			initDeferred.resolve();
 		} else {
-			initDeferred.reject();
+			if (0 == loginAttempts) {
+				loginAttempts++;
+				FB.login();
+			} else {
+				initDeferred.reject();
+			}
 		}
 	};
 
