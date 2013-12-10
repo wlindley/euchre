@@ -1,4 +1,5 @@
 from google.appengine.ext import ndb
+from google.appengine.api import app_identity
 import model
 import json
 import os.path
@@ -159,3 +160,37 @@ class TemplateManager(object):
 
 	def getTemplates(self):
 		return self._templates
+
+class ConfigManager(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return ConfigManager(FileReader.getInstance())
+
+	def __init__(self, fileReader):
+		self._fileReader = fileReader
+		self._data = {}
+
+	def loadFromDir(self, rootDir):
+		self._loadDataFile(os.path.join(rootDir, "common.config"))
+		self._loadDataFile(os.path.join(rootDir, self._getEnvironmentFilename()))
+
+	def get(self, key, default=None):
+		if not key in self._data:
+			return default
+		return self._data[key]
+
+	def _getEnvironmentFilename(self):
+		appId = app_identity.get_application_id()
+		if "familyeuchre-staging" == appId:
+			return "staging.config"
+		elif "familyeuchre-local" == appId:
+			return "local.config"
+		return "production.config"
+
+	def _loadDataFile(self, filename):
+		data = json.loads(self._fileReader.getFileContents(filename))
+		for key,value in data.iteritems():
+			self._data[key] = value
