@@ -4,6 +4,7 @@ import model
 import json
 import os.path
 import glob
+import logging
 
 from src import euchre
 import social
@@ -118,21 +119,22 @@ class PageDataBuilder(object):
 	def getInstance(cls, requestDataAccessor):
 		if None != cls.instance:
 			return cls.instance
-		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance(), FileReader.getInstance())
+		return PageDataBuilder(requestDataAccessor, TemplateManager.getInstance(), FileReader.getInstance(), ConfigManager.getInstance())
 
 	AJAX_PATH = "/ajax"
 	CHANNEL_PATH = "/data/channel.html"
 	TEMPLATE_PATTERN  = "templates/*.template"
 
-	def __init__(self, requestDataAccessor, templateManager, fileReader):
+	def __init__(self, requestDataAccessor, templateManager, fileReader, configManager):
 		super(PageDataBuilder, self).__init__()
 		self._requestDataAccessor = requestDataAccessor
 		self._templateManager = templateManager
 		self._fileReader = fileReader
+		self._configManager = configManager
 
 	def buildData(self):
 		pageData = {}
-		pageData["appId"] = social.Facebook.APP_ID
+		pageData["appId"] = self._configManager.get("FB.appId")
 		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
 		pageData["channelUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.CHANNEL_PATH
 		self._templateManager.loadTemplates(glob.glob(PageDataBuilder.TEMPLATE_PATTERN))
@@ -172,15 +174,18 @@ class ConfigManager(object):
 	def __init__(self, fileReader):
 		self._fileReader = fileReader
 		self._data = {}
-
-	def loadFromDir(self, rootDir):
-		self._loadDataFile(os.path.join(rootDir, "common.config"))
-		self._loadDataFile(os.path.join(rootDir, self._getEnvironmentFilename()))
+		self._rootDir = "data/config"
+		self._loadConfig()
 
 	def get(self, key, default=None):
 		if not key in self._data:
 			return default
 		return self._data[key]
+
+	def _loadConfig(self):
+		logging.info("Loading config for app-id: %s" % app_identity.get_application_id())
+		self._loadDataFile(os.path.join(self._rootDir, "common.config"))
+		self._loadDataFile(os.path.join(self._rootDir, self._getEnvironmentFilename()))
 
 	def _getEnvironmentFilename(self):
 		appId = app_identity.get_application_id()

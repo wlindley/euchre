@@ -34,6 +34,7 @@ class FacebookTest(testhelper.TestCase):
 		self.requestDataAccessor = testhelper.createMock(util.RequestDataAccessor)
 		self.session = testhelper.createSingletonMock(util.Session)
 		self.graph = testhelper.createMock(facebook.GraphAPI)
+		self.configManager = testhelper.createSingletonMock(util.ConfigManager)
 
 		self.requestCookies = "pretty sweet cookies"
 		self.accessToken = "23042098dlakj"
@@ -44,6 +45,9 @@ class FacebookTest(testhelper.TestCase):
 		self.nullUser = testhelper.createMock(social.User)
 		self.profile = {"name" : self.expectedName, "id" : self.playerId}
 		self.sessionData = {"accessToken" : self.accessToken}
+		self.sessionKey = "fbuser"
+		self.appId = "4873248102985"
+		self.appSecret = "23049804w9rasdlfaj234094239lskdjds"
 
 		self._doTraining()
 		self._buildTestObj()
@@ -57,7 +61,7 @@ class FacebookTest(testhelper.TestCase):
 
 	def testSuccessfulAuthenticateAsUserStoresDataInSession(self):
 		self.testObj.getUser(self.playerId)
-		verify(self.session).set(social.Facebook.SESSION_KEY, self.sessionData)
+		verify(self.session).set(self.sessionKey, self.sessionData)
 
 	def testGetUserStillWorksNoAuthentication(self):
 		when(facebook).get_user_from_cookie(any(), any(), any()).thenReturn(None)
@@ -65,7 +69,7 @@ class FacebookTest(testhelper.TestCase):
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
 	def testRetrievesDataFromSessionIfPresent(self):
-		when(self.session).get(social.Facebook.SESSION_KEY).thenReturn(self.sessionData)
+		when(self.session).get(self.sessionKey).thenReturn(self.sessionData)
 
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
@@ -76,7 +80,7 @@ class FacebookTest(testhelper.TestCase):
 
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
-		verify(self.session).set(social.Facebook.SESSION_KEY, None)
+		verify(self.session).set(self.sessionKey, None)
 
 	def testReturnsDefaultUserIfRetryFails(self):
 		when(self.graph).get_object(self.playerId).thenRaise(facebook.GraphAPIError({"type" : "bar"}))
@@ -86,7 +90,7 @@ class FacebookTest(testhelper.TestCase):
 	def _doTraining(self):
 		when(self.requestDataAccessor).getCookies().thenReturn(self.requestCookies)
 
-		when(facebook).get_user_from_cookie(self.requestCookies, social.Facebook.APP_ID, social.Facebook.APP_SECRET).thenReturn(self.fbCookie)
+		when(facebook).get_user_from_cookie(self.requestCookies, self.appId, self.appSecret).thenReturn(self.fbCookie)
 		when(facebook).GraphAPI(self.accessToken).thenReturn(self.graph)
 
 		when(self.graph).get_object(self.playerId).thenReturn(self.profile)
@@ -94,6 +98,10 @@ class FacebookTest(testhelper.TestCase):
 		testhelper.replaceClass(src.social, "User", testhelper.createSimpleMock())
 		when(src.social.User).getInstance(self.playerId, self.expectedName).thenReturn(self.expectedUser)
 		when(src.social.User).getInstance().thenReturn(self.nullUser)
+
+		when(self.configManager).get("FB.sessionKey").thenReturn(self.sessionKey)
+		when(self.configManager).get("FB.appId").thenReturn(self.appId)
+		when(self.configManager).get("FB.appSecret").thenReturn(self.appSecret)
 
 	def _buildTestObj(self):
 		self.testObj = social.Facebook.getInstance(self.requestDataAccessor, self.session)

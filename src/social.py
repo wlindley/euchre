@@ -1,6 +1,8 @@
 from src.lib import facebook
 import logging
 
+import util
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 class User(object):
@@ -27,15 +29,12 @@ class Facebook(object):
 	def getInstance(cls, requestDataAccessor, session):
 		if None != cls.instance:
 			return cls.instance
-		return Facebook(requestDataAccessor, session)
+		return Facebook(requestDataAccessor, session, util.ConfigManager.getInstance())
 
-	APP_ID = "247880815364832"
-	APP_SECRET = "07b0648bd8f3c3318de53482a68126ee"
-	SESSION_KEY = "fbuser"
-
-	def __init__(self, requestDataAccessor, session):
+	def __init__(self, requestDataAccessor, session, configManager):
 		self._requestDataAccessor = requestDataAccessor
 		self._session = session
+		self._configManager = configManager
 		self._graph = None
 
 	def getUser(self, identifier):
@@ -45,7 +44,7 @@ class Facebook(object):
 		except facebook.GraphAPIError as e:
 			#may just want to do this for error codes 190 and 191
 			logging.info("Facebook Graph error while getting user, error type: %s" % e.result)
-			self._session.set(Facebook.SESSION_KEY, None)
+			self._session.set(self._configManager.get("FB.sessionKey"), None)
 			self._graph = None
 			self._defaultAuthentication()
 			try:
@@ -61,13 +60,13 @@ class Facebook(object):
 			return
 
 		#first, try session
-		sessionData = self._session.get(Facebook.SESSION_KEY)
+		sessionData = self._session.get(self._configManager.get("FB.sessionKey"))
 		if sessionData:
 			logging.info("Facebook access token found in session data")
 			accessToken = sessionData["accessToken"]
 		else:
 			#second, try cookies
-			cookie = facebook.get_user_from_cookie(self._requestDataAccessor.getCookies(), Facebook.APP_ID, Facebook.APP_SECRET)
+			cookie = facebook.get_user_from_cookie(self._requestDataAccessor.getCookies(), self._configManager.get("FB.appId"), self._configManager.get("FB.appSecret"))
 			if None == cookie:
 				#give up and use default
 				logging.info("Facebook access token could not be obtained, using unauthenticated GraphAPI object")
@@ -75,7 +74,7 @@ class Facebook(object):
 				return
 			logging.info("Facebbok access token retrieved from cookies")
 			accessToken = cookie["access_token"]
-			self._session.set(Facebook.SESSION_KEY, {"accessToken" : accessToken})
+			self._session.set(self._configManager.get("FB.sessionKey"), {"accessToken" : accessToken})
 		self._graph = facebook.GraphAPI(accessToken)
 
 	def _buildUser(self, fbProfile):

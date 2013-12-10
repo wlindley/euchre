@@ -118,11 +118,12 @@ class PageDataBuilderTest(testhelper.TestCase):
 		self.templateFiles = "some filenames"
 		self.templates = "the best templates ever"
 		self.locStrings = {"foo" : "all of the localized strings"}
+		self.appId = "23049279483"
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
 			"templates" : self.templates,
 			"locStrings" : self.locStrings,
-			"appId" : social.Facebook.APP_ID,
+			"appId" : self.appId,
 			"channelUrl" : self.baseUrl + "/data/channel.html"
 		}
 		self.expectedTemplates = None
@@ -139,6 +140,9 @@ class PageDataBuilderTest(testhelper.TestCase):
 
 		self.fileLoader = testhelper.createSingletonMock(util.FileReader)
 		when(self.fileLoader).getFileContents("data/locStrings.json").thenReturn(json.dumps(self.locStrings))
+
+		self.configManager = testhelper.createSingletonMock(util.ConfigManager)
+		when(self.configManager).get("FB.appId").thenReturn(self.appId)
 
 		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
 
@@ -193,9 +197,6 @@ class ConfigManagerTest(testhelper.TestCase):
 	def _trainAppId(self, appId):
 		when(google.appengine.api.app_identity).get_application_id().thenReturn(appId)
 
-	def _trigger(self):
-		self.testObj.loadFromDir(self.rootDir)
-
 	def _verifyConfig(self, expectedEnvironment):
 		self.assertEqual(1, self.testObj.get("foo"))
 		self.assertEqual(2, self.testObj.get("bar"))
@@ -203,25 +204,25 @@ class ConfigManagerTest(testhelper.TestCase):
 
 	def testLoadsConfigCorrectsForProduction(self):
 		self._trainAppId("familyeuchre")
-		self._trigger()
+		self._buildTestObj()
 		self._verifyConfig("production")
 
 	def testLoadsConfigCorrectsForStaging(self):
 		self._trainAppId("familyeuchre-staging")
-		self._trigger()
+		self._buildTestObj()
 		self._verifyConfig("staging")
 
 	def testLoadsConfigCorrectsForLocal(self):
 		self._trainAppId("familyeuchre-local")
-		self._trigger()
+		self._buildTestObj()
 		self._verifyConfig("local")
 
 	def testReturnsDefaultValueIfKeyIsNotPresent(self):
 		self._trainAppId("familyeuchre")
-		self._trigger()
+		self._buildTestObj()
 		self.assertEqual("hello", self.testObj.get("greeting", "hello"))
 
 	def testReturnsNoneIfKeyIsNotPresentAndNoDefaultSpecified(self):
 		self._trainAppId("familyeuchre")
-		self._trigger()
+		self._buildTestObj()
 		self.assertEqual(None, self.testObj.get("greeting"))
