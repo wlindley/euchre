@@ -114,6 +114,15 @@ RoundPlayingAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = fu
 	this.testObj.buildRefreshViewFunc = mockFunction();
 	when(this.testObj.buildRefreshViewFunc)(this.gameId).thenReturn(refreshViewFunc);
 
+	var ajaxPromise = mock(TEST.FakePromise);
+	var paramChecker = allOf(
+		hasMember("playerId", this.playerId),
+		hasMember("gameId", this.gameId),
+		hasMember("suit", suit),
+		hasMember("value", value)
+	);
+	when(this.ajax).call("playCard", paramChecker).thenReturn(ajaxPromise);
+
 	var suit = Math.floor(Math.random() * 4) + 1;
 	var value = Math.floor(Math.random() * 5) + 9;
 	var cardHtml = "foo bar card html!";
@@ -129,12 +138,8 @@ RoundPlayingAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = fu
 
 	this.testObj.buildCardClickHandler(this.gameId)(event);
 
-	verify(this.ajax).call("playCard", allOf(
-		hasMember("playerId", this.playerId),
-		hasMember("gameId", this.gameId),
-		hasMember("suit", suit),
-		hasMember("value", value)
-	), refreshViewFunc);
+	verify(this.ajax).call("playCard", paramChecker);
+	verify(ajaxPromise).done(refreshViewFunc);
 };
 
 RoundPlayingAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectly = function() {

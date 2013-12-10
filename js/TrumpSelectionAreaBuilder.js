@@ -60,7 +60,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : 0,
 				"playerId" : facebook.getSignedInPlayerId(),
 				"gameId" : gameId
-			}, self.buildRefreshViewFunc(gameId));
+			}).done(self.buildRefreshViewFunc(gameId));
 		};
 	};
 
@@ -70,7 +70,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : upSuit,
 				"playerId" : facebook.getSignedInPlayerId(),
 				"gameId" : gameId
-			}, self.buildRefreshViewFunc(gameId));
+			}).done(self.buildRefreshViewFunc(gameId));
 		};
 	};
 
@@ -82,7 +82,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 				"suit" : selectedSuitValue,
 				"playerId" : facebook.getSignedInPlayerId(),
 				"gameId" : gameId
-			}, self.buildRefreshViewFunc(gameId));
+			}).done(self.buildRefreshViewFunc(gameId));
 		};
 	};
 

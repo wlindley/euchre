@@ -66,7 +66,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 				"gameId" : gameId,
 				"suit" : suit,
 				"value" : value
-			}, self.buildRefreshViewFunc(gameId));
+			}).done(self.buildRefreshViewFunc(gameId));
 		};
 	};
 

@@ -28,7 +28,7 @@ AVOCADO.DiscardAreaBuilder = function(templateRenderer, jqueryWrapper, locString
 				"gameId" : gameId,
 				"suit" : suit,
 				"value" : value
-			}, self.buildRefreshViewFunc(gameId));
+			}).done(self.buildRefreshViewFunc(gameId));
 		};
 	};
 

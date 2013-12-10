@@ -72,6 +72,16 @@ DiscardAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = functio
 	this.testObj.buildRefreshViewFunc = mockFunction();
 	when(this.testObj.buildRefreshViewFunc)(this.gameId).thenReturn(refreshViewFunc);
 
+	var paramChecker = allOf(
+		hasMember("playerId", this.playerId),
+		hasMember("gameId", this.gameId),
+		hasMember("suit", suit),
+		hasMember("value", value)
+	);
+
+	this.ajaxPromise = mock(TEST.FakePromise);
+	when(this.ajax).call("discard", paramChecker).thenReturn(this.ajaxPromise);
+
 	var suit = Math.floor(Math.random() * 4) + 1;
 	var value = Math.floor(Math.random() * 5) + 9;
 	var cardHtml = "foo bar card html!";
@@ -87,12 +97,8 @@ DiscardAreaBuilderTest.prototype.testHandleCardClickCallsAjaxCorrectly = functio
 
 	this.testObj.buildCardClickHandler(this.gameId)(event);
 
-	verify(this.ajax).call("discard", allOf(
-		hasMember("playerId", this.playerId),
-		hasMember("gameId", this.gameId),
-		hasMember("suit", suit),
-		hasMember("value", value)
-	), refreshViewFunc);
+	verify(this.ajax).call("discard", paramChecker);
+	verify(this.ajaxPromise).done(refreshViewFunc);
 };
 
 DiscardAreaBuilderTest.prototype.testRefreshViewFuncCallsViewManagerCorrectlyAfterDelay = function() {
