@@ -107,4 +107,4 @@ class MatchmakingTicketFinder(object):
 		return self._getKey(playerId).get()
 
 	def _getQuery(self):
-		return MatchmakingTicketModel.query(MatchmakingTicketModel.lookingForMatch == True, ancestor=MatchmakingTicketRootKey).order(-MatchmakingTicketModel.searchStartTime)
+		return MatchmakingTicketModel.query(MatchmakingTicketModel.lookingForMatch == True, ancestor=MatchmakingTicketRootKey).order(MatchmakingTicketModel.searchStartTime)
