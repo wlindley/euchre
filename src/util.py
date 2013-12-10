@@ -135,6 +135,7 @@ class PageDataBuilder(object):
 	def buildData(self):
 		pageData = {}
 		pageData["appId"] = self._configManager.get("FB.appId")
+		pageData["environment"] = self._configManager.get("environment")
 		pageData["ajaxUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.AJAX_PATH
 		pageData["channelUrl"] = self._requestDataAccessor.getBaseUrl() + PageDataBuilder.CHANNEL_PATH
 		self._templateManager.loadTemplates(glob.glob(PageDataBuilder.TEMPLATE_PATTERN))

@@ -17,6 +17,7 @@ FacebookTest.prototype.setUp = function() {
 	this.otherPlayerName = "Foobing Barbazi";
 	this.otherPlayerFirstName = "Foobing";
 	this.otherPlayerLastName = "Barbazi";
+	this.environment = "production";
 
 	this.requestTitle = "bestest request title";
 	this.requestMessage = "send this awesome request";
@@ -76,7 +77,7 @@ FacebookTest.prototype.tearDown = function() {
 };
 
 FacebookTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.appId, this.channelUrl);	
+	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.appId, this.channelUrl, this.environment);	
 };
 
 FacebookTest.prototype.doTraining = function() {
@@ -193,12 +194,22 @@ FacebookTest.prototype.testHandleAjaxResponseInitializesFB = function() {
 	));
 };
 
-FacebookTest.prototype.testHandleAjaxResponse = function() {
+FacebookTest.prototype.testHandleAjaxResponseSubscribesToAuthChangedEvent = function() {
 	this.setupAjaxCall();
 
 	this.triggerInit();
 
 	verify(window.FB.Event.subscribe)("auth.authResponseChange", func());
+};
+
+FacebookTest.prototype.testHandleAjaxResponseLogsInIfEnvironmentIsLocal = function() {
+	this.environment = "local";
+	this.buildTestObj();
+	this.setupAjaxCall();
+
+	this.triggerInit();
+
+	verify(window.FB).login(func());
 };
 
 FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {

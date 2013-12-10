@@ -2,6 +2,26 @@ if (AVOCADO === undefined) {
 	var AVOCADO = {};
 }
 
+AVOCADO.StandardFacebookLoginStrategy = function() {
+	this.login = function(callback) {
+		FB.Event.subscribe("auth.authResponseChange", callback);
+	};
+};
+
+AVOCADO.StandardFacebookLoginStrategy.getInstance = function() {
+	return new AVOCADO.StandardFacebookLoginStrategy();
+};
+
+AVOCADO.LocalFacebookLoginStrategy = function() {
+	this.login = function(callback) {
+		FB.login(callback);
+	};
+};
+
+AVOCADO.LocalFacebookLoginStrategy.getInstance = function() {
+	return new AVOCADO.LocalFacebookLoginStrategy();
+};
+
 AVOCADO.FacebookRequest = function(requestId, gameId, message) {
 	this.requestId = requestId;
 	this.gameId = gameId;
@@ -13,7 +33,7 @@ AVOCADO.FacebookRequest.getInstance = function(jqueryWrapper, rawRequest) {
 	return new AVOCADO.FacebookRequest(rawRequest["id"], data["gameId"], rawRequest["message"]);
 };
 
-AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
+AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl, loginStrategy) {
 	var self = this;
 	var signedInPlayerId = "";
 	var initDeferred = null;
@@ -40,7 +60,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 			"cookie" : true,
 			"frictionlessRequests" : true
 		});
-		FB.Event.subscribe("auth.authResponseChange", handleLoginResponse);
+		loginStrategy.login(handleLoginResponse);
 	};
 
 	function handleLoginResponse(response) {
@@ -134,6 +154,12 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl) {
 	};
 };
 
-AVOCADO.Facebook.getInstance = function(jqueryWrapper, appId, channelUrl) {
-	return new AVOCADO.Facebook(jqueryWrapper, appId, channelUrl);
+AVOCADO.Facebook.getInstance = function(jqueryWrapper, appId, channelUrl, environment) {
+	var loginStrategy = null;
+	if ("local" == environment) {
+		loginStrategy = AVOCADO.LocalFacebookLoginStrategy.getInstance();
+	} else {
+		loginStrategy = AVOCADO.StandardFacebookLoginStrategy.getInstance();
+	}
+	return new AVOCADO.Facebook(jqueryWrapper, appId, channelUrl, loginStrategy);
 };

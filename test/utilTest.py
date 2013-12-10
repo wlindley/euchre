@@ -119,11 +119,13 @@ class PageDataBuilderTest(testhelper.TestCase):
 		self.templates = "the best templates ever"
 		self.locStrings = {"foo" : "all of the localized strings"}
 		self.appId = "23049279483"
+		self.environment = "foo_env"
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
 			"templates" : self.templates,
 			"locStrings" : self.locStrings,
 			"appId" : self.appId,
+			"environment" : self.environment,
 			"channelUrl" : self.baseUrl + "/data/channel.html"
 		}
 		self.expectedTemplates = None
@@ -143,6 +145,7 @@ class PageDataBuilderTest(testhelper.TestCase):
 
 		self.configManager = testhelper.createSingletonMock(util.ConfigManager)
 		when(self.configManager).get("FB.appId").thenReturn(self.appId)
+		when(self.configManager).get("environment").thenReturn(self.environment)
 
 		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
 
