@@ -11,6 +11,7 @@ from src import retriever
 class BasePlayerAITest(testhelper.TestCase):
 	def setUp(self):
 		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
+		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
 		self.playerId = "2304asdfoi34"
 		self.gameObj = testhelper.createMock(euchre.Game)
 		self.hand = [
@@ -20,10 +21,15 @@ class BasePlayerAITest(testhelper.TestCase):
 			euchre.Card.getInstance(euchre.SUIT_DIAMONDS, 12),
 			euchre.Card.getInstance(euchre.SUIT_CLUBS, 14)
 		]
+		self.upCard = euchre.Card.getInstance(euchre.SUIT_HEARTS, 5)
 
-		when(self.handRetriever).retrieveHand(self.playerId).thenReturn(self.hand)
+		when(self.handRetriever).retrieveHand(self.playerId, self.gameObj).thenReturn(self.hand)
+		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
 
-	def trigger(self):
+	def triggerSelectTrump(self):
+		self.testObj.selectTrump(self.playerId, self.gameObj)
+
+	def triggerPlayCard(self):
 		self.testObj.playCard(self.playerId, self.gameObj)
 
 class RandomCardPlayerAITest(BasePlayerAITest):
@@ -39,6 +45,24 @@ class RandomCardPlayerAITest(BasePlayerAITest):
 		def tmp(pid, card):
 			self.selectedCard = card
 		self.gameObj.playCard = tmp
-		self.trigger()
+		self.triggerPlayCard()
 		self.assertNotEqual(None, self.selectedCard)
 		self.assertTrue(self.selectedCard in self.hand)
+
+	def testSelectTrumpNeverSelectsUpCardSuit(self):
+		self.selectedTrump = None
+		def tmp(pid, suit):
+			self.selectedTrump = suit
+		self.gameObj.selectTrump = tmp
+		self.triggerSelectTrump()
+		self.assertEqual(euchre.SUIT_NONE, self.selectedTrump)
+
+	def testSelectTrumpSelectsARandomSuitWhenNoUpCard(self):
+		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(None)
+		self.selectedTrump = None
+		def tmp(pid, suit):
+			self.selectedTrump = suit
+		self.gameObj.selectTrump = tmp
+		self.triggerSelectTrump()
+		self.assertNotEqual(None, self.selectedTrump)
+		self.assertTrue(self.selectedTrump in [euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS])
