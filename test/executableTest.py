@@ -1045,6 +1045,7 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 
 	def testExecuteCreatesStartsAndSerializesGameIfEnoughPlayersInQueue(self):
 		self.gameModel.playerId = []
+		self.gameModel.teams = json.dumps([[], []])
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
 		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())

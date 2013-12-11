@@ -49,6 +49,42 @@ class ExecutableFactory(object):
 			return self._executables[action].getInstance(self._requestDataAccessor, self._responseWriter, self._session)
 		return DefaultExecutable.getInstance(self._requestDataAccessor, self._responseWriter, self._session)
 
+class AddPlayerStrategy(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return AddPlayerStrategy(serializer.GameSerializer.getInstance())
+
+	def __init__(self, gameSerializer):
+		self._gameSerializer = gameSerializer
+
+	def addPlayerToGame(self, playerId, teamId, gameModel):
+		teamInfo = json.loads(gameModel.teams)
+		if MAX_TEAM_SIZE <= len(teamInfo[teamId]):
+			logging.info("Player %s cannot join game %s because it is already full" % (playerId, gameModel.key.urlsafe()))
+			return False
+		gameModel.playerId.append(playerId)
+		teamInfo[teamId].append(playerId)
+		gameModel.teams = json.dumps(teamInfo)
+		if MAX_TEAM_SIZE == len(teamInfo[0]) and MAX_TEAM_SIZE == len(teamInfo[1]):
+			players = self._buildPlayersFromTeams(teamInfo)
+			gameObj = euchre.Game.getInstance(players, teamInfo)
+			gameObj.startGame()
+			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
+		return True
+
+	def _buildPlayersFromTeams(self, teams):
+		firstTeam = random.randint(0, 1)
+		teamFirstIndeces = [random.randint(0, 1), random.randint(0, 1)]
+		players = []
+		for i in range(MAX_TEAM_SIZE * 2):
+			currentTeam = (firstTeam + (i % 2)) % 2
+			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
+			players.append(game.Player(teams[currentTeam][currentIndex]))
+		return players
+
 class AbstractExecutable(object):
 	__metaclass__ = ABCMeta
 
@@ -186,12 +222,12 @@ class AddPlayerExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return AddPlayerExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return AddPlayerExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), social.Facebook.getInstance(requestDataAccessor, session), AddPlayerStrategy.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, facebook, addPlayerStrategy):
 		super(AddPlayerExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
-		self._gameSerializer = gameSerializer
+		self._addPlayerStrategy = addPlayerStrategy
 
 	def execute(self):
 		try:
@@ -207,31 +243,10 @@ class AddPlayerExecutable(FacebookUserExecutable):
 			logging.info("No game found for gameId %s or player %s is already in game or invalid team of %s specified" % (gameId, playerId, team))
 			self._writeResponse({"success" : False})
 			return
-		teamInfo = json.loads(gameModel.teams)
-		if MAX_TEAM_SIZE <= len(teamInfo[team]):
-			logging.info("Player %s cannot join game %s because it is already full" % (playerId, gameId))
-			self._writeResponse({"success" : False})
-			return
-		gameModel.playerId.append(playerId)
-		teamInfo[team].append(playerId)
-		gameModel.teams = json.dumps(teamInfo)
-		if MAX_TEAM_SIZE == len(teamInfo[0]) and MAX_TEAM_SIZE == len(teamInfo[1]):
-			players = self._buildPlayersFromTeams(teamInfo)
-			gameObj = euchre.Game.getInstance(players, teamInfo)
-			gameObj.startGame()
-			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
-		gameModel.put()
-		self._writeResponse({"success" : True})
-
-	def _buildPlayersFromTeams(self, teams):
-		firstTeam = random.randint(0, 1)
-		teamFirstIndeces = [random.randint(0, 1), random.randint(0, 1)]
-		players = []
-		for i in range(MAX_TEAM_SIZE * 2):
-			currentTeam = (firstTeam + (i % 2)) % 2
-			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
-			players.append(game.Player(teams[currentTeam][currentIndex]))
-		return players
+		result = self._addPlayerStrategy.addPlayerToGame(playerId, team, gameModel)
+		if True == result:
+			gameModel.put()
+		self._writeResponse({"success" : result})
 
 class GetGameDataExecutable(FacebookUserExecutable):
 	instance = None
@@ -547,13 +562,13 @@ class MatchmakingExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return MatchmakingExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session), model.MatchmakingTicketFinder.getInstance(), model.GameModelFactory.getInstance(), serializer.GameSerializer.getInstance())
+		return MatchmakingExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session), model.MatchmakingTicketFinder.getInstance(), model.GameModelFactory.getInstance(), AddPlayerStrategy.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, facebook, ticketFinder, gameModelFactory, gameSerializer):
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook, ticketFinder, gameModelFactory, addPlayerStrategy):
 		super(MatchmakingExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._ticketFinder = ticketFinder
 		self._gameModelFactory = gameModelFactory
-		self._gameSerializer = gameSerializer
+		self._addPlayerStrategy = addPlayerStrategy
 
 	ADDITIONAL_PLAYERS = 3
 
@@ -573,37 +588,20 @@ class MatchmakingExecutable(FacebookUserExecutable):
 		players = self._ticketFinder.getMatchmakingGroup(MatchmakingExecutable.ADDITIONAL_PLAYERS)
 		if MatchmakingExecutable.ADDITIONAL_PLAYERS == len(players):
 			gameModel = self._gameModelFactory.create()
-			gameModel.playerId.extend([playerId] + players)
+			players += [playerId]
+			
 			teams = [[], []]
-			for pid in gameModel.playerId:
+			for pid in players:
 				tid = random.randint(0, 1)
 				if MAX_TEAM_SIZE <= len(teams[tid]):
 					tid = (tid + 1) % 2
 				teams[tid].append(pid)
-			logging.info("teams:")
-			logging.info(teams)
-			gameModel.teams = json.dumps(teams)
-
-			orderedPlayers = self._buildPlayersFromTeams(teams)
-			gameObj = euchre.Game.getInstance(orderedPlayers, teams)
-			gameObj.startGame()
-			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
-
+				self._addPlayerStrategy.addPlayerToGame(pid, tid, gameModel)
 			gameModel.put()
 		else:
 			self._ticketFinder.addPlayerToQueue(playerId)
 
 		self._writeResponse({"success" : True})
-
-	def _buildPlayersFromTeams(self, teams):
-		firstTeam = random.randint(0, 1)
-		teamFirstIndeces = [random.randint(0, 1), random.randint(0, 1)]
-		players = []
-		for i in range(MAX_TEAM_SIZE * 2):
-			currentTeam = (firstTeam + (i % 2)) % 2
-			currentIndex = (teamFirstIndeces[currentTeam] + int(i / 2)) % 2
-			players.append(game.Player(teams[currentTeam][currentIndex]))
-		return players
 
 class GetMatchmakingStatusExecutable(FacebookUserExecutable):
 	instance = None
