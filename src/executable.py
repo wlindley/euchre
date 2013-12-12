@@ -61,6 +61,8 @@ class AddPlayerStrategy(object):
 		self._gameSerializer = gameSerializer
 
 	def addPlayerToGame(self, playerId, teamId, gameModel):
+		if None == gameModel.teams or 0 >= len(gameModel.teams):
+			gameModel.teams = json.dumps([[], []])
 		teamInfo = json.loads(gameModel.teams)
 		if MAX_TEAM_SIZE <= len(teamInfo[teamId]):
 			logging.info("Player %s cannot join game %s because it is already full" % (playerId, gameModel.key.urlsafe()))
@@ -114,11 +116,12 @@ class CreateGameExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return CreateGameExecutable(requestDataAccessor, responseWriter, session, model.GameModelFactory.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return CreateGameExecutable(requestDataAccessor, responseWriter, session, model.GameModelFactory.getInstance(), social.Facebook.getInstance(requestDataAccessor, session), AddPlayerStrategy.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFactory, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFactory, facebook, addPlayerStrategy):
 		super(CreateGameExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFactory = gameModelFactory
+		self._addPlayerStrategy = addPlayerStrategy
 
 	def execute(self):
 		playerId = self.getSignedInFacebookUser().getId()
@@ -127,10 +130,7 @@ class CreateGameExecutable(FacebookUserExecutable):
 			self._writeResponse({"success" : False})
 			return
 		gameModel = self._gameModelFactory.create()
-		gameModel.playerId = [playerId]
-		teamInfo = [[], []]
-		teamInfo[team].append(playerId)
-		gameModel.teams = json.dumps(teamInfo)
+		self._addPlayerStrategy.addPlayerToGame(playerId, team, gameModel)
 		key = gameModel.put()
 		self._writeResponse({"success" : True, "gameId" : key.urlsafe()})
 

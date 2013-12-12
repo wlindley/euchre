@@ -93,6 +93,8 @@ class CreateGameExecutableTest(BaseExecutableTestCase):
 		when(self.gameModelKey).urlsafe().thenReturn(self.gameId)
 		self.gameModel = testhelper.createMock(model.GameModel)
 		self.gameModel.gameId = "0"
+		self.gameModel.playerId = []
+		self.gameModel.teams = None
 		self.gameModel.key = None
 		when(self.gameModel).put().thenReturn(self.gameModelKey)
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
