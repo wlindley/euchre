@@ -15,4 +15,10 @@ indexes:
   properties:
   - name: lookingForMatch
   - name: searchStartTime
+
+- kind: MatchmakingTicketModel
+  ancestor: yes
+  properties:
+  - name: lookingForMatch
+  - name: searchStartTime
     direction: desc
