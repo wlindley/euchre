@@ -7,6 +7,47 @@ from mockito import *
 from src import ai
 from src import euchre
 from src import retriever
+from src import model
+
+class TurnTakerTest(testhelper.TestCase):
+	def setUp(self):
+		self.robotRetriever = testhelper.createSingletonMock(retriever.RobotRetriever)
+		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
+		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
+
+		self.players = ["1239804adjf", "32409afslk", "euchre_robot_random_0", "euchre_robot_random_1"]
+		self.randomAI = testhelper.createSingletonMock(ai.RandomCardPlayerAI)
+		self.gameObj = testhelper.createMock(model.GameModel)
+		self.status = ""
+
+		self.doTraining()
+		self.buildTestObj()
+
+	def buildTestObj(self):
+		self.testObj = ai.TurnTaker.getInstance()
+
+	def doTraining(self):
+		when(self.robotRetriever).retrieveRobotById("euchre_robot_random_0").thenReturn(self.randomAI)
+		when(self.robotRetriever).retrieveRobotById("euchre_robot_random_1").thenReturn(self.randomAI)
+		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn(self.status)
+		when(self.turnRetriever).retrieveTurn(self.gameObj, None).thenReturn(self.players[2]).thenReturn(self.players[3]).thenReturn(self.players[0])
+
+	def trigger(self):
+		self.testObj.takeTurns(self.gameObj)
+
+	def testTakeTurnsAllowsAIPlayersToSelectTrump(self):
+		self.status = "trump_selection"
+		self.doTraining()
+		self.trigger()
+		inorder.verify(self.randomAI).selectTrump("euchre_robot_random_0", self.gameObj)
+		inorder.verify(self.randomAI).selectTrump("euchre_robot_random_1", self.gameObj)
+
+	def testTakeTurnsAllowsAIPlayersToPlayCards(self):
+		self.status = "round_in_progress"
+		self.doTraining()
+		self.trigger()
+		inorder.verify(self.randomAI).playCard("euchre_robot_random_0", self.gameObj)
+		inorder.verify(self.randomAI).playCard("euchre_robot_random_1", self.gameObj)
 
 class BasePlayerAITest(testhelper.TestCase):
 	def setUp(self):

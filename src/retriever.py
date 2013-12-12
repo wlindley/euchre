@@ -252,3 +252,17 @@ class PreviousTrickRetriever(object):
 			"winnerId" : self._trickLeaderRetriever.getLeaderFromTrick(trick, round.getTrump()),
 			"playedCards" : {playerId : {"suit" : playedCards[playerId].suit, "value" : playedCards[playerId].value} for playerId in playedCards}
 		}
+
+class RobotRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return RobotRetriever()
+
+	def __init__(self):
+		pass
+
+	def retrieveRobotById(self, playerId):
+		raise Exception("Not Yet Implemented")
