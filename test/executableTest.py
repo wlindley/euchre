@@ -17,6 +17,7 @@ from src import serializer
 from src import retriever
 from src import filter
 from src import social
+from src import ai
 
 class ExecutableFactoryTest(testhelper.TestCase):
 	def setUp(self):
@@ -290,6 +291,7 @@ class AddPlayerExecutableTest(BaseExecutableTestCase):
 		self.facebook = testhelper.createSingletonMock(social.Facebook)
 		self.user = testhelper.createMock(social.User)
 		when(self.facebook).getUser("me").thenReturn(self.user)
+		self.turnTaker = testhelper.createSingletonMock(ai.TurnTaker)
 
 		self.testObj = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 
@@ -380,13 +382,80 @@ class AddPlayerExecutableTest(BaseExecutableTestCase):
 		when(src.euchre.Game).getInstance(any(list), expectedTeams).thenReturn(gameObj)
 		serializedGame = "correct game serialized"
 		when(self.gameSerializer).serialize(gameObj).thenReturn(serializedGame)
+		when(self.gameSerializer).deserialize(serializedGame).thenReturn(gameObj)
 
 		self.testObj.execute()
 
 		verify(gameObj).startGame()
 		self.assertEqual(serializedGame, self.gameModel.serializedGame)
+		verify(self.turnTaker).takeTurns(gameObj)
 		verify(self.gameModel).put()
 		self._assertResponseResult(True)
+
+	def testExecuteStartsGameBeforeLettingAITakeTurns(self):
+		self.existingPlayerIds.append("3")
+		self.existingTeams[0].append("3")
+		self.gameModel.playerId = self.existingPlayerIds
+		self.gameModel.teams = json.dumps(self.existingTeams)
+		expectedPlayerIds, expectedTeams = self._trainPlayerIdAndTeam("4", 1)
+		expectedPlayers = [game.Player(pid) for pid in expectedPlayerIds]
+		gameObj = testhelper.createMock(euchre.Game)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), expectedTeams).thenReturn(gameObj)
+		serializedGame = "correct game serialized"
+		when(self.gameSerializer).serialize(gameObj).thenReturn(serializedGame)
+		when(gameObj).startGame().thenRaise(Exception("expected"))
+
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(gameObj).startGame()
+		verify(self.turnTaker, never).takeTurns(any())
+
+	def testExecuteLetsAITakeTurnsBeforeSerializingGame(self):
+		self.existingPlayerIds.append("3")
+		self.existingTeams[0].append("3")
+		self.gameModel.playerId = self.existingPlayerIds
+		self.gameModel.teams = json.dumps(self.existingTeams)
+		expectedPlayerIds, expectedTeams = self._trainPlayerIdAndTeam("4", 1)
+		expectedPlayers = [game.Player(pid) for pid in expectedPlayerIds]
+		gameObj = testhelper.createMock(euchre.Game)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), expectedTeams).thenReturn(gameObj)
+		serializedGame = "correct game serialized"
+		when(self.gameSerializer).serialize(gameObj).thenReturn(serializedGame)
+		when(self.turnTaker).takeTurns(any()).thenRaise(Exception("expected"))
+
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(self.turnTaker).takeTurns(any())
+		verify(self.gameSerializer, never).serialize(gameObj)
+
+	def testExecuteSerializesGameBeforePuttingGameModel(self):
+		self.existingPlayerIds.append("3")
+		self.existingTeams[0].append("3")
+		self.gameModel.playerId = self.existingPlayerIds
+		self.gameModel.teams = json.dumps(self.existingTeams)
+		expectedPlayerIds, expectedTeams = self._trainPlayerIdAndTeam("4", 1)
+		expectedPlayers = [game.Player(pid) for pid in expectedPlayerIds]
+		gameObj = testhelper.createMock(euchre.Game)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), expectedTeams).thenReturn(gameObj)
+		serializedGame = "correct game serialized"
+		when(self.gameSerializer).serialize(gameObj).thenRaise(Exception("expected"))
+
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(self.gameSerializer).serialize(gameObj)
+		verify(self.gameModel, never).put()
 
 	def testExecuteInterleavesPlayersFromDifferentTeamsWhenStartingAGame(self):
 		self.existingPlayerIds.append("3")
@@ -1016,6 +1085,7 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		self.ticketFinder = testhelper.createSingletonMock(model.MatchmakingTicketFinder)
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
+		self.turnTaker = testhelper.createSingletonMock(ai.TurnTaker)
 
 		self.gameModel = testhelper.createMock(model.GameModel)
 		self.gameObj = testhelper.createMock(euchre.Game)
@@ -1064,10 +1134,62 @@ class MatchmakingExecutableTest(BaseExecutableTestCase):
 		self.assertEqual(2, len(resultTeams[1]))
 
 		verify(self.gameObj).startGame()
+		verify(self.turnTaker).takeTurns(self.gameObj)
 		self.assertEqual(self.serializedGame, self.gameModel.serializedGame)
 		verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 		verify(self.ticketFinder, never).addPlayerToQueue(self.playerId)
+
+	def testExecuteStartsGameBeforeTakingAITurns(self):
+		self.gameModel.playerId = []
+		self.gameModel.teams = json.dumps([[], []])
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), any(list)).thenReturn(self.gameObj)
+		when(self.gameObj).startGame().thenRaise(Exception("expected"))
+		
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(self.gameObj).startGame()
+		verify(self.turnTaker, never).takeTurns(self.gameObj)
+
+	def testExecuteTakesAITurnsBeforeSerializingGame(self):
+		self.gameModel.playerId = []
+		self.gameModel.teams = json.dumps([[], []])
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), any(list)).thenReturn(self.gameObj)
+		when(self.turnTaker).takeTurns(self.gameObj).thenRaise(Exception("expected"))
+		
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(self.turnTaker).takeTurns(self.gameObj)
+		verify(self.gameSerializer, never).serialize(self.gameObj)
+
+	def testExecuteSerializesGameBeforePuttingGameModel(self):
+		self.gameModel.playerId = []
+		self.gameModel.teams = json.dumps([[], []])
+		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)
+		when(self.ticketFinder).getMatchmakingGroup(3).thenReturn(self.otherPlayerIds)
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		when(src.euchre.Game).getInstance(any(list), any(list)).thenReturn(self.gameObj)
+		when(self.gameSerializer).serialize(self.gameObj).thenRaise(Exception("expected"))
+		
+		try:
+			self.testObj.execute()
+		except Exception as e:
+			pass
+
+		verify(self.gameSerializer).serialize(self.gameObj)
+		verify(self.gameModel, never).put()
 
 	def testExecuteAddsUserToQueueIfNotEnoughPlayersInQueue(self):
 		when(self.ticketFinder).isPlayerInQueue(self.playerId).thenReturn(False)

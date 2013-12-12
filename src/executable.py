@@ -11,6 +11,7 @@ import model
 import retriever
 import filter
 import social
+import ai
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -55,10 +56,11 @@ class AddPlayerStrategy(object):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return AddPlayerStrategy(serializer.GameSerializer.getInstance())
+		return AddPlayerStrategy(serializer.GameSerializer.getInstance(), ai.TurnTaker.getInstance())
 
-	def __init__(self, gameSerializer):
+	def __init__(self, gameSerializer, turnTaker):
 		self._gameSerializer = gameSerializer
+		self._turnTaker = turnTaker
 
 	def addPlayerToGame(self, playerId, teamId, gameModel):
 		if None == gameModel.teams or 0 >= len(gameModel.teams):
@@ -74,6 +76,7 @@ class AddPlayerStrategy(object):
 			players = self._buildPlayersFromTeams(teamInfo)
 			gameObj = euchre.Game.getInstance(players, teamInfo)
 			gameObj.startGame()
+			self._turnTaker.takeTurns(gameObj)
 			gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		return True
 
@@ -387,12 +390,13 @@ class PlayCardExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return PlayCardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return PlayCardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(requestDataAccessor, session), ai.TurnTaker.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook, turnTaker):
 		super(PlayCardExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
+		self._turnTaker = turnTaker
 
 	def execute(self):
 		playerId = self.getSignedInFacebookUser().getId()

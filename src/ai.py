@@ -6,6 +6,20 @@ import retriever
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+class TurnTaker(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return TurnTaker()
+
+	def __init__(self):
+		pass
+
+	def takeTurns(self, gameObj):
+		raise Exception("Not Yet Implemented")
+
 class BasePlayerAI(object):
 	def __init__(self, handRetriever, upCardRetriever):
 		self._handRetriever = handRetriever
