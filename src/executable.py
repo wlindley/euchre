@@ -332,14 +332,15 @@ class SelectTrumpExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return SelectTrumpExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.DealerRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return SelectTrumpExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.DealerRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), social.Facebook.getInstance(requestDataAccessor, session), ai.TurnTaker.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, dealerRetriever, upCardRetriever, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, dealerRetriever, upCardRetriever, facebook, turnTaker):
 		super(SelectTrumpExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._dealerRetriever = dealerRetriever
 		self._upCardRetriever = upCardRetriever
+		self._turnTaker = turnTaker
 
 	def execute(self):
 		gameId = self._requestDataAccessor.get("gameId")
@@ -379,6 +380,7 @@ class SelectTrumpExecutable(FacebookUserExecutable):
 			self._writeResponse({"success" : False})
 			return
 
+		self._turnTaker.takeTurns(gameObj)
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 
@@ -431,6 +433,7 @@ class PlayCardExecutable(FacebookUserExecutable):
 			self._writeResponse({"success" : False})
 			return
 
+		self._turnTaker.takeTurns(gameObj)
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
 		self._writeResponse({"success" : True})

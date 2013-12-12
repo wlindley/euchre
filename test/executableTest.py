@@ -683,6 +683,8 @@ class SelectTrumpExecutableTest(BaseExecutableTestCase):
 		when(src.game.Player).getInstance(self.playerId).thenReturn(self.player)
 		when(src.game.Player).getInstance(self.dealerId).thenReturn(self.dealerPlayer)
 
+		self.turnTaker = testhelper.createSingletonMock(ai.TurnTaker)
+
 		self._buildTestObj()
 
 	def _verifyCorrectResponse(self, expectedSuit):
@@ -690,6 +692,7 @@ class SelectTrumpExecutableTest(BaseExecutableTestCase):
 		inorder.verify(self.game).getSequenceState() #just to satisfy the way inorder works
 		inorder.verify(self.game).addCardToHand(self.dealerPlayer, self.upCard)
 		inorder.verify(self.game).selectTrump(self.player, expectedSuit)
+		inorder.verify(self.turnTaker).takeTurns(self.game)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
@@ -792,6 +795,8 @@ class PlayCardExecutableTest(BaseExecutableTestCase):
 		self.gameSerializer = testhelper.createSingletonMock(serializer.GameSerializer)
 		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.game)
 
+		self.turnTaker = testhelper.createSingletonMock(ai.TurnTaker)
+
 		self._buildTestObj()
 
 	def testExecuteCorrectlyPlaysCardWhenValidDataIsPassedIn(self):
@@ -803,6 +808,7 @@ class PlayCardExecutableTest(BaseExecutableTestCase):
 
 		self.assertEqual(postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).playCard(self.player, self.card)
+		inorder.verify(self.turnTaker).takeTurns(self.game)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
