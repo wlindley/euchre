@@ -175,7 +175,7 @@ class ListGamesExecutableTest(BaseExecutableTestCase):
 			when(self.gameSerializer).deserialize(serializedGames[i]).thenReturn(games[i])
 			when(games[i]).getSequence().thenReturn(sequences[i])
 			when(sequences[i]).getState().thenReturn(sequenceStates[i])
-			when(self.turnRetriever).retrieveTurn(games[i], playerId).thenReturn(currentTurns[i])
+			when(self.turnRetriever).retrieveTurn(games[i]).thenReturn(currentTurns[i])
 		gameModels[3].playerId = gameModels[3].playerId[:2]
 		gameModels[3].teams = json.dumps([teams[0]])
 		gameModels[3].serializedGame = ""
@@ -238,7 +238,7 @@ class GetBasicGameDataExecutableTest(BaseExecutableTestCase):
 
 			when(self.gameModelFinder).getGameByGameId(self.gameIds[i]).thenReturn(curModel)
 			when(self.gameSerializer).deserialize(self.serializedGames[i]).thenReturn(self.games[i])
-			when(self.turnRetriever).retrieveTurn(self.games[i], "").thenReturn(self.currentPlayerIds[i])
+			when(self.turnRetriever).retrieveTurn(self.games[i]).thenReturn(self.currentPlayerIds[i])
 			when(self.gameStatusRetriever).retrieveGameStatus(self.games[i]).thenReturn(self.statuses[i])
 
 		when(self.requestDataAccessor).get("gameIds").thenReturn(self.gameIdsString)
@@ -561,7 +561,7 @@ class GetGameDataExecutableTest(BaseExecutableTestCase):
 		self.hand = [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)), euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14))]
 		when(self.handRetriever).retrieveHand(self.playerId, self.gameObj).thenReturn(self.hand)
 
-		when(self.turnRetriever).retrieveTurn(self.gameObj, self.playerId).thenReturn(self.playerId)
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.playerId)
 
 		self.previousTrick = "the most previous of tricks"
 		self.previousTrickRetriever = testhelper.createSingletonMock(retriever.PreviousTrickRetriever)

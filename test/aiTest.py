@@ -30,7 +30,7 @@ class TurnTakerTest(testhelper.TestCase):
 		when(self.robotFactory).buildRobot("euchre_robot_random_0").thenReturn(self.randomAI)
 		when(self.robotFactory).buildRobot("euchre_robot_random_1").thenReturn(self.randomAI)
 		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn(self.status)
-		when(self.turnRetriever).retrieveTurn(self.gameObj, None).thenReturn(self.players[2]).thenReturn(self.players[3]).thenReturn(self.players[0])
+		when(self.turnRetriever).retrieveTurn(self.gameObj).thenReturn(self.players[2]).thenReturn(self.players[3]).thenReturn(self.players[0])
 
 	def trigger(self):
 		self.testObj.takeTurns(self.gameObj)

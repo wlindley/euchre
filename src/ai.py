@@ -20,7 +20,7 @@ class TurnTaker(object):
 		self._turnRetriever = turnRetriever
 
 	def takeTurns(self, gameObj):
-		playerId = self._turnRetriever.retrieveTurn(gameObj, None)
+		playerId = self._turnRetriever.retrieveTurn(gameObj)
 		robot = self._robotFactory.buildRobot(playerId)
 		while None != robot:
 			status = self._gameStatusRetriever.retrieveGameStatus(gameObj)
@@ -30,7 +30,7 @@ class TurnTaker(object):
 				robot.discardCard(playerId, gameObj)
 			elif "round_in_progress" == status:
 				robot.playCard(playerId, gameObj)
-			playerId = self._turnRetriever.retrieveTurn(gameObj, None)
+			playerId = self._turnRetriever.retrieveTurn(gameObj)
 			robot = self._robotFactory.buildRobot(playerId)
 
 class RobotFactory(object):
