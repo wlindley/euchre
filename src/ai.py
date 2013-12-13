@@ -27,7 +27,7 @@ class TurnTaker(object):
 			if "trump_selection" == status:
 				robot.selectTrump(playerId, gameObj)
 			elif "discard" == status:
-				robot.discard(playerId, gameObj)
+				robot.discardCard(playerId, gameObj)
 			elif "round_in_progress" == status:
 				robot.playCard(playerId, gameObj)
 			playerId = self._turnRetriever.retrieveTurn(gameObj, None)
@@ -41,7 +41,7 @@ class BasePlayerAI(object):
 	def selectTrump(self, playerId, gameObj):
 		pass
 
-	def discard(self, playerId, gameObj):
+	def discardCard(self, playerId, gameObj):
 		pass
 
 	def playCard(self, playerId, gameObj):
@@ -65,8 +65,9 @@ class RandomCardPlayerAI(BasePlayerAI):
 		else:
 			gameObj.selectTrump(playerId, random.choice([euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS]))
 
-	def discard(self, playerId, gameObj):
-		raise Exception("Not Yet Implemented")
+	def discardCard(self, playerId, gameObj):
+		hand = self._handRetriever.retrieveHand(playerId, gameObj)
+		gameObj.discardCard(playerId, random.choice(hand))
 
 	def playCard(self, playerId, gameObj):
 		hand = self._handRetriever.retrieveHand(playerId, gameObj)

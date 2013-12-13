@@ -52,7 +52,7 @@ class TurnTakerTest(testhelper.TestCase):
 	def testTakeTurnsAllowsAIPlayersToPlayCards(self):
 		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn("discard").thenReturn("round_in_progress")
 		self.trigger()
-		inorder.verify(self.randomAI).discard("euchre_robot_random_0", self.gameObj)
+		inorder.verify(self.randomAI).discardCard("euchre_robot_random_0", self.gameObj)
 		inorder.verify(self.randomAI).playCard("euchre_robot_random_1", self.gameObj)
 
 class BasePlayerAITest(testhelper.TestCase):
@@ -76,6 +76,9 @@ class BasePlayerAITest(testhelper.TestCase):
 	def triggerSelectTrump(self):
 		self.testObj.selectTrump(self.playerId, self.gameObj)
 
+	def triggerDiscardCard(self):
+		self.testObj.discardCard(self.playerId, self.gameObj)
+
 	def triggerPlayCard(self):
 		self.testObj.playCard(self.playerId, self.gameObj)
 
@@ -93,8 +96,8 @@ class RandomCardPlayerAITest(BasePlayerAITest):
 			self.selectedCard = card
 		self.gameObj.playCard = tmp
 		self.triggerPlayCard()
-		self.assertNotEqual(None, self.selectedCard)
-		self.assertTrue(self.selectedCard in self.hand)
+		self.assertIsNotNone(self.selectedCard)
+		self.assertIn(self.selectedCard, self.hand)
 
 	def testSelectTrumpNeverSelectsUpCardSuit(self):
 		self.selectedTrump = None
@@ -111,5 +114,14 @@ class RandomCardPlayerAITest(BasePlayerAITest):
 			self.selectedTrump = suit
 		self.gameObj.selectTrump = tmp
 		self.triggerSelectTrump()
-		self.assertNotEqual(None, self.selectedTrump)
+		self.assertIsNotNone(self.selectedTrump)
 		self.assertTrue(self.selectedTrump in [euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS])
+
+	def testDiscardDiscardsARandomCardFromHand(self):
+		self.selectedCard = None
+		def tmp(pid, card):
+			self.selectedCard = card
+		self.gameObj.discardCard = tmp
+		self.triggerDiscardCard()
+		self.assertIsNotNone(self.selectedCard)
+		self.assertIn(self.selectedCard, self.hand)
