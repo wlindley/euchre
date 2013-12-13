@@ -11,7 +11,7 @@ from src import model
 
 class TurnTakerTest(testhelper.TestCase):
 	def setUp(self):
-		self.robotRetriever = testhelper.createSingletonMock(retriever.RobotRetriever)
+		self.robotFactory = testhelper.createSingletonMock(ai.RobotFactory)
 		self.gameStatusRetriever = testhelper.createSingletonMock(retriever.GameStatusRetriever)
 		self.turnRetriever = testhelper.createSingletonMock(retriever.TurnRetriever)
 
@@ -27,8 +27,8 @@ class TurnTakerTest(testhelper.TestCase):
 		self.testObj = ai.TurnTaker.getInstance()
 
 	def doTraining(self):
-		when(self.robotRetriever).retrieveRobotById("euchre_robot_random_0").thenReturn(self.randomAI)
-		when(self.robotRetriever).retrieveRobotById("euchre_robot_random_1").thenReturn(self.randomAI)
+		when(self.robotFactory).buildRobot("euchre_robot_random_0").thenReturn(self.randomAI)
+		when(self.robotFactory).buildRobot("euchre_robot_random_1").thenReturn(self.randomAI)
 		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn(self.status)
 		when(self.turnRetriever).retrieveTurn(self.gameObj, None).thenReturn(self.players[2]).thenReturn(self.players[3]).thenReturn(self.players[0])
 
@@ -54,6 +54,26 @@ class TurnTakerTest(testhelper.TestCase):
 		self.trigger()
 		inorder.verify(self.randomAI).discardCard("euchre_robot_random_0", self.gameObj)
 		inorder.verify(self.randomAI).playCard("euchre_robot_random_1", self.gameObj)
+
+class RobotFactoryTest(testhelper.TestCase):
+	def setUp(self):
+		self.buildTestObj()
+
+	def buildTestObj(self):
+		self.testObj = ai.RobotFactory.getInstance()
+
+	def runTest(self, playerId, expectedType):
+		result = self.testObj.buildRobot(playerId)
+		self.assertIsInstance(result, expectedType)
+
+	def testForUnknownPlayerId(self):
+		self.runTest("2309482033", type(None))
+
+	def testForRandomCardPlayerAI(self):
+		self.runTest("euchre_robot_random_0", ai.RandomCardPlayerAI)
+
+	def testForRandomCardPlayerAIWithDifferentName(self):
+		self.runTest("euchre_robot_random_1", ai.RandomCardPlayerAI)
 
 class BasePlayerAITest(testhelper.TestCase):
 	def setUp(self):

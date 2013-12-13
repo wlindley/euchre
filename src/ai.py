@@ -12,16 +12,16 @@ class TurnTaker(object):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return TurnTaker(retriever.RobotRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.TurnRetriever.getInstance())
+		return TurnTaker(RobotFactory.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.TurnRetriever.getInstance())
 
 	def __init__(self, robotRetriever, gameStatusRetriever, turnRetriever):
-		self._robotRetriever = robotRetriever
+		self._robotFactory = robotRetriever
 		self._gameStatusRetriever = gameStatusRetriever
 		self._turnRetriever = turnRetriever
 
 	def takeTurns(self, gameObj):
 		playerId = self._turnRetriever.retrieveTurn(gameObj, None)
-		robot = self._robotRetriever.retrieveRobotById(playerId)
+		robot = self._robotFactory.buildRobot(playerId)
 		while None != robot:
 			status = self._gameStatusRetriever.retrieveGameStatus(gameObj)
 			if "trump_selection" == status:
@@ -31,7 +31,23 @@ class TurnTaker(object):
 			elif "round_in_progress" == status:
 				robot.playCard(playerId, gameObj)
 			playerId = self._turnRetriever.retrieveTurn(gameObj, None)
-			robot = self._robotRetriever.retrieveRobotById(playerId)
+			robot = self._robotFactory.buildRobot(playerId)
+
+class RobotFactory(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return RobotFactory()
+
+	def __init__(self):
+		pass
+
+	def buildRobot(self, playerId):
+		if playerId.startswith("euchre_robot_random_"):
+			return RandomCardPlayerAI.getInstance()
+		return None
 
 class BasePlayerAI(object):
 	def __init__(self, handRetriever, upCardRetriever):
