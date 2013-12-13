@@ -61,13 +61,14 @@ class TurnRetrieverTest(testhelper.TestCase):
 		when(self.round).getTurnTracker().thenReturn(self.roundTurnTracker)
 		when(self.trumpSelector).getTurnTracker().thenReturn(self.trumpTurnTracker)
 		self.game = euchre.Game.getInstance(self.players, self.teams)
+		when(self.game).getPlayers().thenReturn(self.players)
 
 		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
 
 		self.testObj = retriever.TurnRetriever.getInstance()
 
 	def _trigger(self):
-		return self.testObj.retrieveTurn(self.game, self.requestingPlayerId)
+		return self.testObj.retrieveTurn(self.game)
 
 	def _buildHand(self, handSize):
 		return [euchre.Card(suit=random.randint(1, 4), value=random.randint(9, 14)) for i in range(handSize)]
@@ -96,19 +97,16 @@ class TurnRetrieverTest(testhelper.TestCase):
 		result = self._trigger()
 		self.assertEqual(currentPlayer, result)
 
-	def testSaysItIsRequestingPlayersTurnIfInDiscardStateAndThatPlayerHasTooManyCards(self):
-		when(self.handRetriever).retrieveHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(6))
+	def testPlayerThatHasTooManyCardsInHandIfStateIsDiscard(self):
+		for i in range(len(self.players)):
+			if self.players[i].playerId == self.requestingPlayerId:
+				when(self.handRetriever).retrieveHand(self.players[i].playerId, self.game).thenReturn(self._buildHand(6))
+			else:
+				when(self.handRetriever).retrieveHand(self.players[i].playerId, self.game).thenReturn(self._buildHand(5))
 		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
 		self.game.startGame()
 		result = self._trigger()
 		self.assertEqual(self.requestingPlayerId, result)
-
-	def testSaysItIsNoOnesTurnIfInDiscardStateAndRequestingPlayerDoesNotHaveTooManyCards(self):
-		when(self.handRetriever).retrieveHand(self.requestingPlayerId, self.game).thenReturn(self._buildHand(5))
-		when(self.sequence).getState().thenReturn(euchre.Sequence.STATE_DISCARD)
-		self.game.startGame()
-		result = self._trigger()
-		self.assertEqual(None, result)
 
 	def testReturnsNoneIfGameNotStarted(self):
 		result = self._trigger()

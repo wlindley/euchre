@@ -47,7 +47,7 @@ class TurnRetriever(object):
 		super(TurnRetriever, self).__init__()
 		self._handRetriever = handRetriever
 
-	def retrieveTurn(self, gameObj, requestingPlayerId):
+	def retrieveTurn(self, gameObj):
 		sequence = gameObj.getSequence()
 		if None == sequence:
 			return None
@@ -57,9 +57,10 @@ class TurnRetriever(object):
 		elif euchre.Sequence.STATE_PLAYING_ROUND == sequenceState:
 			return sequence.getRound().getTurnTracker().getCurrentPlayerId()
 		elif euchre.Sequence.STATE_DISCARD == sequenceState:
-			hand = self._handRetriever.retrieveHand(requestingPlayerId, gameObj)
-			if euchre.Round.MAX_HAND_SIZE < len(hand):
-				return requestingPlayerId
+			for player in gameObj.getPlayers():
+				hand = self._handRetriever.retrieveHand(player.playerId, gameObj)
+				if euchre.Round.MAX_HAND_SIZE < len(hand):
+					return player.playerId
 		return None
 
 class UpCardRetriever(object):
