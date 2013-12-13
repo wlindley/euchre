@@ -43,10 +43,16 @@ class TurnTakerTest(testhelper.TestCase):
 		inorder.verify(self.randomAI).selectTrump("euchre_robot_random_1", self.gameObj)
 
 	def testTakeTurnsAllowsAIPlayersToPlayCards(self):
-		self.status = "round_in_progress"
+		self.status = "discard"
 		self.doTraining()
 		self.trigger()
 		inorder.verify(self.randomAI).playCard("euchre_robot_random_0", self.gameObj)
+		inorder.verify(self.randomAI).playCard("euchre_robot_random_1", self.gameObj)
+
+	def testTakeTurnsAllowsAIPlayersToPlayCards(self):
+		when(self.gameStatusRetriever).retrieveGameStatus(self.gameObj).thenReturn("discard").thenReturn("round_in_progress")
+		self.trigger()
+		inorder.verify(self.randomAI).discard("euchre_robot_random_0", self.gameObj)
 		inorder.verify(self.randomAI).playCard("euchre_robot_random_1", self.gameObj)
 
 class BasePlayerAITest(testhelper.TestCase):
