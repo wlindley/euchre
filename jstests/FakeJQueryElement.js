@@ -2,6 +2,10 @@ if (TEST == undefined) {
 	var TEST = {};
 }
 
+TEST.FakeJQueryEvent = function() {
+	this.stopPropagation = function() {};
+};
+
 TEST.FakeJQueryElement = function() {
 	this.html = function() {};
 	this.show = function() {};
@@ -25,4 +29,5 @@ TEST.FakeJQueryElement = function() {
 	this.text = function() {};
 	this.dropdown = function() {};
 	this.width = function() {};
+	this.modal = function() {};
 };

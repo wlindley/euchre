@@ -19,8 +19,15 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		element.find(".inviteToGame").hide();
 		element.find(".gameOver").hide();
 
+		var addRobotsButton = element.find(".addRobotsButton");
+		var addRobotsModal = element.find(".addRobotsModal");
+		addRobotsModal.modal("setting", {"duration" : 200});
+		addRobotsButton.hide();
+		addRobotsButton.click(this.buildAddRobotsClickHandler(gameData.gameId, addRobotsModal));
+
 		if ("waiting_for_more_players" == gameData.status) {
 			if (isInvite) {
+				element.find(".addRobotsButton").show();
 				element.find(".inviteToGame").show();
 				element.click(this.buildGameInviteClickHandler(gameData.gameId));
 			} else {
@@ -116,6 +123,13 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 			setTimeout(function() {
 				viewManager.showView("gameList");
 			}, 100);
+		};
+	};
+
+	this.buildAddRobotsClickHandler = function(gameId, modalElement) {
+		return function(event) {
+			event.stopPropagation();
+			modalElement.modal("show");
 		};
 	};
 };

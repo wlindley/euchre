@@ -1,5 +1,19 @@
 <div class="gameListEntry item">
 
+	<div class="addRobotsModal ui modal">
+		<i class="close icon"/>
+		<div class="header">
+			Such Modal
+		</div>
+		<div class="content">
+			Much Dialog
+		</div>
+		<div class="actions">
+			<div class="ui button">Cancel</div>
+			<div class="ui button">OK</div>
+		</div>
+	</div>
+
 	<div class="ui middle center aligned grid">
 
 		<div class="one wide column">
@@ -9,7 +23,7 @@
 			<i class="gameOver remove icon"/>
 		</div>
 
-		<div class="three wide column">
+		<div class="two wide column">
 			<h5 class="ui header">Turn</h5>
 			<div class="turn"><div class="playerName ui label"/></div>
 		</div>
@@ -32,7 +46,11 @@
 			</div>
 		</div>
 
-		<div class="four wide column">
+		<div class="two wide column">
+			<div class="addRobotsButton ui teal button">Add Robots</div>
+		</div>
+
+		<div class="three wide column">
 			<h5 class="ui header">Status</h5>
 			<div><div class="ui label">%status%</div></div>
 		</div>
