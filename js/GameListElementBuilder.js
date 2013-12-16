@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
+AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, addRobotsModalBuilder) {
 	var self = this;
 
 	this.buildListElement = function(gameData, isInvite, requestId) {
@@ -19,11 +19,11 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		element.find(".inviteToGame").hide();
 		element.find(".gameOver").hide();
 
+		var addRobotsModal = addRobotsModalBuilder.buildAddRobotsModal(gameData.teams);
 		var addRobotsButton = element.find(".addRobotsButton");
-		var addRobotsModal = element.find(".addRobotsModal");
-		addRobotsModal.modal("setting", {"duration" : 200});
+		element.find(".addRobotsModalContainer").append(addRobotsModal.getElement());
 		addRobotsButton.hide();
-		addRobotsButton.click(this.buildAddRobotsClickHandler(gameData.gameId, addRobotsModal));
+		addRobotsButton.click(this.buildAddRobotsClickHandler(addRobotsModal));
 
 		if ("waiting_for_more_players" == gameData.status) {
 			if (isInvite) {
@@ -126,14 +126,15 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		};
 	};
 
-	this.buildAddRobotsClickHandler = function(gameId, modalElement) {
+	this.buildAddRobotsClickHandler = function(modal) {
 		return function(event) {
 			event.stopPropagation();
-			modalElement.modal("show");
+			modal.show();
 		};
 	};
 };
 
 AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
-	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager);
+	var modalBuilder = AVOCADO.AddRobotsModalBuilder.getInstance(templateRenderer, jqueryWrapper);
+	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, modalBuilder);
 };

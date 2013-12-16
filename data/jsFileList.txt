@@ -9,6 +9,7 @@ js/PlayerNameDirectory.js
 js/ViewManager.js
 js/GameLister.js
 js/GameInviteLister.js
+js/RobotsModalBuilder.js
 js/GameListElementBuilder.js
 js/GameListMenuBuilder.js
 js/GameListView.js

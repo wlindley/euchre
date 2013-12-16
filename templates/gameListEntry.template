@@ -1,18 +1,6 @@
-<div class="gameListEntry item">
+<div class="addRobotsModalContainer"/>
 
-	<div class="addRobotsModal ui modal">
-		<i class="close icon"/>
-		<div class="header">
-			Such Modal
-		</div>
-		<div class="content">
-			Much Dialog
-		</div>
-		<div class="actions">
-			<div class="ui button">Cancel</div>
-			<div class="ui button">OK</div>
-		</div>
-	</div>
+<div class="gameListEntry item">
 
 	<div class="ui middle center aligned grid">
 

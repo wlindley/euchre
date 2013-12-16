@@ -26,6 +26,8 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.gameOverElement = mock(TEST.FakeJQueryElement);
 	this.addRobotsButtonElement = mock(TEST.FakeJQueryElement);
 	this.addRobotsModalElement = mock(TEST.FakeJQueryElement);
+	this.addRobotsModal = mock(AVOCADO.AddRobotsModal);
+	this.addRobotsModalContainerElement = mock(TEST.FakeJQueryElement);
 
 	this.clickEvent = mock(TEST.FakeJQueryEvent);
 
@@ -46,6 +48,7 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.facebook = mock(AVOCADO.Facebook);
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
+	this.addRobotsModalBuilder = mock(AVOCADO.AddRobotsModalBuilder);
 
 	this.showGameDataFunc = mockFunction();
 	this.gameInviteClickHandler = mockFunction();
@@ -68,7 +71,7 @@ GameListElementBuilderTest.prototype.tearDown = function() {
 };
 
 GameListElementBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListElementBuilder(this.jqueryWrapper, this.templateRenderer, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager);
+	this.testObj = new AVOCADO.GameListElementBuilder(this.jqueryWrapper, this.templateRenderer, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager, this.addRobotsModalBuilder);
 };
 
 GameListElementBuilderTest.prototype.doTraining = function(status) {
@@ -119,7 +122,7 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 	when(this.element).find(".inviteToGame").thenReturn(this.inviteToGameElement);
 	when(this.element).find(".gameOver").thenReturn(this.gameOverElement);
 	when(this.element).find(".addRobotsButton").thenReturn(this.addRobotsButtonElement);
-	when(this.element).find(".addRobotsModal").thenReturn(this.addRobotsModalElement);
+	when(this.element).find(".addRobotsModalContainer").thenReturn(this.addRobotsModalContainerElement);
 	when(this.turnElement).find(".playerName").thenReturn(this.turnNameElement);
 	var tableDataSelector = mock(TEST.FakeJQueryElement);
 	when(this.tableElement).find(".playerNameContainer").thenReturn(tableDataSelector);
@@ -131,6 +134,8 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 			when(this.tableDataElements[j][k]).find(".playerName").thenReturn(this.tableDataNameElements[j][k]);
 		}
 	}
+	when(this.addRobotsModalBuilder).buildAddRobotsModal(this.team).thenReturn(this.addRobotsModal);
+	when(this.addRobotsModal).getElement().thenReturn(this.addRobotsModalElement);
 };
 
 GameListElementBuilderTest.prototype.trigger = function(isInvite, requestId) {
@@ -138,7 +143,7 @@ GameListElementBuilderTest.prototype.trigger = function(isInvite, requestId) {
 };
 
 GameListElementBuilderTest.prototype.triggerAddRobotsClick = function() {
-	this.testObj.buildAddRobotsClickHandler(this.gameId, this.addRobotsModalElement)(this.clickEvent);
+	this.testObj.buildAddRobotsClickHandler(this.addRobotsModal)(this.clickEvent);
 };
 
 GameListElementBuilderTest.prototype.testBuildListElementReturnsExpectedObject = function() {
@@ -149,6 +154,7 @@ GameListElementBuilderTest.prototype.testBuildListElementReturnsExpectedObject =
 	verify(this.inviteToGameElement).hide();
 	verify(this.gameOverElement).hide();
 	verify(this.addRobotsButtonElement).hide();
+	verify(this.addRobotsModalContainerElement).append(this.addRobotsModalElement);
 };
 
 GameListElementBuilderTest.prototype.testHooksUpTurnNamePromise = function() {
@@ -168,7 +174,7 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAsAndShowsA
 	this.testObj.buildGameInviteClickHandler = mockFunction();
 	when(this.testObj.buildGameInviteClickHandler)(this.gameId).thenReturn(this.gameInviteClickHandler);
 	this.testObj.buildAddRobotsClickHandler = mockFunction();
-	when(this.testObj.buildAddRobotsClickHandler)(this.gameId, this.addRobotsModalElement).thenReturn(this.addRobotsClickHandler);
+	when(this.testObj.buildAddRobotsClickHandler)(this.addRobotsModal).thenReturn(this.addRobotsClickHandler);
 	this.team = [this.team[0], [this.team[1][0]]];
 	this.doTraining("waiting_for_more_players");
 	this.trigger(true, undefined);
@@ -305,15 +311,6 @@ GameListElementBuilderTest.prototype.testAddsCorrectClassesForTeamsWhenLocalPlay
 	verify(this.team1Element).addClass("red");
 };
 
-GameListElementBuilderTest.prototype.testInitializesModalDialog = function() {
-	this.team = [this.team[0], [this.team[1][0]]];
-	this.doTraining("waiting_for_more_players");
-	this.trigger();
-	verify(this.addRobotsModalElement).modal("setting", allOf(
-		hasMember("duration", 200)
-	));
-};
-
 GameListElementBuilderTest.prototype.testHandleGameInviteClickCallsFacebook = function() {
 	this.team = [this.team[0], [this.team[1][0]]];
 	this.doTraining("waiting_for_more_players");
@@ -394,5 +391,5 @@ GameListElementBuilderTest.prototype.testAddRobotsClickHandlerShowsModalDialog =
 	this.team = [this.team[0], [this.team[1][0]]];
 	this.doTraining("waiting_for_more_players");
 	this.triggerAddRobotsClick();
-	verify(this.addRobotsModalElement).modal("show");
+	verify(this.addRobotsModal).show();
 };

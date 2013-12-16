@@ -1,0 +1,57 @@
+<div class="addRobotsModal ui modal">
+	<i class="close icon"/>
+	<div class="header">
+		Add Robots
+	</div>
+	<div class="content">
+		<div class="ui middle center aligned two column grid">
+			<div class="row">
+				<div class="column">
+					Player
+				</div>
+				<div class="column">
+					<div class="ui selection dropdown">
+						<input class="addRobots" type="hidden" name="foo" value="none"/>
+						<div class="text">None</div><i class="dropdown icon"/>
+						<div class="menu">
+							<div class="item active" data-value="none">None</div>
+							<div class="item" data-value="easy">Easy</div>
+							<div class="item" data-value="medium">Medium</div>
+							<div class="item" data-value="hard">Hard</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="column">
+					<div class="ui selection dropdown">
+						<input class="addRobots" type="hidden" name="foo" value="none"/>
+						<div class="text">None</div><i class="dropdown icon"/>
+						<div class="menu">
+							<div class="item active" data-value="none">None</div>
+							<div class="item" data-value="easy">Easy</div>
+							<div class="item" data-value="medium">Medium</div>
+							<div class="item" data-value="hard">Hard</div>
+						</div>
+					</div>
+				</div>
+				<div class="column">
+					<div class="ui selection dropdown">
+						<input class="addRobots" type="hidden" name="foo" value="none"/>
+						<div class="text">None</div><i class="dropdown icon"/>
+						<div class="menu">
+							<div class="item active" data-value="none">None</div>
+							<div class="item" data-value="easy">Easy</div>
+							<div class="item" data-value="medium">Medium</div>
+							<div class="item" data-value="hard">Hard</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="actions">
+		<div class="ui button">Cancel</div>
+		<div class="ui button">Confirm</div>
+	</div>
+</div>
