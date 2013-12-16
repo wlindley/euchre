@@ -1,5 +1,4 @@
 <div class="addRobotsModal ui modal">
-	<i class="close icon"/>
 	<div class="header">
 		Add Robots
 	</div>
@@ -51,7 +50,7 @@
 		</div>
 	</div>
 	<div class="actions">
-		<div class="ui button">Cancel</div>
-		<div class="ui button">Confirm</div>
+		<div class="ui cancel button">Cancel</div>
+		<div class="ui approve button">Confirm</div>
 	</div>
 </div>

@@ -20,8 +20,14 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper) {
 	this.buildAddRobotsModal = function(teams) {
 		var modalHtml = templateRenderer.renderTemplate("addRobotsModal");
 		var modalElement = jqueryWrapper.getElement(modalHtml);
+		var deferred = jqueryWrapper.buildDeferred();
 
-		modalElement.modal("setting", {"duration" : 200});
+		modalElement.modal("setting", {
+			"duration" : 200,
+			"closable" : false,
+			"onApprove" : deferred.resolve,
+			"onDeny" : deferred.reject
+		});
 		modalElement.find(".ui.dropdown").dropdown();
 
 		return AVOCADO.AddRobotsModal.getInstance(modalElement);
