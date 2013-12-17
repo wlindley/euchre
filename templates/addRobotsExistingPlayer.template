@@ -1,0 +1,4 @@
+<div class="playerName">
+	<input type="hidden" class="team" value="%teamId%"/>
+	<input type="hidden" class="index" value="%teamIndex%"/>
+</div>

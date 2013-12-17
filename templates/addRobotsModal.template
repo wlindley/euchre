@@ -4,47 +4,31 @@
 	</div>
 	<div class="content">
 		<div class="ui middle center aligned two column grid">
+
 			<div class="row">
 				<div class="column">
-					Player
+					<div class="ui header">Team 1</div>
 				</div>
 				<div class="column">
-					<div class="ui selection dropdown">
-						<input class="addRobots" type="hidden" name="foo" value="none"/>
-						<div class="text">None</div><i class="dropdown icon"/>
-						<div class="menu">
-							<div class="item active" data-value="none">None</div>
-							<div class="item" data-value="easy">Easy</div>
-							<div class="item" data-value="medium">Medium</div>
-							<div class="item" data-value="hard">Hard</div>
-						</div>
-					</div>
+					<div class="ui header">Team 2</div>
 				</div>
 			</div>
+
 			<div class="row">
 				<div class="column">
-					<div class="ui selection dropdown">
-						<input class="addRobots" type="hidden" name="foo" value="none"/>
-						<div class="text">None</div><i class="dropdown icon"/>
-						<div class="menu">
-							<div class="item active" data-value="none">None</div>
-							<div class="item" data-value="easy">Easy</div>
-							<div class="item" data-value="medium">Medium</div>
-							<div class="item" data-value="hard">Hard</div>
-						</div>
-					</div>
+					%team0_player0%
 				</div>
 				<div class="column">
-					<div class="ui selection dropdown">
-						<input class="addRobots" type="hidden" name="foo" value="none"/>
-						<div class="text">None</div><i class="dropdown icon"/>
-						<div class="menu">
-							<div class="item active" data-value="none">None</div>
-							<div class="item" data-value="easy">Easy</div>
-							<div class="item" data-value="medium">Medium</div>
-							<div class="item" data-value="hard">Hard</div>
-						</div>
-					</div>
+					%team1_player0%
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="column">
+					%team0_player1%
+				</div>
+				<div class="column">
+					%team1_player1%
 				</div>
 			</div>
 		</div>
