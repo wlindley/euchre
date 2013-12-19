@@ -134,7 +134,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 	};
 };
 
-AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager) {
-	var modalBuilder = AVOCADO.AddRobotsModalBuilder.getInstance(templateRenderer, jqueryWrapper, playerNameDirectory);
+AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, dataRetriever) {
+	var modalBuilder = AVOCADO.AddRobotsModalBuilder.getInstance(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever);
 	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, modalBuilder);
 };

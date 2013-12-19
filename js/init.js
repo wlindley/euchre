@@ -1,12 +1,13 @@
 $(function() {
 	function createObjects() {
 		window.jqueryWrapper = AVOCADO.JQueryWrapper.getInstance($);
+		window.dataRetriever = AVOCADO.DataRetriever.getInstance(EUCHRE);
 		window.facebook = AVOCADO.Facebook.getInstance(window.jqueryWrapper, EUCHRE.appId, EUCHRE.channelUrl, EUCHRE.environment);
 		window.ajax = AVOCADO.Ajax.getInstance(window.jqueryWrapper, EUCHRE.ajaxUrl);
 		window.templateRenderer = AVOCADO.TemplateRenderer.getInstance(EUCHRE.templates);
 		window.playerNameDirectory = AVOCADO.PlayerNameDirectory.getInstance(EUCHRE.locStrings, window.facebook);
 		window.viewManager = AVOCADO.ViewManager.getInstance();
-		window.gameListView = AVOCADO.GameListView.getInstance(window.templateRenderer, $('#gameList'), window.jqueryWrapper, window.viewManager, window.ajax, EUCHRE.locStrings, window.facebook, window.playerNameDirectory);
+		window.gameListView = AVOCADO.GameListView.getInstance(window.templateRenderer, $('#gameList'), window.jqueryWrapper, window.viewManager, window.ajax, EUCHRE.locStrings, window.facebook, window.playerNameDirectory, window.dataRetriever);
 		window.gamePlayView = AVOCADO.GamePlayView.getInstance(window.ajax, window.facebook, window.templateRenderer, $('#gamePlay'), window.viewManager, EUCHRE.locStrings, window.jqueryWrapper, window.playerNameDirectory);
 	}
 

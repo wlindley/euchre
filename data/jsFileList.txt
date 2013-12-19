@@ -1,6 +1,7 @@
 js/lib/jquery.js
 js/lib/semantic/javascript/semantic.min.js
 js/JQueryWrapper.js
+js/DataRetriever.js
 js/Facebook.js
 js/Ajax.js
 js/TemplateRenderer.js

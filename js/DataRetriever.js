@@ -4,10 +4,10 @@ if (AVOCADO == undefined) {
 
 AVOCADO.DataRetriever = function(dataObj) {
 	this.get = function(key) {
-		throw "Not Yet Implemented";
+		return dataObj[key];
 	};
 };
 
 AVOCADO.DataRetriever.getInstance = function(dataObj) {
-	return new DataRetriever(dataObj);
+	return new AVOCADO.DataRetriever(dataObj);
 };
