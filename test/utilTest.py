@@ -120,13 +120,15 @@ class PageDataBuilderTest(testhelper.TestCase):
 		self.locStrings = {"foo" : "all of the localized strings"}
 		self.appId = "23049279483"
 		self.environment = "foo_env"
+		self.robots = [{"id" : "dladksjf", "displayName" : "ewpoiure"}, {"id" : "cz,xm", "displayName" : "zxcovpiu"}]
 		self.expectedData = {
 			"ajaxUrl" : self.baseUrl + "/ajax",
 			"templates" : self.templates,
 			"locStrings" : self.locStrings,
 			"appId" : self.appId,
 			"environment" : self.environment,
-			"channelUrl" : self.baseUrl + "/data/channel.html"
+			"channelUrl" : self.baseUrl + "/data/channel.html",
+			"robots" : self.robots
 		}
 		self.expectedTemplates = None
 
@@ -146,6 +148,7 @@ class PageDataBuilderTest(testhelper.TestCase):
 		self.configManager = testhelper.createSingletonMock(util.ConfigManager)
 		when(self.configManager).get("FB.appId").thenReturn(self.appId)
 		when(self.configManager).get("environment").thenReturn(self.environment)
+		when(self.configManager).get("robots").thenReturn(self.robots)
 
 		self.testObj = util.PageDataBuilder.getInstance(self.requestDataAccessor)
 
