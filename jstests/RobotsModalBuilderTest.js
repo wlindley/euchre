@@ -16,6 +16,7 @@ RobotsModalBuilderTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.dataRetriever = mock(AVOCADO.DataRetriever);
 
 	this.buildObjects();
 	this.doTraining();
@@ -40,6 +41,19 @@ RobotsModalBuilderTest.prototype.buildObjects = function() {
 			this.playerNameElements[pid] = mock(TEST.FakeJQueryElement);
 		}
 	}
+
+	this.defaultRobotIndex = 0;
+	this.robotData = [
+		{
+			"id" : "euchre_robot_easy",
+			"displayName" : "Easy Robot",
+			"default" : true
+		},
+		{
+			"id" : "euchre_robot_hard",
+			"displayName" : "Hard Robot"
+		}
+	];
 };
 
 RobotsModalBuilderTest.prototype.doTraining = function() {
@@ -49,6 +63,13 @@ RobotsModalBuilderTest.prototype.doTraining = function() {
 
 	when(this.addRobotsModalElement).find(".ui.dropdown").thenReturn(this.addRobotsModalDropdownElement);
 
+	var menuListHtml = "";
+	for (var i in this.robotData) {
+		  var curHtml = "menu html for " + this.robotData[i].id;
+		  when(this.templateRenderer).renderTemplate("addRobotsMenuElement", allOf(hasMember("id", this.robotData[i].id), hasMember("displayName", this.robotData[i].displayName))).thenReturn(curHtml);
+		  menuListHtml += curHtml;
+	}
+
 	var playerNameElementList = mock(TEST.FakeJQueryElement);
 	when(this.addRobotsModalElement).find(".playerName").thenReturn(playerNameElementList);
 	for (var teamId = 0; teamId < 2; teamId++) {
@@ -57,7 +78,10 @@ RobotsModalBuilderTest.prototype.doTraining = function() {
 		for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
 			when(this.templateRenderer).renderTemplate("addRobotsMenu", allOf(
 				hasMember("teamId", teamId),
-				hasMember("teamIndex", teamIndex)
+				hasMember("teamIndex", teamIndex),
+				hasMember("defaultId", this.robotData[this.defaultRobotIndex].id),
+				hasMember("defaultDisplayName", this.robotData[this.defaultRobotIndex].displayName),
+				hasMember("robotList", menuListHtml)
 			)).thenReturn(this.addRobotsMenuHtmls[teamId][teamIndex]);
 			when(this.templateRenderer).renderTemplate("addRobotsExistingPlayer", allOf(
 				hasMember("teamId", teamId),
@@ -81,10 +105,12 @@ RobotsModalBuilderTest.prototype.doTraining = function() {
 		hasMember("team1_player1", player11Element)
 	)).thenReturn(this.addRobotsModalHtml);
 	when(this.jqueryWrapper).getElement(this.addRobotsModalHtml).thenReturn(this.addRobotsModalElement);
+
+	when(this.dataRetriever).get("robots").thenReturn(this.robotData);
 };
 
 RobotsModalBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.AddRobotsModalBuilder(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory);
+	this.testObj = new AVOCADO.AddRobotsModalBuilder(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory, this.dataRetriever);
 };
 
 RobotsModalBuilderTest.prototype.trigger = function() {

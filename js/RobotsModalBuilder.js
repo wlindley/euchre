@@ -16,16 +16,17 @@ AVOCADO.AddRobotsModal.getInstance = function(modalElement) {
 	return new AVOCADO.AddRobotsModal(modalElement);
 };
 
-AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
+AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever) {
 	this.buildAddRobotsModal = function(teams) {
 		var templateParams = {};
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
-				var templateName = "addRobotsExistingPlayer";
+				var paramId = "team" + teamId + "_player" + teamIndex;
 				if (undefined === teams[teamId][teamIndex]) {
-					templateName = "addRobotsMenu";
+					templateParams[paramId] = buildRobotsMenu(teamId, teamIndex);
+				} else {
+					templateParams[paramId] = templateRenderer.renderTemplate("addRobotsExistingPlayer", {"teamId" : teamId, "teamIndex" : teamIndex});
 				}
-				templateParams["team" + teamId + "_player" + teamIndex] = templateRenderer.renderTemplate(templateName, {"teamId" : teamId, "teamIndex" : teamIndex});
 			}
 		}
 
@@ -51,8 +52,30 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 
 		return AVOCADO.AddRobotsModal.getInstance(modalElement);
 	};
+
+	function buildRobotsMenu(teamId, teamIndex) {
+		var robotData = dataRetriever.get("robots");
+		var defaultId = "";
+		var defaultDisplayName = "";
+		var robotTypeListHtml = "";
+
+		for (var i in robotData) {
+			if (robotData[i].default) {
+				defaultId = robotData[i].id;
+				defaultDisplayName = robotData[i].displayName;
+			}
+			robotTypeListHtml += templateRenderer.renderTemplate("addRobotsMenuElement", {"id" : robotData[i].id, "displayName" : robotData[i].displayName});
+		}
+		return templateRenderer.renderTemplate("addRobotsMenu", {
+			"teamId" : teamId,
+			"teamIndex" : teamIndex,
+			"defaultId" : defaultId,
+			"defaultDisplayName" : defaultDisplayName,
+			"robotList" : robotTypeListHtml
+		});
+	};
 };
 
-AVOCADO.AddRobotsModalBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
-	return new AVOCADO.AddRobotsModalBuilder(templateRenderer, jqueryWrapper, playerNameDirectory);
+AVOCADO.AddRobotsModalBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever) {
+	return new AVOCADO.AddRobotsModalBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever);
 };
