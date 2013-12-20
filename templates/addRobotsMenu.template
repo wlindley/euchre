@@ -1,5 +1,7 @@
-<div class="ui selection dropdown">
-	<input class="addRobots" type="hidden" name="foo" value="%defaultId%"/>
+<div class="addRobotsDropdown ui selection dropdown">
+	<input class="addRobotsInput" type="hidden" name="addRobots" value="%defaultId%"/>
+	<input type="hidden" class="team" value="%teamId%"/>
+	<input type="hidden" class="index" value="%teamIndex%"/>
 	<div class="text">%defaultDisplayName%</div><i class="dropdown icon"/>
 	<div class="menu">
 		%robotList%

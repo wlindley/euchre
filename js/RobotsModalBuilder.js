@@ -16,8 +16,8 @@ AVOCADO.AddRobotsModal.getInstance = function(modalElement) {
 	return new AVOCADO.AddRobotsModal(modalElement);
 };
 
-AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever) {
-	this.buildAddRobotsModal = function(teams) {
+AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever, ajax, viewManager) {
+	this.buildAddRobotsModal = function(teams, gameId) {
 		var templateParams = {};
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
@@ -42,6 +42,7 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 		}
 
 		var deferred = jqueryWrapper.buildDeferred();
+		deferred.done(buildConfirmClickHandler(gameId, modalElement))
 		modalElement.modal("setting", {
 			"duration" : 200,
 			"closable" : false,
@@ -73,9 +74,31 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 			"defaultDisplayName" : defaultDisplayName,
 			"robotList" : robotTypeListHtml
 		});
-	};
+	}
+
+	function buildConfirmClickHandler(gameId, modalElement) {
+		return function(event) {
+			var robotTypes = [[null, null], [null, null]];
+			for (var teamId = 0; teamId < 2; teamId++) {
+				for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
+					//need to start with menu, not input
+					var val = modalElement.find(".addRobotsDropdown").has("input.team[value=" + teamId + "]").has("input.index[value=" + teamIndex + "]").find(".addRobotsInput").val();
+					if (val) {
+						robotTypes[teamId][teamIndex] = val;
+					}
+				}
+			}
+			ajax.call("addRobots", {"gameId" : gameId, "types" : robotTypes}).done(handleAjaxResponse);
+		};
+	}
+
+	function handleAjaxResponse(response) {
+		setTimeout(function() {
+			viewManager.showView("gameList");
+		}, 100);
+	}
 };
 
-AVOCADO.AddRobotsModalBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever) {
-	return new AVOCADO.AddRobotsModalBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever);
+AVOCADO.AddRobotsModalBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever, ajax, viewManager) {
+	return new AVOCADO.AddRobotsModalBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever, ajax, viewManager);
 };
