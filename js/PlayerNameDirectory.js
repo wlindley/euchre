@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.PlayerNameDirectory = function(locStrings, facebook) {
+AVOCADO.PlayerNameDirectory = function(locStrings, facebook, dataRetriever) {
 	var promises = {};
 
 	this.getNamePromise = function(pid) {
@@ -11,7 +11,18 @@ AVOCADO.PlayerNameDirectory = function(locStrings, facebook) {
 			if (facebook.getSignedInPlayerId() == pid) {
 				promises[pid].setName(locStrings["you"]);
 			} else {
-				facebook.getPlayerData(pid).done(this.handleResponse);
+				var displayName = null;
+				var robots = dataRetriever.get("robots");
+				for (var i in robots) {
+					if (pid == robots[i].id) {
+						displayName = robots[i].displayName;
+					}
+				}
+				if (null != displayName) {
+					promises[pid].setName(displayName);
+				} else {
+					facebook.getPlayerData(pid).done(this.handleResponse);
+				}
 			}
 		}
 		return promises[pid];
@@ -25,6 +36,6 @@ AVOCADO.PlayerNameDirectory = function(locStrings, facebook) {
 	};
 };
 
-AVOCADO.PlayerNameDirectory.getInstance = function(locStrings, facebook) {
-	return new AVOCADO.PlayerNameDirectory(locStrings, facebook);
+AVOCADO.PlayerNameDirectory.getInstance = function(locStrings, facebook, dataRetriever) {
+	return new AVOCADO.PlayerNameDirectory(locStrings, facebook, dataRetriever);
 };

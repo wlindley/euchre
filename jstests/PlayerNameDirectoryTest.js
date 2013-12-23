@@ -10,12 +10,22 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 		"you" : this.expectedYouString,
 		"someone" : "freeb"
 	};
+	this.robotPlayerId = "euchre_robot_foo";
+	this.robotPlayerName = "Foo Robot";
+	this.robotData = [
+		{
+			"id" : this.robotPlayerId,
+			"displayName" : this.robotPlayerName
+		}
+	];
 
 	this.facebook = mock(AVOCADO.Facebook);
+	this.dataRetriever = mock(AVOCADO.DataRetriever);
 	this.getPlayerDataPromise = mock(TEST.FakePromise);
 
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.localPlayerId);
 	when(this.facebook).getPlayerData(this.playerId).thenReturn(this.getPlayerDataPromise);
+	when(this.dataRetriever).get("robots").thenReturn(this.robotData);
 
 	this.buildTestObj();
 };
@@ -25,11 +35,16 @@ PlayerNameDirectoryTest.prototype.tearDown = function() {
 };
 
 PlayerNameDirectoryTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.PlayerNameDirectory(this.locStrings, this.facebook);
+	this.testObj = new AVOCADO.PlayerNameDirectory(this.locStrings, this.facebook, this.dataRetriever);
 };
 
 PlayerNameDirectoryTest.prototype.trigger = function(playerId) {
 	return this.testObj.getNamePromise(playerId);
+};
+
+PlayerNameDirectoryTest.prototype.verifyPlayerNamePromiseParams = function(pid, locStrings) {
+	assertEquals(this.playerId, pid);
+	assertEquals(this.locStrings, locStrings);
 };
 
 PlayerNameDirectoryTest.prototype.testGetNamePromiseReturnsExpectedPromise = function() {
@@ -56,11 +71,12 @@ PlayerNameDirectoryTest.prototype.testMultipleCallsToGetNamePromiseOnlyMakeOneSe
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = function() {
+	var testHarness = this;
 	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
+		testHarness.verifyPlayerNamePromiseParams(pid, locStrings);
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
-	var testHarness = this;
 	var expectedName = "John Encom";
 	when(this.getPlayerDataPromise).done(func()).then(function() {
 		testHarness.testObj.handleResponse({
@@ -75,11 +91,12 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerSetsNameOnPromise = functio
 };
 
 PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPlayerId = function() {
+	var testHarness = this;
 	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
+		testHarness.verifyPlayerNamePromiseParams(pid, locStrings);
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
-	var testHarness = this;
 	when(this.getPlayerDataPromise).done(func()).then(function() {
 		testHarness.testObj.handleResponse({});
 	});
@@ -91,12 +108,25 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 };
 
 PlayerNameDirectoryTest.prototype.testLocalPlayerIdImmediatelyGetsExpectedName = function() {
+	var testHarness = this;
 	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
 	var promise = this.trigger(this.localPlayerId);
 
-	verify(this.facebook, never()).getPlayerData(this.playerId, this.testObj.handleResponse);
+	verify(this.facebook, never()).getPlayerData(anything(), this.testObj.handleResponse);
 	verify(promise).setName(this.expectedYouString);
+};
+
+PlayerNameDirectoryTest.prototype.testRobotImmediatelyGetsExpectedName = function() {
+	var testHarness = this;
+	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
+		return mock(AVOCADO.PlayerNamePromise);
+	};
+
+	var promise = this.trigger(this.robotPlayerId);
+
+	verify(this.facebook, never()).getPlayerData(anything(), this.testObj.handleResponse);
+	verify(promise).setName(this.robotPlayerName);
 };
