@@ -19,7 +19,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		element.find(".inviteToGame").hide();
 		element.find(".gameOver").hide();
 
-		var addRobotsModal = addRobotsModalBuilder.buildAddRobotsModal(gameData.teams);
+		var addRobotsModal = addRobotsModalBuilder.buildAddRobotsModal(gameData.teams, gameData.gameId);
 		var addRobotsButton = element.find(".addRobotsButton");
 		element.find(".addRobotsModalContainer").append(addRobotsModal.getElement());
 		addRobotsButton.hide();

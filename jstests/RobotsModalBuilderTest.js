@@ -43,9 +43,11 @@ RobotsModalBuilderTest.prototype.buildObjects = function() {
 	this.playerNamePromises = {};
 	this.playerNameElements = {};
 	this.robotTypes = [[], []];
+	this.robotTypesJson = '[';
 	this.addRobotInputElements = [[], []];
 	this.addRobotDropdownElements = [[], []];
 	for (var teamId = 0; teamId < 2; teamId++) {
+		this.robotTypesJson += '[';
 		for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
 			var pid = this.teams[teamId][teamIndex];
 			this.addRobotsMenuHtmls[teamId][teamIndex] = "menu html for team " + teamId + ", player index " + teamIndex;
@@ -56,11 +58,21 @@ RobotsModalBuilderTest.prototype.buildObjects = function() {
 			this.addRobotDropdownElements[teamId][teamIndex] = mock(TEST.FakeJQueryElement);
 			if (undefined === pid) {
 				this.robotTypes[teamId][teamIndex] = "euchre_robot_easy";
+				this.robotTypesJson += '"euchre_robot_easy"';
 			} else {
 				this.robotTypes[teamId][teamIndex] = null;
+				this.robotTypesJson += 'null';
+			}
+			if (0 == teamIndex) {
+				this.robotTypesJson += ', ';
 			}
 		}
+		this.robotTypesJson += ']';
+		if (0 == teamId) {
+			this.robotTypesJson += ", ";
+		}
 	}
+	this.robotTypesJson += ']';
 
 	this.defaultRobotIndex = 0;
 	this.robotData = [
@@ -187,7 +199,7 @@ RobotsModalBuilderTest.prototype.testConfirmButtonCallsAjax = function() {
 
 	verify(this.ajax).call("addRobots", allOf(
 		hasMember("gameId", this.gameId),
-		hasMember("types", this.robotTypes)
+		hasMember("types", this.robotTypesJson)
 	));
 };
 

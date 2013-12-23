@@ -78,17 +78,19 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 
 	function buildConfirmClickHandler(gameId, modalElement) {
 		return function(event) {
-			var robotTypes = [[null, null], [null, null]];
+			var robotTypesJson = '[[%00%, %01%], [%10%, %11%]]';
 			for (var teamId = 0; teamId < 2; teamId++) {
 				for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
 					//need to start with menu, not input
 					var val = modalElement.find(".addRobotsDropdown").has("input.team[value=" + teamId + "]").has("input.index[value=" + teamIndex + "]").find(".addRobotsInput").val();
 					if (val) {
-						robotTypes[teamId][teamIndex] = val;
+						robotTypesJson = robotTypesJson.replace("%" + teamId + teamIndex + "%", '"' + val + '"');
+					} else {
+						robotTypesJson = robotTypesJson.replace("%" + teamId + teamIndex + "%", 'null');
 					}
 				}
 			}
-			ajax.call("addRobots", {"gameId" : gameId, "types" : robotTypes}).done(handleAjaxResponse);
+			ajax.call("addRobots", {"gameId" : gameId, "types" : robotTypesJson}).done(handleAjaxResponse);
 		};
 	}
 

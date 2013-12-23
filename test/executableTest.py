@@ -71,6 +71,9 @@ class ExecutableFactoryTest(testhelper.TestCase):
 	def testCallsGetMatchmakingStatusExecutableWhenActionIsGetMatchmakingStatus(self):
 		self._runTestForAction("getMatchmakingStatus", "GetMatchmakingStatusExecutable")
 
+	def testCallsAddRobotsExecutableWhenActionIsAddRobots(self):
+		self._runTestForAction("addRobots", "AddRobotsExecutable")
+
 class BaseExecutableTestCase(testhelper.TestCase):
 	def setUp(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
@@ -1265,4 +1268,56 @@ class GetMatchmakingStatusExecutableTest(BaseExecutableTestCase):
 	def testExecuteWritesFailureIfPlayerIdIsInvalid(self):
 		when(self.user).getId().thenReturn("")
 		self.testObj.execute()
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+class AddRobotsExecutableTest(BaseExecutableTestCase):
+	def setUp(self):
+		super(AddRobotsExecutableTest, self).setUp()
+		self.gameId = "saldkfj320498asldfkj"
+		self.robotTypes = [[None, "2057309"], ["09230498", None]]
+
+		self.gameModel = testhelper.createMock(model.GameModel)
+
+		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		self.addPlayerStrategy = testhelper.createSingletonMock(executable.AddPlayerStrategy)
+
+		self._doTraining()
+		self._buildTestObj()
+
+	def _buildTestObj(self):
+		self.testObj = executable.AddRobotsExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+
+	def _doTraining(self):
+		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
+		when(self.requestDataAccessor).get("types").thenReturn(json.dumps(self.robotTypes))
+		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+
+	def testExecuteAddsPlayerToTeamAndGame(self):
+		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
+		
+		self.testObj.execute()
+
+		for teamId in range(len(self.robotTypes)):
+			for robotId in self.robotTypes[teamId]:
+				if None != robotId:
+					inorder.verify(self.addPlayerStrategy).addPlayerToGame(robotId, teamId, self.gameModel)
+		inorder.verify(self.gameModel).put()
+		verify(self.responseWriter).write(json.dumps({"success" : True}))
+
+	def testExecuteDoesNothingIfInvalidGameId(self):
+		self.gameId = None
+		self._doTraining()
+
+		self.testObj.execute()
+
+		verifyZeroInteractions(self.addPlayerStrategy)
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteDoesNothingIfGameCannotByFound(self):
+		self.gameModel = None
+		self._doTraining()
+
+		self.testObj.execute()
+
+		verifyZeroInteractions(self.addPlayerStrategy)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))

@@ -41,7 +41,8 @@ class ExecutableFactory(object):
 			"getName" : GetNameExecutable,
 			"dismissCompletedGame" : RemoveCompletedGameExecutable,
 			"matchmake" : MatchmakingExecutable,
-			"getMatchmakingStatus" : GetMatchmakingStatusExecutable
+			"getMatchmakingStatus" : GetMatchmakingStatusExecutable,
+			"addRobots" : AddRobotsExecutable
 		}
 
 	def createExecutable(self):
@@ -625,7 +626,41 @@ class GetMatchmakingStatusExecutable(FacebookUserExecutable):
 	def execute(self):
 		playerId = self.getSignedInFacebookUser().getId()
 		if None == playerId or "" == playerId:
+			logging.info("Failed to get matchmaking status because player id (%s) is invalid" % playerId)
 			self._writeResponse({"success" : False})
 			return
 
 		self._writeResponse({"success" : True, "playerInQueue" : self._ticketFinder.isPlayerInQueue(playerId)})
+
+class AddRobotsExecutable(FacebookUserExecutable):
+	instance = None
+	@classmethod
+	def getInstance(cls, requestDataAccessor, responseWriter, session):
+		if None != cls.instance:
+			return cls.instance
+		return AddRobotsExecutable(requestDataAccessor, responseWriter, session, social.Facebook.getInstance(requestDataAccessor, session), AddPlayerStrategy.getInstance(), model.GameModelFinder.getInstance())
+
+	def __init__(self, requestDataAccessor, responseWriter, session, facebook, addPlayerStrategy, gameModelFinder):
+		super(AddRobotsExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
+		self._addPlayerStrategy = addPlayerStrategy
+		self._gameModelFinder = gameModelFinder
+
+	def execute(self):
+		gameId = self._requestDataAccessor.get("gameId")
+		if None == gameId or "" == gameId:
+			logging.info("Failed to add robots because game id (%s) is invalid" % gameId)
+			self._writeResponse({"success" : False})
+			return
+		robotTypes = json.loads(self._requestDataAccessor.get("types"))
+		gameModel = self._gameModelFinder.getGameByGameId(gameId)
+		if None == gameModel:
+			logging.info("Failedd to add robots to game because game with id %s could not be found" % gameId)
+			self._writeResponse({"success" : False})
+			return
+		for teamId in range(len(robotTypes)):
+			for robotType in robotTypes[teamId]:
+				if None == robotType:
+					continue
+				self._addPlayerStrategy.addPlayerToGame(robotType, teamId, gameModel)
+		gameModel.put()
+		self._writeResponse({"success" : True})

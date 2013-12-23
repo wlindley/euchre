@@ -134,7 +134,7 @@ GameListElementBuilderTest.prototype.doTraining = function(status) {
 			when(this.tableDataElements[j][k]).find(".playerName").thenReturn(this.tableDataNameElements[j][k]);
 		}
 	}
-	when(this.addRobotsModalBuilder).buildAddRobotsModal(this.team).thenReturn(this.addRobotsModal);
+	when(this.addRobotsModalBuilder).buildAddRobotsModal(this.team, this.gameId).thenReturn(this.addRobotsModal);
 	when(this.addRobotsModal).getElement().thenReturn(this.addRobotsModalElement);
 };
 
