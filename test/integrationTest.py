@@ -25,6 +25,8 @@ class IntegrationTest(testhelper.TestCase):
 		self.gameModel = testhelper.createMock(model.GameModel)
 		self.gameModel.playerId = []
 		self.gameModel.teams = json.dumps([[], []])
+		self.gameModel.readyToRemove = []
+		self.gameModel.serializedGame = ""
 		self.gameModel.key = testhelper.createMock(ndb.Key)
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
@@ -44,12 +46,18 @@ class IntegrationTest(testhelper.TestCase):
 		when(self.gameModel).put().thenReturn(self.gameModel.key)
 		when(self.gameModelFactory).create().thenReturn(self.gameModel)
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+		self.gameModelFinder.getGamesForPlayerId = lambda pid: [self.gameModel] if pid in self.gameModel.playerId else []
 
 	def createExecutableBasics(self):
 		self.requestDataAccessor = testhelper.createSingletonMock(util.RequestDataAccessor)
 		self.responseWriter = testhelper.createSingletonMock(util.ResponseWriter)
 		self.session = testhelper.createSingletonMock(util.Session)
 		self.facebook = testhelper.createSingletonMock(social.Facebook)
+
+		self.response = None
+		def handleResponse(response):
+			self.response = response
+		self.responseWriter.write = handleResponse
 
 	def trainSignedInUser(self, user):
 		when(self.facebook).getUser("me").thenReturn(user)
@@ -60,6 +68,7 @@ class IntegrationTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("team").thenReturn("0")
 		exe = executable.CreateGameExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 		exe.execute()
+		return self.response
 
 	def runAddPlayer(self, user, gameId, teamId):
 		self.createExecutableBasics()
@@ -68,6 +77,16 @@ class IntegrationTest(testhelper.TestCase):
 		when(self.requestDataAccessor).get("team").thenReturn(teamId)
 		exe = executable.AddPlayerExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
 		exe.execute()
+		return self.response
+
+	def runListGames(self, user):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		exe = executable.ListGamesExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
+	###TESTS###
 
 	def testAdding4PlayersStartsGame(self):
 		#actions
@@ -81,3 +100,14 @@ class IntegrationTest(testhelper.TestCase):
 		gameObj = gameSerializer.deserialize(self.gameModel.serializedGame)
 		status = gameStatusRetriever.retrieveGameStatus(gameObj)
 		self.assertEqual("trump_selection", status)
+
+	def testListGamesShowsGameAfterItIsCreated(self):
+		#actions
+		self.runCreateGame(self.users[0])
+		response = self.runListGames(self.users[0])
+
+		#verification
+		hydratedResponse = json.loads(response)
+		print hydratedResponse
+		self.assertEqual(1, len(hydratedResponse["games"]))
+		self.assertEqual(self.gameId, hydratedResponse["games"][0]["gameId"])
