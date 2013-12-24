@@ -13,6 +13,23 @@ from src import retriever
 from src import serializer
 from src import euchre
 
+class FakeMatchmakingTicketFinder(object):
+	def __init__(self):
+		self.queue = []
+
+	def isPlayerInQueue(self, playerId):
+		return playerId in self.queue
+
+	def addPlayerToQueue(self, playerId):
+		self.queue.append(playerId)
+
+	def getMatchmakingGroup(self, numPlayers):
+		if len(self.queue) >= 3:
+			group = self.queue[:3]
+			self.queue = self.queue[3:]
+			return group
+		return []
+
 class IntegrationTest(testhelper.TestCase):
 	def setUp(self):
 		self._currentPlayerId = 0
@@ -28,8 +45,11 @@ class IntegrationTest(testhelper.TestCase):
 		self.gameModel.readyToRemove = []
 		self.gameModel.serializedGame = ""
 		self.gameModel.key = testhelper.createMock(ndb.Key)
+
 		self.gameModelFactory = testhelper.createSingletonMock(model.GameModelFactory)
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
+		testhelper.createSingletonMock(model.MatchmakingTicketFinder)
+		model.MatchmakingTicketFinder.instance = FakeMatchmakingTicketFinder()
 
 		self.doTraining()
 
@@ -94,6 +114,20 @@ class IntegrationTest(testhelper.TestCase):
 		exe.execute()
 		return self.response
 
+	def runMatchmaking(self, user):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		exe = executable.MatchmakingExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
+	def runGetMatchmakingStatus(self, user):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		exe = executable.GetMatchmakingStatusExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
 	def createAndStartGame(self):
 		self.runCreateGame(self.users[0])
 		for i in range(1, len(self.users)):
@@ -134,3 +168,12 @@ class IntegrationTest(testhelper.TestCase):
 		self.assertEqual(2, len(hydratedResponse["teams"][0]))
 		self.assertEqual(2, len(hydratedResponse["teams"][1]))
 		self.assertEqual(5, len(hydratedResponse["round"]["hand"]))
+
+	def testMatchmakingQueue(self):
+		#actions
+		self.runMatchmaking(self.users[0])
+		response = self.runGetMatchmakingStatus(self.users[0])
+
+		#verification
+		hydratedResponse = json.loads(response)
+		self.assertTrue(hydratedResponse["playerInQueue"])
