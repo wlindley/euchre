@@ -177,3 +177,16 @@ class IntegrationTest(testhelper.TestCase):
 		#verification
 		hydratedResponse = json.loads(response)
 		self.assertTrue(hydratedResponse["playerInQueue"])
+
+	def testMatchmakingCreatesAndStartsGame(self):
+		#actions
+		preResponse = self.runListGames(self.users[0])
+		for user in self.users:
+			self.runMatchmaking(user)
+		postResponse = self.runListGames(self.users[0])
+
+		#verification
+		hydratedPreResponse = json.loads(preResponse)
+		hydratedPostResponse = json.loads(postResponse)
+		self.assertEqual(0, len(hydratedPreResponse["games"]))
+		self.assertEqual(1, len(hydratedPostResponse["games"]))
