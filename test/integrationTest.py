@@ -86,13 +86,24 @@ class IntegrationTest(testhelper.TestCase):
 		exe.execute()
 		return self.response
 
+	def runGetGameData(self, user, gameId):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		when(self.requestDataAccessor).get("gameId").thenReturn(gameId)
+		exe = executable.GetGameDataExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
+	def createAndStartGame(self):
+		self.runCreateGame(self.users[0])
+		for i in range(1, len(self.users)):
+			self.runAddPlayer(self.users[i], self.gameId, int(i / 2))
+
 	###TESTS###
 
 	def testAdding4PlayersStartsGame(self):
 		#actions
-		self.runCreateGame(self.users[0])
-		for i in range(1, len(self.users)):
-			self.runAddPlayer(self.users[i], self.gameId, int(i / 2))
+		self.createAndStartGame()
 
 		#verification
 		gameSerializer = serializer.GameSerializer.getInstance()
@@ -108,6 +119,18 @@ class IntegrationTest(testhelper.TestCase):
 
 		#verification
 		hydratedResponse = json.loads(response)
-		print hydratedResponse
 		self.assertEqual(1, len(hydratedResponse["games"]))
 		self.assertEqual(self.gameId, hydratedResponse["games"][0]["gameId"])
+
+	def testGetGameDataReturnsBasicExpectedValues(self):
+		#actions
+		self.createAndStartGame()
+		response = self.runGetGameData(self.users[0], self.gameId)
+
+		#verification
+		hydratedResponse = json.loads(response)
+		self.assertEqual(self.gameId, hydratedResponse["gameId"])
+		self.assertEqual(4, len(hydratedResponse["playerIds"]))
+		self.assertEqual(2, len(hydratedResponse["teams"][0]))
+		self.assertEqual(2, len(hydratedResponse["teams"][1]))
+		self.assertEqual(5, len(hydratedResponse["round"]["hand"]))
