@@ -1276,10 +1276,16 @@ class AddRobotsExecutableTest(BaseExecutableTestCase):
 		self.gameId = "saldkfj320498asldfkj"
 		self.robotTypes = [[None, "2057309"], ["09230498", None]]
 
+		self.playerId = "07239483"
+		self.playerName = "Foo Bar"
+		self.user = social.User.getInstance(self.playerId, self.playerName)
+
 		self.gameModel = testhelper.createMock(model.GameModel)
+		self.gameModel.playerId = [self.playerId]
 
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		self.addPlayerStrategy = testhelper.createSingletonMock(executable.AddPlayerStrategy)
+		self.facebook = testhelper.createSingletonMock(social.Facebook)
 
 		self._doTraining()
 		self._buildTestObj()
@@ -1291,6 +1297,7 @@ class AddRobotsExecutableTest(BaseExecutableTestCase):
 		when(self.requestDataAccessor).get("gameId").thenReturn(self.gameId)
 		when(self.requestDataAccessor).get("types").thenReturn(json.dumps(self.robotTypes))
 		when(self.gameModelFinder).getGameByGameId(self.gameId).thenReturn(self.gameModel)
+		when(self.facebook).getUser("me").thenReturn(self.user)
 
 	def testExecuteAddsPlayerToTeamAndGame(self):
 		testhelper.replaceClass(src.euchre, "Game", testhelper.createSimpleMock())
@@ -1316,6 +1323,14 @@ class AddRobotsExecutableTest(BaseExecutableTestCase):
 	def testExecuteDoesNothingIfGameCannotByFound(self):
 		self.gameModel = None
 		self._doTraining()
+
+		self.testObj.execute()
+
+		verifyZeroInteractions(self.addPlayerStrategy)
+		verify(self.responseWriter).write(json.dumps({"success" : False}))
+
+	def testExecuteDoesNothingIfSignedInPlayerNotInGame(self):
+		self.gameModel.playerId = []
 
 		self.testObj.execute()
 

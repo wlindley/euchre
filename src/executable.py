@@ -654,7 +654,12 @@ class AddRobotsExecutable(FacebookUserExecutable):
 		robotTypes = json.loads(self._requestDataAccessor.get("types"))
 		gameModel = self._gameModelFinder.getGameByGameId(gameId)
 		if None == gameModel:
-			logging.info("Failedd to add robots to game because game with id %s could not be found" % gameId)
+			logging.info("Failed to add robots to game because game with id %s could not be found" % gameId)
+			self._writeResponse({"success" : False})
+			return
+		playerId = self.getSignedInFacebookUser().getId()
+		if not playerId in gameModel.playerId:
+			logging.info("Failed to add robots to game because requesting user %s is not part of game %s" % (playerId, gameId))
 			self._writeResponse({"success" : False})
 			return
 		for teamId in range(len(robotTypes)):
