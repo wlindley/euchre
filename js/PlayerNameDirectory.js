@@ -12,13 +12,17 @@ AVOCADO.PlayerNameDirectory = function(locStrings, facebook, dataRetriever) {
 				promises[pid].setName(locStrings["you"]);
 			} else {
 				var displayName = null;
-				var robots = dataRetriever.get("robots");
-				for (var i in robots) {
-					if (0 == pid.indexOf(robots[i].id)) {
-						var uid = pid.replace(robots[i].id, "").replace(/_/g, "");
-						displayName = robots[i].displayName + " " + uid;
+
+				if (pid) {
+					var robots = dataRetriever.get("robots");
+					for (var i in robots) {
+						if (0 == pid.indexOf(robots[i].id)) {
+							var uid = pid.replace(robots[i].id, "").replace(/_/g, "");
+							displayName = robots[i].displayName + " " + uid;
+						}
 					}
 				}
+
 				if (null != displayName) {
 					promises[pid].setName(displayName);
 				} else {

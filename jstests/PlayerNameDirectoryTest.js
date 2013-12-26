@@ -107,6 +107,25 @@ PlayerNameDirectoryTest.prototype.testResponseHandlerGracefullyHandlesUnknownPla
 	//verify no exceptions thrown
 };
 
+PlayerNameDirectoryTest.prototype.testGracefullyHandlesNullPlayerId = function() {
+	var getNullPlayerDataPromise = mock(TEST.FakePromise);
+	when(this.facebook).getPlayerData(null).thenReturn(getNullPlayerDataPromise);
+
+	var testHarness = this;
+	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
+		return mock(AVOCADO.PlayerNamePromise);
+	};
+
+	when(this.getPlayerDataPromise).done(func()).then(function() {
+		testHarness.testObj.handleResponse({});
+	});
+
+	var promise = this.trigger(null);
+
+	verify(promise, never()).setName(anything());
+	//verify no exceptions thrown
+};
+
 PlayerNameDirectoryTest.prototype.testLocalPlayerIdImmediatelyGetsExpectedName = function() {
 	var testHarness = this;
 	AVOCADO.PlayerNamePromise.getInstance = function(pid, locStrings) {
