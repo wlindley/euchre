@@ -910,6 +910,8 @@ class DiscardExecutableTest(BaseExecutableTestCase):
 		when(self.gameSerializer).deserialize(self.serializedGame).thenReturn(self.game)
 		when(self.gameSerializer).serialize(self.game).thenReturn(self.postSerializedGame)
 
+		self.turnTaker = testhelper.createSingletonMock(ai.TurnTaker)
+
 		self._buildTestObj()
 
 	def testExecuteCallsDiscardOnGameAndWritesSuccess(self):
@@ -917,6 +919,7 @@ class DiscardExecutableTest(BaseExecutableTestCase):
 		self.testObj.execute()
 		self.assertEqual(self.postSerializedGame, self.gameModel.serializedGame)
 		inorder.verify(self.game).discardCard(self.player, self.card)
+		inorder.verify(self.turnTaker).takeTurns(self.game)
 		inorder.verify(self.gameModel).put()
 		verify(self.responseWriter).write(json.dumps({"success" : True}))
 
@@ -925,6 +928,7 @@ class DiscardExecutableTest(BaseExecutableTestCase):
 		self.testObj.execute()
 		verifyZeroInteractions(self.gameModelFinder)
 		verify(self.gameModel, never).put()
+		verify(self.turnTaker, never).takeTurns(self.game)
 		verify(self.responseWriter).write(json.dumps({"success" : False}))
 
 	def testExecuteWritesFailureIfGameIdIsMissing(self):

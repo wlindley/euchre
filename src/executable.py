@@ -445,12 +445,13 @@ class DiscardExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return DiscardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return DiscardExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), social.Facebook.getInstance(requestDataAccessor, session), ai.TurnTaker.getInstance())
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, facebook, turnTaker):
 		super(DiscardExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
+		self._turnTaker = turnTaker
 
 	def execute(self):
 		gameId = self._requestDataAccessor.get("gameId")
@@ -485,6 +486,8 @@ class DiscardExecutable(FacebookUserExecutable):
 			logging.info("Error while player %s tried to play card %s in game %s: %s" % (player, card, gameId, e))
 			self._writeResponse({"success" : False})
 			return
+
+		self._turnTaker.takeTurns(gameObj)
 
 		gameModel.serializedGame = self._gameSerializer.serialize(gameObj)
 		gameModel.put()
