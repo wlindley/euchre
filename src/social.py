@@ -66,7 +66,11 @@ class Facebook(object):
 			accessToken = sessionData["accessToken"]
 		else:
 			#second, try cookies
-			cookie = facebook.get_user_from_cookie(self._requestDataAccessor.getCookies(), self._configManager.get("FB.appId"), self._configManager.get("FB.appSecret"))
+			try:
+				cookie = facebook.get_user_from_cookie(self._requestDataAccessor.getCookies(), self._configManager.get("FB.appId"), self._configManager.get("FB.appSecret"))
+			except Exception as e:
+				logging.error("Error while trying to retrieve Facebook cookie: %s" % e)
+				cookie = None
 			if None == cookie:
 				#give up and use default
 				logging.info("Facebook access token could not be obtained, using unauthenticated GraphAPI object")

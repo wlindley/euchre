@@ -2,6 +2,7 @@
 import testhelper
 import unittest
 from mockito import *
+import urllib2
 
 import src.social
 
@@ -65,6 +66,11 @@ class FacebookTest(testhelper.TestCase):
 
 	def testGetUserStillWorksNoAuthentication(self):
 		when(facebook).get_user_from_cookie(any(), any(), any()).thenReturn(None)
+		when(facebook).GraphAPI().thenReturn(self.graph)
+		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
+
+	def testGetUserStillWorksWhenAuthenticationRaisesException(self):
+		when(facebook).get_user_from_cookie(any(), any(), any()).thenRaise(urllib2.HTTPError(400, "testing", None, None, None))
 		when(facebook).GraphAPI().thenReturn(self.graph)
 		self.assertEqual(self.expectedUser, self.testObj.getUser(self.playerId))
 
