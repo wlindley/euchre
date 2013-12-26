@@ -3,6 +3,7 @@ import random
 
 import euchre
 import retriever
+import game
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -26,6 +27,8 @@ class TurnTaker(object):
 			status = self._gameStatusRetriever.retrieveGameStatus(gameObj)
 			if "trump_selection" == status:
 				robot.selectTrump(playerId, gameObj)
+			elif "trump_selection_2" == status:
+				robot.selectTrump2(playerId, gameObj)
 			elif "discard" == status:
 				robot.discardCard(playerId, gameObj)
 			elif "round_in_progress" == status:
@@ -45,16 +48,21 @@ class RobotFactory(object):
 		pass
 
 	def buildRobot(self, playerId):
-		if playerId.startswith("euchre_robot_random_"):
+		if None != playerId and playerId.startswith("euchre_robot_random"):
 			return RandomCardPlayerAI.getInstance()
 		return None
 
 class BasePlayerAI(object):
-	def __init__(self, handRetriever, upCardRetriever):
+	def __init__(self, handRetriever):
 		self._handRetriever = handRetriever
-		self._upCardRetriever = upCardRetriever
+
+	def _getPlayerForId(self, playerId):
+		return game.Player.getInstance(playerId)
 
 	def selectTrump(self, playerId, gameObj):
+		pass
+
+	def selectTrump2(self, playerId, gameObj):
 		pass
 
 	def discardCard(self, playerId, gameObj):
@@ -69,22 +77,24 @@ class RandomCardPlayerAI(BasePlayerAI):
 	def getInstance(cls):
 		if None != cls.instance:
 			return cls.instance
-		return RandomCardPlayerAI(retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance())
+		return RandomCardPlayerAI(retriever.HandRetriever.getInstance())
 
-	def __init__(self, handRetriever, upCardRetriever):
-		super(RandomCardPlayerAI, self).__init__(handRetriever, upCardRetriever)
+	def __init__(self, handRetriever):
+		super(RandomCardPlayerAI, self).__init__(handRetriever)
 
 	def selectTrump(self, playerId, gameObj):
-		upCard = self._upCardRetriever.retrieveUpCard(gameObj)
-		if None != upCard:
-			gameObj.selectTrump(playerId, euchre.SUIT_NONE)
-		else:
-			gameObj.selectTrump(playerId, random.choice([euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS]))
+		gameObj.selectTrump(self._getPlayerForId(playerId), euchre.SUIT_NONE)
+
+	def selectTrump2(self, playerId, gameObj):
+		gameObj.selectTrump(self._getPlayerForId(playerId), random.choice([euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS]))
 
 	def discardCard(self, playerId, gameObj):
 		hand = self._handRetriever.retrieveHand(playerId, gameObj)
-		gameObj.discardCard(playerId, random.choice(hand))
+		gameObj.discardCard(self._getPlayerForId(playerId), random.choice(hand))
 
 	def playCard(self, playerId, gameObj):
 		hand = self._handRetriever.retrieveHand(playerId, gameObj)
-		gameObj.playCard(playerId, random.choice(hand))
+		try:
+			gameObj.playCard(self._getPlayerForId(playerId), random.choice(hand))
+		except game.GameRuleException as e:
+			logging.error("Caught exception while random AI was playing card: %s" % e)

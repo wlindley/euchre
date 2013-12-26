@@ -128,16 +128,40 @@ class IntegrationTest(testhelper.TestCase):
 		exe.execute()
 		return self.response
 
-	def createAndStartGame(self):
+	def runAddRobots(self, user, gameId, robots):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		when(self.requestDataAccessor).get("gameId").thenReturn(gameId)
+		when(self.requestDataAccessor).get("types").thenReturn(json.dumps(robots))
+		exe = executable.AddRobotsExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
+	def runSelectTrump(self, user, gameId, suit):
+		self.createExecutableBasics()
+		self.trainSignedInUser(user)
+		when(self.requestDataAccessor).get("gameId").thenReturn(gameId)
+		when(self.requestDataAccessor).get("suit").thenReturn(suit)
+		exe = executable.SelectTrumpExecutable.getInstance(self.requestDataAccessor, self.responseWriter, self.session)
+		exe.execute()
+		return self.response
+
+	def fillGameWithPlayers(self):
 		self.runCreateGame(self.users[0])
 		for i in range(1, len(self.users)):
 			self.runAddPlayer(self.users[i], self.gameId, int(i / 2))
+
+	def fillGameWithRobots(self):
+		self.users = []
+		for i in range(4):
+			self.users.append(self.createUser("euchre_robot_random_" + str(i)))
+		self.fillGameWithPlayers()
 
 	###TESTS###
 
 	def testAdding4PlayersStartsGame(self):
 		#actions
-		self.createAndStartGame()
+		self.fillGameWithPlayers()
 
 		#verification
 		gameSerializer = serializer.GameSerializer.getInstance()
@@ -158,7 +182,7 @@ class IntegrationTest(testhelper.TestCase):
 
 	def testGetGameDataReturnsBasicExpectedValues(self):
 		#actions
-		self.createAndStartGame()
+		self.fillGameWithPlayers()
 		response = self.runGetGameData(self.users[0], self.gameId)
 
 		#verification
@@ -190,3 +214,28 @@ class IntegrationTest(testhelper.TestCase):
 		hydratedPostResponse = json.loads(postResponse)
 		self.assertEqual(0, len(hydratedPreResponse["games"]))
 		self.assertEqual(1, len(hydratedPostResponse["games"]))
+
+	def testRobotsWillFinishTrumpSelection(self):
+		#actions
+		self.runCreateGame(self.users[0])
+		self.runAddRobots(self.users[0], self.gameId, [[None, "euchre_robot_random_1"], ["euchre_robot_random_2", "euchre_robot_random_3"]])
+		self.runSelectTrump(self.users[0], self.gameId, euchre.SUIT_NONE)
+		self.runSelectTrump(self.users[0], self.gameId, euchre.SUIT_HEARTS)
+
+		#verification
+		gameSerializer = serializer.GameSerializer.getInstance()
+		gameStatusRetriever = retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE)
+		gameObj = gameSerializer.deserialize(self.gameModel.serializedGame)
+		status = gameStatusRetriever.retrieveGameStatus(gameObj)
+		self.assertEqual("round_in_progress", status)
+
+	def testRobotsCanFinishGame(self):
+		#actions
+		self.fillGameWithRobots()
+
+		#verification
+		gameSerializer = serializer.GameSerializer.getInstance()
+		gameStatusRetriever = retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE)
+		gameObj = gameSerializer.deserialize(self.gameModel.serializedGame)
+		status = gameStatusRetriever.retrieveGameStatus(gameObj)
+		self.assertEqual("complete", status)

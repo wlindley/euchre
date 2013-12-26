@@ -8,6 +8,7 @@ from src import ai
 from src import euchre
 from src import retriever
 from src import model
+from src import game
 
 class TurnTakerTest(testhelper.TestCase):
 	def setUp(self):
@@ -41,6 +42,12 @@ class TurnTakerTest(testhelper.TestCase):
 		self.trigger()
 		inorder.verify(self.randomAI).selectTrump("euchre_robot_random_0", self.gameObj)
 		inorder.verify(self.randomAI).selectTrump("euchre_robot_random_1", self.gameObj)
+
+	def testTakeTurnsAllowsAIPlayersToSelectTrumpInSecondBiddingPhase(self):
+		self.status = "trump_selection_2"
+		self.doTraining()
+		self.trigger()
+		verify(self.randomAI).selectTrump2("euchre_robot_random_0", self.gameObj)
 
 	def testTakeTurnsAllowsAIPlayersToPlayCards(self):
 		self.status = "discard"
@@ -80,6 +87,7 @@ class BasePlayerAITest(testhelper.TestCase):
 		self.handRetriever = testhelper.createSingletonMock(retriever.HandRetriever)
 		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
 		self.playerId = "2304asdfoi34"
+		self.playerObj = game.Player.getInstance(self.playerId)
 		self.gameObj = testhelper.createMock(euchre.Game)
 		self.hand = [
 			euchre.Card.getInstance(euchre.SUIT_CLUBS, 3),
@@ -88,13 +96,14 @@ class BasePlayerAITest(testhelper.TestCase):
 			euchre.Card.getInstance(euchre.SUIT_DIAMONDS, 12),
 			euchre.Card.getInstance(euchre.SUIT_CLUBS, 14)
 		]
-		self.upCard = euchre.Card.getInstance(euchre.SUIT_HEARTS, 5)
 
 		when(self.handRetriever).retrieveHand(self.playerId, self.gameObj).thenReturn(self.hand)
-		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
 
 	def triggerSelectTrump(self):
 		self.testObj.selectTrump(self.playerId, self.gameObj)
+
+	def triggerSelectTrump2(self):
+		self.testObj.selectTrump2(self.playerId, self.gameObj)
 
 	def triggerDiscardCard(self):
 		self.testObj.discardCard(self.playerId, self.gameObj)
@@ -112,36 +121,51 @@ class RandomCardPlayerAITest(BasePlayerAITest):
 
 	def testPlaysAnyCardFromHand(self):
 		self.selectedCard = None
-		def tmp(pid, card):
+		def tmp(playerObj, card):
+			self.playedPlayer = playerObj
 			self.selectedCard = card
 		self.gameObj.playCard = tmp
+
 		self.triggerPlayCard()
+
+		self.assertEqual(self.playerObj, self.playedPlayer)
 		self.assertIsNotNone(self.selectedCard)
 		self.assertIn(self.selectedCard, self.hand)
 
 	def testSelectTrumpNeverSelectsUpCardSuit(self):
 		self.selectedTrump = None
-		def tmp(pid, suit):
+		def tmp(playerObj, suit):
+			self.playedPlayer = playerObj
 			self.selectedTrump = suit
 		self.gameObj.selectTrump = tmp
+
 		self.triggerSelectTrump()
+
+		self.assertEqual(self.playerObj, self.playedPlayer)
 		self.assertEqual(euchre.SUIT_NONE, self.selectedTrump)
 
 	def testSelectTrumpSelectsARandomSuitWhenNoUpCard(self):
-		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(None)
 		self.selectedTrump = None
-		def tmp(pid, suit):
+		def tmp(playerObj, suit):
+			self.playedPlayer = playerObj
 			self.selectedTrump = suit
 		self.gameObj.selectTrump = tmp
-		self.triggerSelectTrump()
+
+		self.triggerSelectTrump2()
+
+		self.assertEqual(self.playerObj, self.playedPlayer)
 		self.assertIsNotNone(self.selectedTrump)
 		self.assertTrue(self.selectedTrump in [euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS])
 
 	def testDiscardDiscardsARandomCardFromHand(self):
 		self.selectedCard = None
-		def tmp(pid, card):
+		def tmp(playerObj, card):
+			self.playedPlayer = playerObj
 			self.selectedCard = card
 		self.gameObj.discardCard = tmp
+
 		self.triggerDiscardCard()
+
+		self.assertEqual(self.playerObj, self.playedPlayer)
 		self.assertIsNotNone(self.selectedCard)
 		self.assertIn(self.selectedCard, self.hand)

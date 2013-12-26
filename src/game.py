@@ -28,6 +28,9 @@ class Player(object):
 			return other.__eq__(self)
 		return self.playerId == other.playerId
 
+	def __repr__(self):
+		return 'Player("%s")' % self.playerId
+
 class TurnTracker(object):
 	instance = None
 	@classmethod
