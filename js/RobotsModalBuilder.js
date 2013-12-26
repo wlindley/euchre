@@ -84,7 +84,7 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 					//need to start with menu, not input
 					var val = modalElement.find(".addRobotsDropdown").has("input.team[value=" + teamId + "]").has("input.index[value=" + teamIndex + "]").find(".addRobotsInput").val();
 					if (val) {
-						robotTypesJson = robotTypesJson.replace("%" + teamId + teamIndex + "%", '"' + val + '"');
+						robotTypesJson = robotTypesJson.replace("%" + teamId + teamIndex + "%", '"' + val + '_' + teamId + '_' + teamIndex + '"');
 					} else {
 						robotTypesJson = robotTypesJson.replace("%" + teamId + teamIndex + "%", 'null');
 					}

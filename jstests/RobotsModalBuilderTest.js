@@ -58,7 +58,7 @@ RobotsModalBuilderTest.prototype.buildObjects = function() {
 			this.addRobotDropdownElements[teamId][teamIndex] = mock(TEST.FakeJQueryElement);
 			if (undefined === pid) {
 				this.robotTypes[teamId][teamIndex] = "euchre_robot_easy";
-				this.robotTypesJson += '"euchre_robot_easy"';
+				this.robotTypesJson += '"euchre_robot_easy_' + teamId + '_' + teamIndex + '"';
 			} else {
 				this.robotTypes[teamId][teamIndex] = null;
 				this.robotTypesJson += 'null';
