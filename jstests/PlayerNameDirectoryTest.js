@@ -125,8 +125,8 @@ PlayerNameDirectoryTest.prototype.testRobotImmediatelyGetsExpectedName = functio
 		return mock(AVOCADO.PlayerNamePromise);
 	};
 
-	var promise = this.trigger(this.robotPlayerId);
+	var promise = this.trigger(this.robotPlayerId + "_0_1");
 
 	verify(this.facebook, never()).getPlayerData(anything(), this.testObj.handleResponse);
-	verify(promise).setName(this.robotPlayerName);
+	verify(promise).setName(this.robotPlayerName + " 01");
 };
