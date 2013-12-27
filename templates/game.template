@@ -3,7 +3,7 @@
 </div>
 
 <div class="game ui inverted black segment">
-	<h2 class="ui center aligned header">Game %gameId%</h2>
+	<h2 class="ui center aligned header">Game: %status%</h2>
 	<div class="ui center middle aligned four column grid">
 		<div class="column">%gameScores%</div>
 		<div class="column">%roundScores%</div>

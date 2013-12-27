@@ -1,7 +1,7 @@
 GamePlayViewTest = TestCase("GamePlayViewTest");
 
 GamePlayViewTest.prototype.setUp = function() {
-	this.locStrings = {"trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c", "n/a" : "na na na nananana"};
+	this.locStrings = {"trumpDisplay" : "trump - %trumpSuit%", "suit_1" : "h", "suit_2" : "s", "suit_3" : "d", "suit_4" : "c", "n/a" : "na na na nananana", "awesome status" : "the best status"};
 	this.gameId = "34827";
 	this.playerId = "12345";
 	this.currentPlayerId = this.playerId;
@@ -120,7 +120,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	if (!(("suit_" + this.trumpSuit) in this.locStrings)) {
 		trumpString = this.locStrings["n/a"];
 	}
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", trumpString))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", trumpString), hasMember("status", this.locStrings[this.status]))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
