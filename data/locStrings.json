@@ -14,6 +14,8 @@
 	"inviteCTA" : "Invite more...",
 	"joinCTA" : "Join game!",
 	"trump_selection" : "Selecting trump",
+	"trump_selection_2" : "Picking trump suit",
+	"discard" : "Dealer discarding",
 	"round_in_progress" : "Playing hand",
 	"waiting_for_more_players" : "Waiting for more players",
 	"complete" : "Game Over",
