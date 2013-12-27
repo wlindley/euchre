@@ -71,7 +71,6 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 					var clickHandler = null;
 					if (isInvite) {
 						message = locStrings["inviteCTA"];
-						clickHandler = this.buildGameInviteClickHandler(gameData.gameId);
 					} else {
 						message = locStrings["joinCTA"];
 						clickHandler = this.buildGameJoinClickHandler(gameData.gameId, teamId, requestId);

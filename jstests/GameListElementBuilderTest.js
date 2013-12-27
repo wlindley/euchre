@@ -185,7 +185,6 @@ GameListElementBuilderTest.prototype.testHooksUpTeamNamePromisesAndCTAsAndShowsA
 				verify(this.namePromises[pid]).registerForUpdates(this.tableDataNameElements[j][k]);
 			} else {
 				verify(this.tableDataNameElements[j][k]).text(this.locStrings["inviteCTA"]);
-				verify(this.tableDataElements[j][k]).click(this.gameInviteClickHandler);
 			}
 		}
 	}
