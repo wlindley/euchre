@@ -1,1 +1,8 @@
-<div class="discard">%discardMessage%</div>
+<div class="discard ui message">
+	<div class="ui center aligned header">Discard</div>
+	<div class="ui center aligned one column grid">
+		<div class="column">
+			%discardMessage%
+		</div>
+	</p>
+</div>
