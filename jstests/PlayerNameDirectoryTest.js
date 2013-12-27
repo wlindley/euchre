@@ -16,6 +16,10 @@ PlayerNameDirectoryTest.prototype.setUp = function() {
 		{
 			"id" : this.robotPlayerId,
 			"displayName" : this.robotPlayerName
+		},
+		{
+			"id" : "",
+			"displayName" : "None"
 		}
 	];
 

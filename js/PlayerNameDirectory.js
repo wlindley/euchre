@@ -16,7 +16,7 @@ AVOCADO.PlayerNameDirectory = function(locStrings, facebook, dataRetriever) {
 				if (pid) {
 					var robots = dataRetriever.get("robots");
 					for (var i in robots) {
-						if (0 == pid.indexOf(robots[i].id)) {
+						if ("" != robots[i].id && 0 == pid.indexOf(robots[i].id)) {
 							var uid = pid.replace(robots[i].id, "").replace(/_/g, "");
 							displayName = robots[i].displayName + " " + uid;
 						}
