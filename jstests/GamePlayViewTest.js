@@ -130,7 +130,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	when(this.gameElement).find(".card").thenReturn(this.cardElements);
 	when(this.roundPlayingAreaBuilder).buildRoundPlayingArea(this.status, this.ledSuit, this.trick, this.cardElements, this.gameId, this.currentPlayerId, this.leaderId, this.teams).thenReturn(this.roundPlayingElement);
 	when(this.discardAreaBuilder).buildDiscardArea(this.status, this.cardElements, this.gameId, this.currentPlayerId).thenReturn(this.discardElement);
-	when(this.previousTrickDisplayBuilder).buildPreviousTrickDisplay(this.previousTrick, this.winnerId).thenReturn(this.previousTrickElement);
+	when(this.previousTrickDisplayBuilder).buildPreviousTrickDisplay(this.previousTrick, this.winnerId, this.teams).thenReturn(this.previousTrickElement);
 	when(this.gameCompleteDisplayBuilder).buildGameCompleteDisplay(this.teams, this.gameScores, this.gameId).thenReturn(this.gameCompleteElement);
 
 	var yourTeamScore = this.gameScores[0];

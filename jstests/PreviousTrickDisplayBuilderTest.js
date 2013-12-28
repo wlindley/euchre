@@ -4,6 +4,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.playerId = "12345";
 
 	this.players = [this.playerId, "2", "3", "4"];
+	this.teams = [[this.playerId, "2"], ["3", "4"]];
 	this.winnerId = this.playerId;
 	this.cards = [{"suit" : 0, "value" : 9}, {"suit" : 3, "value" : 12}, {"suit" : 1, "value" : 13}, {"suit" : 2, "value" : 10}]; //make sure all suits and values are different
 	this.cardHtmls = ["card 1", "card 2", "card 3", "card 4"];
@@ -33,6 +34,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
+	this.facebook = mock(AVOCADO.Facebook);
 
 	this.buildTestObj();
 	this.doTraining();
@@ -99,8 +101,32 @@ PreviousTrickDisplayBuilderTest.prototype.testUndefinedPlayedCardsFailsGracefull
 	assertEquals(this.errorElement, result);
 };
 
+PreviousTrickDisplayBuilderTest.prototype.testAddsCorrectColorToCardsBasedOnTeam = function() {
+	this.trigger();
+
+	for (var teamId = 0; teamId < 2; teamId++) {
+		for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
+			var color = (teamId == 0) ? "green" : "red";
+			verify(this.playerNameElements[(teamId * 2) + teamIndex]).addClass(color);
+		}
+	}
+};
+
+PreviousTrickDisplayBuilderTest.prototype.testAddsCorrectColorToCardsWhenTeamsReversed = function() {
+	this.teams = [this.teams[1], this.teams[0]];
+
+	this.trigger();
+
+	for (var teamId = 0; teamId < 2; teamId++) {
+		for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
+			var color = (teamId == 1) ? "green" : "red";
+			verify(this.playerNameElements[(((teamId + 1) % 2) * 2) + teamIndex]).addClass(color);
+		}
+	}
+};
+
 PreviousTrickDisplayBuilderTest.prototype.trigger = function() {
-	return this.testObj.buildPreviousTrickDisplay(this.previousTrick, this.winnerId);
+	return this.testObj.buildPreviousTrickDisplay(this.previousTrick, this.winnerId, this.teams);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
@@ -139,8 +165,10 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 
 	when(this.jqueryWrapper).getElement(this.previousTrickHtml).thenReturn(this.previousTrickElement);
 	when(this.jqueryWrapper).getElement("<div />").thenReturn(this.errorElement);
+
+	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 };
 
 PreviousTrickDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory);
+	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory, this.facebook);
 };

@@ -10,7 +10,9 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			return null;
 		}
 
-		if (currentPlayerId == facebook.getSignedInPlayerId()) {
+		var localPlayerId = facebook.getSignedInPlayerId();
+
+		if (currentPlayerId == localPlayerId) {
 			cardElements.addClass("clickable");
 			cardElements.click(self.buildCardClickHandler(gameId));
 		}
@@ -23,7 +25,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 		var leaderHtml = "";
 		if (null != leaderId) {
 			var teamString = locStrings.yourTeam;
-			if ((0 <= (teams[0].indexOf(facebook.getSignedInPlayerId()))) != (0 <= (teams[0].indexOf(leaderId)))) {
+			if ((0 <= (teams[0].indexOf(localPlayerId))) != (0 <= (teams[0].indexOf(leaderId)))) {
 				teamString = locStrings.otherTeam;
 			}
 			leaderHtml = templateRenderer.renderTemplate("leader", {"team" : teamString});
@@ -44,6 +46,11 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			var nameElement = trickElement.find(".playerName");
 			var namePromise = playerNameDirectory.getNamePromise(pid);
 			namePromise.registerForUpdates(nameElement);
+			var color = "green";
+			if ((0 <= (teams[0].indexOf(localPlayerId))) != (0 <= (teams[0].indexOf(pid)))) {
+				color = "red";
+			}
+			nameElement.addClass(color);
 		}
 		if (null != leaderId) {
 			var card = trick[leaderId];

@@ -2,10 +2,10 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
+AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook) {
 	var self = this;
 
-	this.buildPreviousTrickDisplay = function(playedCards, winnerId) {
+	this.buildPreviousTrickDisplay = function(playedCards, winnerId, teams) {
 		if (!isObjectValid(playedCards)) {
 			return jqueryWrapper.getElement("<div />");
 		}
@@ -20,10 +20,18 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", trickElementHtmls));
 
+		var localPlayerId = facebook.getSignedInPlayerId();
 		for (pid in playedCards) {
 			var trickElementElement = getTrickElementByCard(element, playedCards[pid]);
+			var trickElementNameElement = trickElementElement.find(".playerName");
+			var color = "green";
+			if ((-1 == teams[0].indexOf(localPlayerId)) != (-1 == teams[0].indexOf(pid))) {
+				color = "red";
+			}
+			trickElementNameElement.addClass(color);
+
 			var namePromise = playerNameDirectory.getNamePromise(pid);
-			namePromise.registerForUpdates(trickElementElement.find(".playerName"));
+			namePromise.registerForUpdates(trickElementNameElement);
 		}
 
 		setWinningCard(element, playedCards[winnerId]);
@@ -70,6 +78,6 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	}
 };
 
-AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory) {
-	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory);
+AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook) {
+	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, facebook);
 };

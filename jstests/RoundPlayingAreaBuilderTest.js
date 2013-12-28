@@ -90,10 +90,16 @@ RoundPlayingAreaBuilderTest.prototype.testUsesEmptyStringForTrickLeaderWhenTrick
 	assertEquals(this.playingRoundElement, actualResult);
 };
 
-RoundPlayingAreaBuilderTest.prototype.testHooksUpNamePromises = function() {
+RoundPlayingAreaBuilderTest.prototype.testHooksUpNamePromisesAndAddsColors = function() {
 	this.trigger();
 	for (var i in this.nameElements) {
 		verify(this.playerNamePromises[i]).registerForUpdates(this.nameElements[i]);
+		var color = "green";
+		var pid = this.players[i];
+		if (this.teams[0].indexOf(pid) == -1) {
+			color = "red";
+		}
+		verify(this.nameElements[i]).addClass(color);
 	}
 	verify(this.leaderNamePromise).registerForUpdates(this.leaderNameElement);
 };
