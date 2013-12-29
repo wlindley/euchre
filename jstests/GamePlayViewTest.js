@@ -120,7 +120,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	if (!(("suit_" + this.trumpSuit) in this.locStrings)) {
 		trumpString = this.locStrings["n/a"];
 	}
-	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("gameId", this.gameId), hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", trumpString), hasMember("status", this.locStrings[this.status]))).thenReturn(this.gameHtml);
+	when(this.templateRenderer).renderTemplate("game", allOf(hasMember("hand", this.handHtml), hasMember("gameScores", this.gameScoresHtml), hasMember("roundScores", this.roundScoresHtml), hasMember("trump", trumpString), hasMember("status", this.locStrings[this.status]))).thenReturn(this.gameHtml);
 	when(this.jqueryWrapper).getElement(this.gameHtml).thenReturn(this.gameElement);
 	when(this.gameElement).find(".trumpSelection").thenReturn(this.trumpSelectionInsertionElement);
 	when(this.gameElement).find(".playingRound").thenReturn(this.roundPlayingInsertionElement);
@@ -180,7 +180,6 @@ GamePlayViewTest.prototype.verifyCorrectView = function(status) {
 	verify(this.viewGameListElement).click(this.testObj.handleViewGameListClick);
 	verify(this.previousTrickInsertionElement).append(this.previousTrickElement);
 	verify(this.gamePlayDiv).show();
-	verify(this.cardsElement).addClass("handElement");
 
 	if (null !== this.currentPlayerId) {
 		if ((this.teams[0].indexOf(this.currentPlayerId) == -1) != ((this.teams[0].indexOf(this.playerId) == -1))) {

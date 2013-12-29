@@ -20,31 +20,63 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 	function handleGetGameDataResponse(response) {
 		gamePlayDiv.empty();
 
+		var gameElement = buildGameElement(response);
+		hookUpNamePromisesAndSetTeamColors(gameElement, response);
+		showGameStatusAppropriateActionArea(gameElement, response);
+		showPreviousTrick(gameElement, response);
+
+		gamePlayDiv.append(gameElement);
+		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
+		gamePlayDiv.show();
+	}
+
+	this.handleViewGameListClick = function(event) {
+		viewManager.showView("gameList");
+	};
+
+	function buildHand(response) {
 		var cardsHtml = "";
 		for (var i = 0; i < response.round.hand.length; i++) {
 			var card = response.round.hand[i];
 			cardsHtml += templateRenderer.renderTemplate("card", {"suit" : card.suit, "value" : card.value});
 		}
-		var handHtml = templateRenderer.renderTemplate("hand", {"hand" : cardsHtml});
+		return templateRenderer.renderTemplate("hand", {"hand" : cardsHtml});
+	}
 
+	function buildGameScores(response) {
 		var gameScores = response.scores;
+		if (0 <= response.teams[1].indexOf(facebook.getSignedInPlayerId())) {
+			return templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[1], "otherScore" : gameScores[0]});
+		}
+		return templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[0], "otherScore" : gameScores[1]});
+	}
+
+	function buildRoundScores(response) {
 		var roundScores = response.round.tricksTaken;
 		if (0 <= response.teams[1].indexOf(facebook.getSignedInPlayerId())) {
-			gameScores = [response.scores[1], response.scores[0]];
-			roundScores = [response.round.tricksTaken[1], response.round.tricksTaken[0]];
+			return templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[1], "otherScore" : roundScores[0]});
 		}
-		var gameScoresHtml = templateRenderer.renderTemplate("gameScores", {"yourScore" : gameScores[0], "otherScore" : gameScores[1]});
-		var roundScoresHtml = templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[0], "otherScore" : roundScores[1]});
+		return templateRenderer.renderTemplate("roundScores", {"yourScore" : roundScores[0], "otherScore" : roundScores[1]});
+	}
 
+	function buildTrumpString(response) {
 		var trumpString = locStrings["suit_" + response.round.trump];
 		if (undefined === trumpString) {
 			trumpString = locStrings["n/a"];
 		}
+		return trumpString;
+	}
 
-		var gameHtml = templateRenderer.renderTemplate("game", {"gameId" : response.gameId, "hand" : handHtml, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml, "trump" : trumpString, "status" : locStrings[response.status]});
-		var gameElement = jqueryWrapper.getElement(gameHtml);
-		gameElement.find(".hand").find(".card").addClass("handElement");
+	function buildGameElement(response) {
+		var handHtml = buildHand(response);
+		var gameScoresHtml = buildGameScores(response);
+		var roundScoresHtml = buildRoundScores(response);
+		var trumpString = buildTrumpString(response);
+		var gameHtml = templateRenderer.renderTemplate("game", {"hand" : handHtml, "gameScores" : gameScoresHtml, "roundScores" : roundScoresHtml, "trump" : trumpString, "status" : locStrings[response.status]});
+		return jqueryWrapper.getElement(gameHtml);
+	}
 
+	function hookUpNamePromisesAndSetTeamColors(gameElement, response) {
 		if (null !== response.round.currentPlayerId && undefined !== response.round.currentPlayerId) {
 			var namePromise = playerNameDirectory.getNamePromise(response.round.currentPlayerId);
 			var nameElement = gameElement.find(".turn").find(".playerName");
@@ -57,9 +89,10 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 		} else {
 			gameElement.find(".turn").find(".playerName").text(locStrings["n/a"]);
 		}
+	}
 
+	function showGameStatusAppropriateActionArea(gameElement, response) {
 		var cardElements = gameElement.find(".card");
-
 		if ("complete" == response.status) {
 			var gameCompleteElement = gameCompleteDisplayBuilder.buildGameCompleteDisplay(response.teams, response.scores, response.gameId);
 
@@ -79,19 +112,13 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 			var discardInsertionPoint = gameElement.find(".discard");
 			discardInsertionPoint.append(discardElement);
 		}
+	}
 
+	function showPreviousTrick(gameElement, response) {
 		var previousTrickElement = previousTrickDisplayBuilder.buildPreviousTrickDisplay(response.previousTrick.playedCards, response.previousTrick.winnerId, response.teams);
 		var previousTrickInsertionPoint = gameElement.find(".previousTrickWrapper");
 		previousTrickInsertionPoint.append(previousTrickElement);
-
-		gamePlayDiv.append(gameElement);
-		gamePlayDiv.find(".viewGameList").click(self.handleViewGameListClick);
-		gamePlayDiv.show();
 	}
-
-	this.handleViewGameListClick = function(event) {
-		viewManager.showView("gameList");
-	};
 };
 
 AVOCADO.GamePlayView.getInstance = function(ajax, facebook, templateRenderer, gamePlayDiv, viewManager, locStrings, jqueryWrapper, playerNameDirectory) {
