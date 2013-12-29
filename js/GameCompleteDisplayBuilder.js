@@ -6,16 +6,27 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 	var self = this;
 
 	this.buildGameCompleteDisplay = function(teams, scores, gameId) {
-		var localPlayerTeamId = getTeamIndexByPlayerId(teams, facebook.getSignedInPlayerId());
-		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
+		var gameCompleteElement = buildElement();
+		var winningTeamId = findAndDisplayWinner(gameCompleteElement, teams, scores);
+		hookUpNamePromises(gameCompleteElement, teams, winningTeamId);
 
+		gameCompleteElement.find(".dismissButton").click(self.buildDismissClickHandler(gameId));
+
+		return gameCompleteElement;
+	};
+
+	function buildElement() {
 		var gameCompleteHtml = templateRenderer.renderTemplate("gameComplete", {
 			"won" : locStrings["won"],
 			"and" : locStrings["and"],
 			"dismiss" : locStrings["dismiss"]
 		});
-		var gameCompleteElement = jqueryWrapper.getElement(gameCompleteHtml);
+		return jqueryWrapper.getElement(gameCompleteHtml);
+	}
 
+	function findAndDisplayWinner(gameCompleteElement, teams, scores) {
+		var localPlayerTeamId = getTeamIndexByPlayerId(teams, facebook.getSignedInPlayerId());
+		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
 		var winningTeamId = localPlayerTeamId;
 		if (scores[otherTeamId] > scores[localPlayerTeamId]) {
 			winningTeamId = otherTeamId;
@@ -23,15 +34,15 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 		} else {
 			gameCompleteElement.addClass("green");
 		}
+		return winningTeamId;
+	}
+
+	function hookUpNamePromises(gameCompleteElement, teams, winningTeamId) {
 		for (var i in teams[winningTeamId]) {
 			var namePromise = playerNameDirectory.getNamePromise(teams[winningTeamId][i]);
 			namePromise.registerForUpdates(gameCompleteElement.find(".winner" + i));
 		}
-
-		gameCompleteElement.find(".dismissButton").click(self.buildDismissClickHandler(gameId));
-
-		return gameCompleteElement;
-	};
+	}
 
 	function getTeamIndexByPlayerId(teams, playerId) {
 		for (var teamIndex in teams) {
