@@ -18,6 +18,18 @@ AVOCADO.AddRobotsModal.getInstance = function(modalElement) {
 
 AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever, ajax, viewManager) {
 	this.buildAddRobotsModal = function(teams, gameId) {
+		var modalElement = buildModalElement(teams);
+		hookUpNamePromises(modalElement, teams);
+
+		var deferred = jqueryWrapper.buildDeferred();
+		deferred.done(buildConfirmClickHandler(gameId, modalElement))
+		
+		initializeUIElements(modalElement, deferred);
+
+		return AVOCADO.AddRobotsModal.getInstance(modalElement);
+	};
+
+	function buildModalElement(teams) {
 		var templateParams = {};
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
@@ -31,8 +43,10 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 		}
 
 		var modalHtml = templateRenderer.renderTemplate("addRobotsModal", templateParams);
-		var modalElement = jqueryWrapper.getElement(modalHtml);
+		return jqueryWrapper.getElement(modalHtml);
+	}
 
+	function hookUpNamePromises(modalElement, teams) {
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var teamIndex = 0; teamIndex < 2; teamIndex++) {
 				var pid = teams[teamId][teamIndex];
@@ -40,9 +54,9 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 				promise.registerForUpdates(modalElement.find(".playerName").has("input.team[value=" + teamId + "]").has("input.index[value=" + teamIndex + "]"));
 			}
 		}
+	}
 
-		var deferred = jqueryWrapper.buildDeferred();
-		deferred.done(buildConfirmClickHandler(gameId, modalElement))
+	function initializeUIElements(modalElement, deferred) {
 		modalElement.modal("setting", {
 			"duration" : 200,
 			"closable" : false,
@@ -50,9 +64,7 @@ AVOCADO.AddRobotsModalBuilder = function(templateRenderer, jqueryWrapper, player
 			"onDeny" : deferred.reject
 		});
 		modalElement.find(".ui.dropdown").dropdown();
-
-		return AVOCADO.AddRobotsModal.getInstance(modalElement);
-	};
+	}
 
 	function buildRobotsMenu(teamId, teamIndex) {
 		var robotData = dataRetriever.get("robots");
