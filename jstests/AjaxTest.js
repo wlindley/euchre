@@ -3,6 +3,7 @@ AjaxTest = TestCase("AjaxTest")
 AjaxTest.prototype.setUp = function() {
 	this.url = "http://localhost:8080/ajax"
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.dataRetriever = mock(AVOCADO.DataRetriever);
 	this.ajaxPromise = mock(TEST.FakePromise);
 
 	this.action = "the best action";
@@ -20,11 +21,12 @@ AjaxTest.prototype.setUp = function() {
 };
 
 AjaxTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.Ajax.getInstance(this.jqueryWrapper, this.url);
+	this.testObj = AVOCADO.Ajax.getInstance(this.jqueryWrapper, this.dataRetriever);
 };
 
 AjaxTest.prototype.doTraining = function() {
 	when(this.jqueryWrapper).ajax(this.url, allOf(this.paramMatchers)).thenReturn(this.ajaxPromise);
+	when(this.dataRetriever).get("ajaxUrl").thenReturn(this.url);
 };
 
 AjaxTest.prototype.trigger = function() {

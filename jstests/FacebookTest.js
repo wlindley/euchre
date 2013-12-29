@@ -10,6 +10,7 @@ FakeFB = function() {
 FacebookTest.prototype.setUp = function() {
 	window.FB = null;
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
+	this.dataRetriever = mock(AVOCADO.DataRetriever);
 	this.appId = "234023984";
 	this.localPlayerId = "324lkjada34l";
 	this.channelUrl = "http://my.awesome.com/channel.html";
@@ -77,7 +78,7 @@ FacebookTest.prototype.tearDown = function() {
 };
 
 FacebookTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.appId, this.channelUrl, this.environment);	
+	this.testObj = AVOCADO.Facebook.getInstance(this.jqueryWrapper, this.dataRetriever);	
 };
 
 FacebookTest.prototype.doTraining = function() {
@@ -87,6 +88,9 @@ FacebookTest.prototype.doTraining = function() {
 	when(this.getAppRequestsDeferred).promise().thenReturn(this.getAppRequestsPromise);
 	when(this.deleteAppRequestDeferred).promise().thenReturn(this.deleteAppRequestPromise);
 	when(this.jqueryWrapper).buildDeferred().thenReturn(this.initDeferred).thenReturn(this.getPlayerDataDeferred);
+	when(this.dataRetriever).get("appId").thenReturn(this.appId);
+	when(this.dataRetriever).get("channelUrl").thenReturn(this.channelUrl);
+	when(this.dataRetriever).get("environment").thenReturn(this.environment);
 };
 
 FacebookTest.prototype.triggerInit = function() {
@@ -204,6 +208,7 @@ FacebookTest.prototype.testHandleAjaxResponseSubscribesToAuthChangedEvent = func
 
 FacebookTest.prototype.testHandleAjaxResponseLogsInIfEnvironmentIsLocal = function() {
 	this.environment = "local";
+	this.doTraining();
 	this.buildTestObj();
 	this.setupAjaxCall();
 

@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.Ajax = function(jqueryWrapper, ajaxUrl) {
+AVOCADO.Ajax = function(jqueryWrapper, dataRetriever) {
 	var self = this;
 
 	this.call = function(action, data) {
@@ -16,10 +16,10 @@ AVOCADO.Ajax = function(jqueryWrapper, ajaxUrl) {
 			"dataType" : 'json',
 			"data" : finalData
 		};
-		return jqueryWrapper.ajax(ajaxUrl, params);
+		return jqueryWrapper.ajax(dataRetriever.get("ajaxUrl"), params);
 	};
 };
 
-AVOCADO.Ajax.getInstance = function(jqueryWrapper, ajaxUrl) {
-	return new AVOCADO.Ajax(jqueryWrapper, ajaxUrl);
+AVOCADO.Ajax.getInstance = function(jqueryWrapper, dataRetriever) {
+	return new AVOCADO.Ajax(jqueryWrapper, dataRetriever);
 };

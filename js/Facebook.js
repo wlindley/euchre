@@ -33,7 +33,7 @@ AVOCADO.FacebookRequest.getInstance = function(jqueryWrapper, rawRequest) {
 	return new AVOCADO.FacebookRequest(rawRequest["id"], data["gameId"], rawRequest["message"]);
 };
 
-AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl, loginStrategy) {
+AVOCADO.Facebook = function(jqueryWrapper, dataRetriever, loginStrategy) {
 	var self = this;
 	var signedInPlayerId = "";
 	var initDeferred = null;
@@ -54,8 +54,8 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl, loginStrategy) {
 
 	function handleAjaxResponse() {
 		FB.init({
-			"appId" : appId,
-			"channelUrl" : channelUrl,
+			"appId" : dataRetriever.get("appId"),
+			"channelUrl" : dataRetriever.get("channelUrl"),
 			"status" : true,
 			"cookie" : true,
 			"frictionlessRequests" : true
@@ -103,7 +103,7 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl, loginStrategy) {
 		var deferred = jqueryWrapper.buildDeferred();
 		FB.ui({
 			"method" : "apprequests",
-			"app_id" : appId,
+			"app_id" : dataRetriever.get("appId"),
 			"title" : title,
 			"message" : message,
 			"data" : data
@@ -154,12 +154,12 @@ AVOCADO.Facebook = function(jqueryWrapper, appId, channelUrl, loginStrategy) {
 	};
 };
 
-AVOCADO.Facebook.getInstance = function(jqueryWrapper, appId, channelUrl, environment) {
+AVOCADO.Facebook.getInstance = function(jqueryWrapper, dataRetriever) {
 	var loginStrategy = null;
-	if ("local" == environment) {
+	if ("local" == dataRetriever.get("environment")) {
 		loginStrategy = AVOCADO.LocalFacebookLoginStrategy.getInstance();
 	} else {
 		loginStrategy = AVOCADO.StandardFacebookLoginStrategy.getInstance();
 	}
-	return new AVOCADO.Facebook(jqueryWrapper, appId, channelUrl, loginStrategy);
+	return new AVOCADO.Facebook(jqueryWrapper, dataRetriever, loginStrategy);
 };

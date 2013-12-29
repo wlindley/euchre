@@ -5,7 +5,11 @@ TemplateRendererTest.prototype.setUp = function() {
 	this.template = "my name is %name% %name%";
 	this.templates = {};
 	this.templates[this.templateId] = this.template;
-	this.testObj = new AVOCADO.TemplateRenderer(this.templates);
+
+	this.dataRetriever = mock(AVOCADO.DataRetriever);
+	when(this.dataRetriever).get("templates").thenReturn(this.templates);
+
+	this.testObj = new AVOCADO.TemplateRenderer(this.dataRetriever);
 };
 
 TemplateRendererTest.prototype.testRenderTemplateReplacesDataAndReturns = function() {

@@ -2,10 +2,11 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.TemplateRenderer = function(templates) {
+AVOCADO.TemplateRenderer = function(dataRetriever) {
 	var self = this;
 
 	this.renderTemplate = function(templateId, values) {
+		var templates = dataRetriever.get("templates");
 		var template = "";
 		if (templateId in templates) {
 			template = "" + templates[templateId];
@@ -17,6 +18,6 @@ AVOCADO.TemplateRenderer = function(templates) {
 	};
 };
 
-AVOCADO.TemplateRenderer.getInstance = function(templates) {
-	return new AVOCADO.TemplateRenderer(templates);
+AVOCADO.TemplateRenderer.getInstance = function(dataRetriever) {
+	return new AVOCADO.TemplateRenderer(dataRetriever);
 };
