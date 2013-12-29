@@ -133,6 +133,8 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	when(this.previousTrickElement).find("div.trickElement").thenReturn(this.cardSelector);
 	when(this.previousTrickElement).parent().thenReturn(this.previousTrickElementParent);
 
+	when(this.templateRenderer).renderTemplate("emptyDiv").thenReturn("<div/>");
+
 	for (var i in this.players) {
 		when(this.playerNameDirectory).getNamePromise(this.players[i]).thenReturn(this.playerNamePromises[i]);
 		when(this.playerNamePromises[i]).getName().thenReturn("");
@@ -164,7 +166,7 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 	when(this.templateRenderer).renderTemplate("winnerLabel").thenReturn(this.winnerLabelHtml);
 
 	when(this.jqueryWrapper).getElement(this.previousTrickHtml).thenReturn(this.previousTrickElement);
-	when(this.jqueryWrapper).getElement("<div />").thenReturn(this.errorElement);
+	when(this.jqueryWrapper).getElement("<div/>").thenReturn(this.errorElement);
 
 	when(this.facebook).getSignedInPlayerId().thenReturn(this.playerId);
 };

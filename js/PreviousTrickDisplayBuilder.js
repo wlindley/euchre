@@ -6,34 +6,12 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	var self = this;
 
 	this.buildPreviousTrickDisplay = function(playedCards, winnerId, teams) {
-		if (!isObjectValid(playedCards)) {
-			return jqueryWrapper.getElement("<div />");
+		if (!AVOCADO.isObjectEmpty(playedCards)) {
+			return jqueryWrapper.getElement(templateRenderer.renderTemplate("emptyDiv"));
 		}
 
-		var trickElementHtmls = {};
-		var index = 0;
-		for (var pid in playedCards) {
-			var cardHtml = templateRenderer.renderTemplate("card", playedCards[pid]);
-			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"card" : cardHtml});
-			index++;
-		}
-
-		var element = jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", trickElementHtmls));
-
-		var localPlayerId = facebook.getSignedInPlayerId();
-		for (pid in playedCards) {
-			var trickElementElement = getTrickElementByCard(element, playedCards[pid]);
-			var trickElementNameElement = trickElementElement.find(".playerName");
-			var color = "green";
-			if ((-1 == teams[0].indexOf(localPlayerId)) != (-1 == teams[0].indexOf(pid))) {
-				color = "red";
-			}
-			trickElementNameElement.addClass(color);
-
-			var namePromise = playerNameDirectory.getNamePromise(pid);
-			namePromise.registerForUpdates(trickElementNameElement);
-		}
-
+		var element = buildElement(playedCards);
+		hookUpNamePromisesAndSetTeamColors(element, playedCards, teams);
 		setWinningCard(element, playedCards[winnerId]);
 
 		element.find(".continueButton").click(this.buildContinueClickHandler(element));
@@ -50,8 +28,6 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 
 	this.buildHideCompleteHandler = function(rootElement) {
 		return function(event) {
-			console.log("removing");
-			console.log(rootElement.parent());
 			rootElement.parent().remove();
 		};
 	};
@@ -65,16 +41,32 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		target.find(".card").append(templateRenderer.renderTemplate("winnerLabel"));
 	}
 
-	function isObjectValid(obj) {
-		if (undefined == obj) {
-			return false;
-		} else {
-			for (var i in obj) {
-				return true;
-			}
-			return false;
+	function buildElement(playedCards) {
+		var trickElementHtmls = {};
+		var index = 0;
+		for (var pid in playedCards) {
+			var cardHtml = templateRenderer.renderTemplate("card", playedCards[pid]);
+			trickElementHtmls["card" + index] = templateRenderer.renderTemplate("trickElement", {"card" : cardHtml});
+			index++;
 		}
-		return true;
+
+		return jqueryWrapper.getElement(templateRenderer.renderTemplate("previousTrick", trickElementHtmls));
+	}
+
+	function hookUpNamePromisesAndSetTeamColors(element, playedCards, teams) {
+		var localPlayerId = facebook.getSignedInPlayerId();
+		for (pid in playedCards) {
+			var trickElementElement = getTrickElementByCard(element, playedCards[pid]);
+			var trickElementNameElement = trickElementElement.find(".playerName");
+			var color = "green";
+			if ((-1 == teams[0].indexOf(localPlayerId)) != (-1 == teams[0].indexOf(pid))) {
+				color = "red";
+			}
+			trickElementNameElement.addClass(color);
+
+			var namePromise = playerNameDirectory.getNamePromise(pid);
+			namePromise.registerForUpdates(trickElementNameElement);
+		}
 	}
 };
 
