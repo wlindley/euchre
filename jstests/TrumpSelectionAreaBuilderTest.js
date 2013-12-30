@@ -53,6 +53,8 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 
 	this.viewManager = mock(AVOCADO.ViewManager);
 
+	this.teamUtils = AVOCADO.TeamUtils.getInstance(this.facebook);
+
 	this.origSetTimeout = setTimeout;
 	setTimeout = function(func, time, lang) {
 		func();
@@ -70,7 +72,7 @@ TrumpSelectionAreaBuilderTest.prototype.tearDown = function() {
 };
 
 TrumpSelectionAreaBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.facebook, this.locStrings, this.viewManager, this.playerNameDirectory);
+	this.testObj = new AVOCADO.TrumpSelectionAreaBuilder(this.templateRenderer, this.jqueryWrapper, this.ajax, this.facebook, this.locStrings, this.viewManager, this.playerNameDirectory, this.teamUtils);
 };
 
 TrumpSelectionAreaBuilderTest.prototype.train = function(trumpSelectionActionHtml) {

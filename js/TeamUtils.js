@@ -31,12 +31,32 @@ AVOCADO.TeamUtils = function(facebook) {
 		return this.areOnSameTeam(teams, playerId, facebook.getSignedInPlayerId());
 	};
 
+	this.getTeamIdByPlayer = function(teams, playerId) {
+		for (var teamId in teams) {
+			if (this.isPlayerOnTeam(playerId, teams[teamId])) {
+				return teamId;
+			}
+		}
+		return -1;
+	};
+
+	this.getLocalPlayersTeamId = function(teams) {
+		return this.getTeamIdByPlayer(teams, facebook.getSignedInPlayerId());
+	};
+
 	this.getAllyClass = function() {
 		return "green";
 	};
 
 	this.getOpponentClass = function() {
 		return "red";
+	};
+
+	this.getClassForPlayer = function(teams, playerId) {
+		if (this.isOnLocalPlayersTeam(teams, playerId)) {
+			return this.getAllyClass();
+		}
+		return this.getOpponentClass();
 	};
 };
 

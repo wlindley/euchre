@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory) {
+AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory, teamUtils) {
 	var self = this;
 
 	this.buildRoundPlayingArea = function(status, ledSuit, trick, cardElements, gameId, currentPlayerId, leaderId, teams) {
@@ -59,7 +59,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 	function buildLeaderHtml(leaderId, teams) {
 		if (null != leaderId) {
 			var teamString = locStrings.yourTeam;
-			if ((0 <= (teams[0].indexOf(facebook.getSignedInPlayerId()))) != (0 <= (teams[0].indexOf(leaderId)))) {
+			if (!teamUtils.isOnLocalPlayersTeam(teams, leaderId)) {
 				teamString = locStrings.otherTeam;
 			}
 			return templateRenderer.renderTemplate("leader", {"team" : teamString});
@@ -93,11 +93,7 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 			var nameElement = trickElement.find(".playerName");
 			var namePromise = playerNameDirectory.getNamePromise(pid);
 			namePromise.registerForUpdates(nameElement);
-			var color = "green";
-			if ((0 <= (teams[0].indexOf(localPlayerId))) != (0 <= (teams[0].indexOf(pid)))) {
-				color = "red";
-			}
-			nameElement.addClass(color);
+			nameElement.addClass(teamUtils.getClassForPlayer(teams, pid));
 		}
 	}
 
@@ -111,6 +107,6 @@ AVOCADO.RoundPlayingAreaBuilder = function(templateRenderer, jqueryWrapper, locS
 	}
 };
 
-AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory) {
-	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory);
+AVOCADO.RoundPlayingAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory, teamUtils) {
+	return new AVOCADO.RoundPlayingAreaBuilder(templateRenderer, jqueryWrapper, locStrings, ajax, facebook, viewManager, playerNameDirectory, teamUtils);
 };

@@ -23,6 +23,7 @@ GameCompleteDisplayBuilderTest.prototype.buildObjects = function() {
 	this.facebook = mock(AVOCADO.Facebook);
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
+	this.teamUtils = AVOCADO.TeamUtils.getInstance(this.facebook);
 
 	this.localPlayerId = "3452cba";
 	this.gameId = 4;
@@ -70,7 +71,7 @@ GameCompleteDisplayBuilderTest.prototype.doTraining = function(localPlayersTeamW
 };
 
 GameCompleteDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager);
+	this.testObj = new AVOCADO.GameCompleteDisplayBuilder(this.templateRenderer, this.jqueryWrapper, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager, this.teamUtils);
 };
 
 GameCompleteDisplayBuilderTest.prototype.trigger = function() {

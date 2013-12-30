@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory) {
+AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory, teamUtils) {
 	var self = this;
 	var SUITS = ["clubs", "diamonds", "spades", "hearts"];
 
@@ -76,7 +76,7 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 	}
 
 	function buildDealerTeam(teams, dealerId) {
-		if ((0 <= teams[0].indexOf(dealerId)) != (0 <= teams[0].indexOf(facebook.getSignedInPlayerId()))) {
+		if (!teamUtils.isOnLocalPlayersTeam(teams, dealerId)) {
 			return locStrings.otherTeam;
 		}
 		return locStrings.yourTeam;
@@ -105,14 +105,11 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 		var dealerNamePromise = playerNameDirectory.getNamePromise(dealerId);
 		var dealerNameElement = trumpSelectionElement.find(".dealer").find(".playerName");
 		dealerNamePromise.registerForUpdates(dealerNameElement);
-		if ((-1 == teams[0].indexOf(facebook.getSignedInPlayerId())) == (-1 == teams[0].indexOf(dealerId))) {
-			trumpSelectionElement.find(".dealer").find(".label").addClass("green");
-		} else {
-			trumpSelectionElement.find(".dealer").find(".label").addClass("red");
-		}
+		var dealerNameLabel = trumpSelectionElement.find(".dealer").find(".label");
+		dealerNameLabel.addClass(teamUtils.getClassForPlayer(teams, dealerId));
 	}
 };
 
-AVOCADO.TrumpSelectionAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory) {
-	return new AVOCADO.TrumpSelectionAreaBuilder(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory);
+AVOCADO.TrumpSelectionAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory, teamUtils) {
+	return new AVOCADO.TrumpSelectionAreaBuilder(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory, teamUtils);
 };

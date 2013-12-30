@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook) {
+AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook, teamUtils) {
 	var self = this;
 
 	this.buildPreviousTrickDisplay = function(playedCards, winnerId, teams) {
@@ -58,11 +58,7 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 		for (pid in playedCards) {
 			var trickElementElement = getTrickElementByCard(element, playedCards[pid]);
 			var trickElementNameElement = trickElementElement.find(".playerName");
-			var color = "green";
-			if ((-1 == teams[0].indexOf(localPlayerId)) != (-1 == teams[0].indexOf(pid))) {
-				color = "red";
-			}
-			trickElementNameElement.addClass(color);
+			trickElementNameElement.addClass(teamUtils.getClassForPlayer(teams, pid));
 
 			var namePromise = playerNameDirectory.getNamePromise(pid);
 			namePromise.registerForUpdates(trickElementNameElement);
@@ -70,6 +66,6 @@ AVOCADO.PreviousTrickDisplayBuilder = function(templateRenderer, jqueryWrapper, 
 	}
 };
 
-AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook) {
-	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, facebook);
+AVOCADO.PreviousTrickDisplayBuilder.getInstance = function(templateRenderer, jqueryWrapper, playerNameDirectory, facebook, teamUtils) {
+	return new AVOCADO.PreviousTrickDisplayBuilder(templateRenderer, jqueryWrapper, playerNameDirectory, facebook, teamUtils);
 };

@@ -35,6 +35,7 @@ PreviousTrickDisplayBuilderTest.prototype.setUp = function() {
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.facebook = mock(AVOCADO.Facebook);
+	this.teamUtils = AVOCADO.TeamUtils.getInstance(this.facebook);
 
 	this.buildTestObj();
 	this.doTraining();
@@ -172,5 +173,5 @@ PreviousTrickDisplayBuilderTest.prototype.doTraining = function() {
 };
 
 PreviousTrickDisplayBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory, this.facebook);
+	this.testObj = AVOCADO.PreviousTrickDisplayBuilder.getInstance(this.templateRenderer, this.jqueryWrapper, this.playerNameDirectory, this.facebook, this.teamUtils);
 };
