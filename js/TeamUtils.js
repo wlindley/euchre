@@ -15,6 +15,14 @@ AVOCADO.TeamUtils = function(facebook) {
 		return openTeams;
 	};
 
+	this.isPlayerInGame = function(teams, playerId) {
+		return this.isPlayerOnTeam(playerId, teams[0]) || this.isPlayerOnTeam(playerId, teams[1]);
+	};
+
+	this.isLocalPlayerInGame = function(teams) {
+		return this.isPlayerInGame(teams, facebook.getSignedInPlayerId());
+	};
+
 	this.isPlayerOnTeam = function(playerId, team) {
 		return -1 != team.indexOf(playerId);
 	};

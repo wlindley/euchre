@@ -5,15 +5,15 @@ if (AVOCADO == undefined) {
 AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, addRobotsModalBuilder, teamUtils) {
 	var self = this;
 
-	this.buildListElement = function(gameData, isInvite, requestId) {
+	this.buildListElement = function(gameData, requestId) {
 		var element = buildElement(locStrings, gameData);
 		setupAddRobotsModal(element, gameData);
-		setupGameIcons(element, gameData, isInvite);
+		setupGameIcons(element, gameData);
 		
-		addClickHandlers(element, gameData, isInvite, requestId);
+		addClickHandlers(element, gameData, requestId);
 
 		hookupTurnNamePromise(element, gameData);
-		hookupTeamNamePromisesAndClickHandlers(element, gameData, isInvite, requestId)
+		hookupTeamNamePromisesAndClickHandlers(element, gameData, requestId)
 
 		showTeamColors(element, gameData);
 
@@ -45,9 +45,9 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		element.find(".gameOver").hide();
 	}
 
-	function showCorrectGameIcon(element, gameData, isInvite) {
+	function showCorrectGameIcon(element, gameData) {
 		if ("waiting_for_more_players" == gameData.status) {
-			if (isInvite) {
+			if (teamUtils.isLocalPlayerInGame(gameData.teams)) {
 				element.find(".addRobotsButton").show();
 				element.find(".inviteToGame").show();
 			} else {
@@ -62,14 +62,14 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		}
 	}
 
-	function setupGameIcons(element, gameData, isInvite) {
+	function setupGameIcons(element, gameData) {
 		hideGameIcons(element);
-		showCorrectGameIcon(element, gameData, isInvite);
+		showCorrectGameIcon(element, gameData);
 	}
 
-	function addClickHandlers(element, gameData, isInvite, requestId) {
+	function addClickHandlers(element, gameData, requestId) {
 		if ("waiting_for_more_players" == gameData.status) {
-			if (isInvite) {
+			if (teamUtils.isLocalPlayerInGame(gameData.teams)) {
 				element.click(self.buildGameInviteClickHandler(gameData.gameId));
 			} else {
 				var openTeams = teamUtils.findOpenTeams(gameData.teams);
@@ -91,7 +91,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		}
 	}
 
-	function hookupTeamNamePromisesAndClickHandlers(element, gameData, isInvite, requestId) {
+	function hookupTeamNamePromisesAndClickHandlers(element, gameData, requestId) {
 		var playerTable = element.find(".gameListElementTeams");
 		for (var teamId = 0; teamId < 2; teamId++) {
 			for (var index = 0; index < 2; index++) {
@@ -103,7 +103,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 				} else {
 					var message = "";
 					var clickHandler = null;
-					if (isInvite) {
+					if (teamUtils.isLocalPlayerInGame(gameData.teams)) {
 						message = locStrings["inviteCTA"];
 					} else {
 						message = locStrings["joinCTA"];

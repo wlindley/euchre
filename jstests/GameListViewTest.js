@@ -77,13 +77,13 @@ GameListViewTest.prototype.doTraining = function() {
 		hasMember("status", this.status),
 		hasMember("teams", this.teams),
 		hasMember("currentPlayerId", this.currentPlayerId)
-	), true, undefined).thenReturn(this.gameListElement);
+	), undefined).thenReturn(this.gameListElement);
 	when(this.gameListElementBuilder).buildListElement(allOf(
 		hasMember("gameId", this.inviteGameId),
 		hasMember("status", this.inviteStatus),
 		hasMember("teams", this.inviteTeams),
 		hasMember("currentPlayerId", this.inviteCurrentPlayerId)
-	), false, this.requestId).thenReturn(this.inviteGameListElement);
+	), this.requestId).thenReturn(this.inviteGameListElement);
 
 	when(this.gameListMenuBuilder).buildGameMenu().thenReturn(this.gameListMenuElement);
 
