@@ -64,6 +64,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.playerNameDirectory = mock(AVOCADO.PlayerNameDirectory);
 	this.gameCompleteDisplayBuilder = mock(AVOCADO.GameCompleteDisplayBuilder);
+	this.teamUtils = AVOCADO.TeamUtils.getInstance(this.facebook);
 
 	this.ajaxPromise = mock(TEST.FakePromise);
 	when(this.ajax).call(anything(), anything()).thenReturn(this.ajaxPromise);
@@ -281,5 +282,5 @@ GamePlayViewTest.prototype.testClickHandlerCallsViewManager = function() {
 };
 
 GamePlayViewTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.facebook, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder, this.playerNameDirectory, this.gameCompleteDisplayBuilder);
+	this.testObj = new AVOCADO.GamePlayView(this.ajax, this.facebook, this.templateRenderer, this.gamePlayDiv, this.viewManager, this.locStrings, this.trumpSelectionAreaBuilder, this.jqueryWrapper, this.roundPlayingAreaBuilder, this.discardAreaBuilder, this.previousTrickDisplayBuilder, this.playerNameDirectory, this.gameCompleteDisplayBuilder, this.teamUtils);
 };

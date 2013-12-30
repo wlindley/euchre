@@ -48,6 +48,7 @@ GameListElementBuilderTest.prototype.setUp = function() {
 	this.facebook = mock(AVOCADO.Facebook);
 	this.ajax = mock(AVOCADO.Ajax);
 	this.viewManager = mock(AVOCADO.ViewManager);
+	this.teamUtils = AVOCADO.TeamUtils.getInstance(this.facebook);
 	this.addRobotsModalBuilder = mock(AVOCADO.AddRobotsModalBuilder);
 
 	this.showGameDataFunc = mockFunction();
@@ -71,7 +72,7 @@ GameListElementBuilderTest.prototype.tearDown = function() {
 };
 
 GameListElementBuilderTest.prototype.buildTestObj = function() {
-	this.testObj = new AVOCADO.GameListElementBuilder(this.jqueryWrapper, this.templateRenderer, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager, this.addRobotsModalBuilder);
+	this.testObj = new AVOCADO.GameListElementBuilder(this.jqueryWrapper, this.templateRenderer, this.locStrings, this.playerNameDirectory, this.facebook, this.ajax, this.viewManager, this.addRobotsModalBuilder, this.teamUtils);
 };
 
 GameListElementBuilderTest.prototype.doTraining = function(status) {

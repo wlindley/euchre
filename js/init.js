@@ -7,8 +7,9 @@ $(function() {
 		window.templateRenderer = AVOCADO.TemplateRenderer.getInstance(window.dataRetriever);
 		window.playerNameDirectory = AVOCADO.PlayerNameDirectory.getInstance(EUCHRE.locStrings, window.facebook, window.dataRetriever);
 		window.viewManager = AVOCADO.ViewManager.getInstance();
-		window.gameListView = AVOCADO.GameListView.getInstance(window.templateRenderer, $('#gameList'), window.jqueryWrapper, window.viewManager, window.ajax, EUCHRE.locStrings, window.facebook, window.playerNameDirectory, window.dataRetriever);
-		window.gamePlayView = AVOCADO.GamePlayView.getInstance(window.ajax, window.facebook, window.templateRenderer, $('#gamePlay'), window.viewManager, EUCHRE.locStrings, window.jqueryWrapper, window.playerNameDirectory);
+		window.teamUtils = AVOCADO.TeamUtils.getInstance(window.facebook);
+		window.gameListView = AVOCADO.GameListView.getInstance(window.templateRenderer, $('#gameList'), window.jqueryWrapper, window.viewManager, window.ajax, EUCHRE.locStrings, window.facebook, window.playerNameDirectory, window.dataRetriever, window.teamUtils);
+		window.gamePlayView = AVOCADO.GamePlayView.getInstance(window.ajax, window.facebook, window.templateRenderer, $('#gamePlay'), window.viewManager, EUCHRE.locStrings, window.jqueryWrapper, window.playerNameDirectory, window.teamUtils);
 	}
 
 	function initObjects() {

@@ -2,7 +2,7 @@ if (AVOCADO == undefined) {
 	AVOCADO = {};
 }
 
-AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, addRobotsModalBuilder) {
+AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, addRobotsModalBuilder, teamUtils) {
 	var self = this;
 
 	this.buildListElement = function(gameData, isInvite, requestId) {
@@ -72,12 +72,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 			if (isInvite) {
 				element.click(self.buildGameInviteClickHandler(gameData.gameId));
 			} else {
-				var openTeams = [];
-				for (var i = 0; i < 2; i++) {
-					if (gameData.teams[i].length < 2) {
-						openTeams.push(i);
-					}
-				}
+				var openTeams = teamUtils.findOpenTeams(gameData.teams);
 				var teamId = openTeams[Math.floor(Math.random() * openTeams.length)];
 				element.click(self.buildGameJoinClickHandler(gameData.gameId, teamId, requestId));
 			}
@@ -122,12 +117,12 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 	}
 
 	function showTeamColors(element, gameData) {
-		if (-1 != gameData.teams[0].indexOf(facebook.getSignedInPlayerId())) {
-			element.find(".team0").addClass("green");
-			element.find(".team1").addClass("red");
+		if (teamUtils.isLocalPlayerOnTeam(gameData.teams[0])) {
+			element.find(".team0").addClass(teamUtils.getAllyClass());
+			element.find(".team1").addClass(teamUtils.getOpponentClass());
 		} else {
-			element.find(".team0").addClass("red");
-			element.find(".team1").addClass("green");
+			element.find(".team0").addClass(teamUtils.getOpponentClass());
+			element.find(".team1").addClass(teamUtils.getAllyClass());
 		}
 	}
 
@@ -172,7 +167,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 	};
 };
 
-AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, dataRetriever) {
+AVOCADO.GameListElementBuilder.getInstance = function(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, dataRetriever, teamUtils) {
 	var modalBuilder = AVOCADO.AddRobotsModalBuilder.getInstance(templateRenderer, jqueryWrapper, playerNameDirectory, dataRetriever, ajax, viewManager);
-	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, modalBuilder);
+	return new AVOCADO.GameListElementBuilder(jqueryWrapper, templateRenderer, locStrings, playerNameDirectory, facebook, ajax, viewManager, modalBuilder, teamUtils);
 };
