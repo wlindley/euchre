@@ -20,9 +20,9 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 	this.upCardHtml = "up card html";
 
 	this.trumpSelection1ActionHtml = "trump 1 action";
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
 	this.trumpSelection2ActionHtml = "trump 2 action";
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
 
 	this.jqueryWrapper = mock(AVOCADO.JQueryWrapper);
 	this.facebook = mock(AVOCADO.Facebook);
@@ -126,8 +126,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildHooksUpDealerNamePromise = func
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2 = function() {
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
 
 	this.buildTestObj();
 	this.status = "trump_selection_2";
@@ -151,8 +151,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenV
 	this.currentPlayerId = this.playerId + "4325";
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
 
 	this.buildTestObj();
 	this.status = "trump_selection_2";
@@ -166,8 +166,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildDoesNotIncludeActionsWhenNotCur
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.buildTestObj();
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
 	this.train("");
 
 	assertEquals(this.trumpSelectionElement, this.trigger(this.upCard));
@@ -184,8 +184,8 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildDoesNotIncludeActionsWhenNotCur
 	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
 	this.buildTestObj();
 	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action", anything()).thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action", anything()).thenReturn(this.trumpSelection2ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
 	this.train("");
 
 	assertEquals(this.trumpSelectionElement, this.trigger(this.upCard));

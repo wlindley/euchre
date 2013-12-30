@@ -11,43 +11,13 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 			return null;
 		}
 
-		var trumpSelectionActionHtml = "";
-		if (facebook.getSignedInPlayerId() == currentPlayerId) {
-			if ("trump_selection_2" == status) {
-				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection2Action", {});
-			} else {
-				trumpSelectionActionHtml = templateRenderer.renderTemplate("trumpSelection1Action", {});
-			}
-		}
-
 		if (null == upCard) {
 			upCard = {"suit" : 0, "value" : 0};
 		}
 
-		var dealerTeam = locStrings.yourTeam;
-		if ((0 <= teams[0].indexOf(dealerId)) != (0 <= teams[0].indexOf(facebook.getSignedInPlayerId()))) {
-			dealerTeam = locStrings.otherTeam;
-		}
-
-		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
-		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerTeam" : dealerTeam, "trumpSelectionAction" : trumpSelectionActionHtml});
-		var trumpSelectionElement = jqueryWrapper.getElement(trumpSelectionHtml);
-		if (facebook.getSignedInPlayerId() == currentPlayerId) {
-			trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));
-			trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
-			trumpSelectionElement.find(".selectTrumpSuitButton").click(self.buildSelectTrumpSuitClickHandler(gameId, trumpSelectionElement.find(".selectTrumpSuitInput")));
-		} else {
-			trumpSelectionElement.find(".trumpSelectionActions").hide();
-		}
-
-		var dealerNamePromise = playerNameDirectory.getNamePromise(dealerId);
-		var dealerNameElement = trumpSelectionElement.find(".dealer").find(".playerName");
-		dealerNamePromise.registerForUpdates(dealerNameElement);
-		if ((-1 == teams[0].indexOf(facebook.getSignedInPlayerId())) == (-1 == teams[0].indexOf(dealerId))) {
-			trumpSelectionElement.find(".dealer").find(".label").addClass("green");
-		} else {
-			trumpSelectionElement.find(".dealer").find(".label").addClass("red");
-		}
+		var trumpSelectionElement = buildTrumpSelectionElement(teams, status, dealerId, currentPlayerId, upCard);
+		setupActions(trumpSelectionElement, gameId, currentPlayerId, upCard);
+		showDealerNameAndTeam(trumpSelectionElement, teams, dealerId);
 
 		trumpSelectionElement.find(".ui.dropdown").dropdown();
 
@@ -93,6 +63,54 @@ AVOCADO.TrumpSelectionAreaBuilder = function(templateRenderer, jqueryWrapper, aj
 			}, 100);
 		};
 	};
+
+	function buildTrumpSelectionAction(status, currentPlayerId) {
+		if (facebook.getSignedInPlayerId() == currentPlayerId) {
+			if ("trump_selection_2" == status) {
+				return templateRenderer.renderTemplate("trumpSelection2Action");
+			} else {
+				return templateRenderer.renderTemplate("trumpSelection1Action");
+			}
+		}
+		return "";
+	}
+
+	function buildDealerTeam(teams, dealerId) {
+		if ((0 <= teams[0].indexOf(dealerId)) != (0 <= teams[0].indexOf(facebook.getSignedInPlayerId()))) {
+			return locStrings.otherTeam;
+		}
+		return locStrings.yourTeam;
+	}
+
+	function buildTrumpSelectionElement(teams, status, dealerId, currentPlayerId, upCard) {
+		var trumpSelectionActionHtml = buildTrumpSelectionAction(status, currentPlayerId);
+		var dealerTeam = buildDealerTeam(teams, dealerId);
+		var upCardHtml = templateRenderer.renderTemplate("card", {"suit" : upCard.suit, "value" : upCard.value});
+		
+		var trumpSelectionHtml = templateRenderer.renderTemplate("trumpSelection", {"card" : upCardHtml, "dealerTeam" : dealerTeam, "trumpSelectionAction" : trumpSelectionActionHtml});
+		return jqueryWrapper.getElement(trumpSelectionHtml);
+	}
+
+	function setupActions(trumpSelectionElement, gameId, currentPlayerId, upCard) {
+		if (facebook.getSignedInPlayerId() == currentPlayerId) {
+			trumpSelectionElement.find(".trumpSelectionPassButton").click(self.buildPassClickHandler(gameId));
+			trumpSelectionElement.find(".dealerPicksUpButton").click(self.buildDealerPicksUpClickHandler(gameId, upCard.suit));
+			trumpSelectionElement.find(".selectTrumpSuitButton").click(self.buildSelectTrumpSuitClickHandler(gameId, trumpSelectionElement.find(".selectTrumpSuitInput")));
+		} else {
+			trumpSelectionElement.find(".trumpSelectionActions").hide();
+		}
+	}
+
+	function showDealerNameAndTeam(trumpSelectionElement, teams, dealerId) {
+		var dealerNamePromise = playerNameDirectory.getNamePromise(dealerId);
+		var dealerNameElement = trumpSelectionElement.find(".dealer").find(".playerName");
+		dealerNamePromise.registerForUpdates(dealerNameElement);
+		if ((-1 == teams[0].indexOf(facebook.getSignedInPlayerId())) == (-1 == teams[0].indexOf(dealerId))) {
+			trumpSelectionElement.find(".dealer").find(".label").addClass("green");
+		} else {
+			trumpSelectionElement.find(".dealer").find(".label").addClass("red");
+		}
+	}
 };
 
 AVOCADO.TrumpSelectionAreaBuilder.getInstance = function(templateRenderer, jqueryWrapper, ajax, facebook, locStrings, viewManager, playerNameDirectory) {
