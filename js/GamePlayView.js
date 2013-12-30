@@ -21,7 +21,7 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 		gamePlayDiv.empty();
 
 		var gameElement = buildGameElement(response);
-		hookUpNamePromisesAndSetTeamColors(gameElement, response);
+		displayCurrentPlayer(gameElement, response.teams, response.round.currentPlayerId);
 		showGameStatusAppropriateActionArea(gameElement, response);
 		showPreviousTrick(gameElement, response);
 
@@ -76,18 +76,14 @@ AVOCADO.GamePlayView = function(ajax, facebook, templateRenderer, gamePlayDiv, v
 		return jqueryWrapper.getElement(gameHtml);
 	}
 
-	function hookUpNamePromisesAndSetTeamColors(gameElement, response) {
-		if (null !== response.round.currentPlayerId && undefined !== response.round.currentPlayerId) {
-			var namePromise = playerNameDirectory.getNamePromise(response.round.currentPlayerId);
-			var nameElement = gameElement.find(".turn").find(".playerName");
+	function displayCurrentPlayer(gameElement, teams, currentPlayerId) {
+		var nameElement = gameElement.find(".turn").find(".playerName");
+		if (null !== currentPlayerId && undefined !== currentPlayerId) {
+			var namePromise = playerNameDirectory.getNamePromise(currentPlayerId);
 			namePromise.registerForUpdates(nameElement);
-			if (teamUtils.isOnLocalPlayersTeam(response.teams, response.round.currentPlayerId)) {
-				nameElement.addClass(teamUtils.getAllyClass());
-			} else {
-				nameElement.addClass(teamUtils.getOpponentClass());
-			}
+			nameElement.addClass(teamUtils.getClassForPlayer(teams, currentPlayerId));
 		} else {
-			gameElement.find(".turn").find(".playerName").text(locStrings["n/a"]);
+			nameElement.text(locStrings["n/a"]);
 		}
 	}
 

@@ -7,8 +7,9 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 
 	this.buildGameCompleteDisplay = function(teams, scores, gameId) {
 		var gameCompleteElement = buildElement();
-		var winningTeamId = findAndDisplayWinner(gameCompleteElement, teams, scores);
-		hookUpNamePromises(gameCompleteElement, teams, winningTeamId);
+		var winningTeamId = getWinningTeamId(teams, scores);
+		showWinnerColor(gameCompleteElement, teams[winningTeamId]);
+		hookUpWinnerNamePromises(gameCompleteElement, teams[winningTeamId]);
 
 		gameCompleteElement.find(".dismissButton").click(self.buildDismissClickHandler(gameId));
 
@@ -24,22 +25,23 @@ AVOCADO.GameCompleteDisplayBuilder = function(templateRenderer, jqueryWrapper, l
 		return jqueryWrapper.getElement(gameCompleteHtml);
 	}
 
-	function findAndDisplayWinner(gameCompleteElement, teams, scores) {
+	function getWinningTeamId(teams, scores) {
 		var localPlayerTeamId = teamUtils.getLocalPlayersTeamId(teams);
 		var otherTeamId = localPlayerTeamId == 0 ? 1 : 0;
-		var winningTeamId = localPlayerTeamId;
-		if (scores[otherTeamId] > scores[localPlayerTeamId]) {
-			winningTeamId = otherTeamId;
-			gameCompleteElement.addClass(teamUtils.getOpponentClass());
-		} else {
+		return (scores[localPlayerTeamId] > scores[otherTeamId]) ? localPlayerTeamId : otherTeamId;
+	};
+
+	function showWinnerColor(gameCompleteElement, winningTeam) {
+		if (teamUtils.isLocalPlayerOnTeam(winningTeam)) {
 			gameCompleteElement.addClass(teamUtils.getAllyClass());
+		} else {
+			gameCompleteElement.addClass(teamUtils.getOpponentClass());
 		}
-		return winningTeamId;
 	}
 
-	function hookUpNamePromises(gameCompleteElement, teams, winningTeamId) {
-		for (var i in teams[winningTeamId]) {
-			var namePromise = playerNameDirectory.getNamePromise(teams[winningTeamId][i]);
+	function hookUpWinnerNamePromises(gameCompleteElement, winningTeam) {
+		for (var i in winningTeam) {
+			var namePromise = playerNameDirectory.getNamePromise(winningTeam[i]);
 			namePromise.registerForUpdates(gameCompleteElement.find(".winner" + i));
 		}
 	}

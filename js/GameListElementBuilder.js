@@ -6,9 +6,10 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 	var self = this;
 
 	this.buildListElement = function(gameData, requestId) {
-		var element = buildElement(locStrings, gameData);
+		var element = buildElement(gameData);
 		setupAddRobotsModal(element, gameData);
 		setupGameIcons(element, gameData);
+		showAddRobotsButton(element, gameData);
 		
 		addClickHandlers(element, gameData, requestId);
 
@@ -20,7 +21,7 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 		return element;
 	};
 
-	function buildElement(locStrings, gameData) {
+	function buildElement(gameData) {
 		var templateParams = {
 			"vs" : locStrings["vs"],
 			"gameId" : gameData.gameId,
@@ -48,17 +49,20 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 	function showCorrectGameIcon(element, gameData) {
 		if ("waiting_for_more_players" == gameData.status) {
 			if (teamUtils.isLocalPlayerInGame(gameData.teams)) {
-				element.find(".addRobotsButton").show();
 				element.find(".inviteToGame").show();
 			} else {
 				element.find(".joinGame").show();
 			}
-		} else {
-			if ("complete" == gameData.status) {
-				element.find(".gameOver").show();
-			} else if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
-				element.find(".playGame").show();
-			}
+		} else if ("complete" == gameData.status) {
+			element.find(".gameOver").show();
+		} else if (gameData.currentPlayerId == facebook.getSignedInPlayerId()) {
+			element.find(".playGame").show();
+		}
+	}
+
+	function showAddRobotsButton(element, gameData) {
+		if ("waiting_for_more_players" == gameData.status && teamUtils.isLocalPlayerInGame(gameData.teams)) {
+			element.find(".addRobotsButton").show();
 		}
 	}
 
@@ -101,16 +105,12 @@ AVOCADO.GameListElementBuilder = function(jqueryWrapper, templateRenderer, locSt
 					var namePromise = playerNameDirectory.getNamePromise(gameData.teams[teamId][index]);
 					namePromise.registerForUpdates(dataNameElement);
 				} else {
-					var message = "";
-					var clickHandler = null;
-					if (teamUtils.isLocalPlayerInGame(gameData.teams)) {
-						message = locStrings["inviteCTA"];
-					} else {
+					var message = locStrings["inviteCTA"];
+					if (!teamUtils.isLocalPlayerInGame(gameData.teams)) {
 						message = locStrings["joinCTA"];
-						clickHandler = self.buildGameJoinClickHandler(gameData.gameId, teamId, requestId);
+						dataElement.click(self.buildGameJoinClickHandler(gameData.gameId, teamId, requestId));
 					}
 					dataNameElement.text(message);
-					dataElement.click(clickHandler);
 				}
 			}
 		}
