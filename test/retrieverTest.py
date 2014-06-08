@@ -154,6 +154,30 @@ class UpCardRetrieverTest(testhelper.TestCase):
 		result = self.testObj.retrieveUpCard(gameObj)
 		self.assertEqual(None, result)
 
+class BlackListedSuitsRetrieverTest(testhelper.TestCase):
+	def setUp(self):
+		self.testObj = retriever.BlackListedSuitsRetriever.getInstance()
+
+	def testRetrieveBlackListedSuitsReturnsCorrectData(self):
+		expectedSuits = [euchre.SUIT_CLUBS]
+
+		gameObj = testhelper.createMock(euchre.Game)
+		sequence = testhelper.createMock(euchre.Sequence)
+		trumpSelector = testhelper.createMock(euchre.TrumpSelector)
+		when(gameObj).getSequence().thenReturn(sequence)
+		when(sequence).getState().thenReturn(euchre.Sequence.STATE_TRUMP_SELECTION_2)
+		when(sequence).getTrumpSelector().thenReturn(trumpSelector)
+		when(trumpSelector).getBlackListedSuits().thenReturn(expectedSuits)
+
+		result = self.testObj.retrieveBlackListedSuits(gameObj)
+		self.assertEqual(expectedSuits, result)
+
+	def testRetrieveBlackListedSuitsReturnsNoneIfSequenceIsNone(self):
+		gameObj = testhelper.createMock(euchre.Game)
+		when(gameObj).getSequence().thenReturn(None)
+		result = self.testObj.retrieveBlackListedSuits(gameObj)
+		self.assertEqual(None, result)
+
 class GameStatusRetrieverTest(testhelper.TestCase):
 	def setUp(self):
 		self.game = testhelper.createMock(euchre.Game)

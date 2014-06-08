@@ -308,6 +308,9 @@ class TrumpSelector(object):
 	def getTurnTracker(self):
 		return self._turnTracker
 
+	def getBlackListedSuits(self):
+		return self._blackListedSuits
+
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))

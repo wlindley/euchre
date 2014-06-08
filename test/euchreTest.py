@@ -470,6 +470,12 @@ class TrumpSelectorTest(testhelper.TestCase):
 	def testGetTurnTrackerReturnsTheTurnTracker(self):
 		self.assertEqual(self.turnTracker, self.trumpSelector.getTurnTracker())
 
+	def testGetBlackListedSuitsReturnsExpectedData(self):
+		self.trumpSelector.reset(euchre.SUIT_HEARTS)
+		result = self.trumpSelector.getBlackListedSuits()
+		self.assertEqual(1, len(result))
+		self.assertIn(euchre.SUIT_HEARTS, result)
+
 class SequenceTest(testhelper.TestCase):
 	def _createPlayersAndHands(self):
 		self.deck = euchre.Deck(euchre.MIN_4_PLAYER_CARD_VALUE)

@@ -77,6 +77,20 @@ class UpCardRetriever(object):
 			return sequence.getUpCard()
 		return None
 
+class BlackListedSuitsRetriever(object):
+	instance = None
+	@classmethod
+	def getInstance(cls):
+		if None != cls.instance:
+			return cls.instance
+		return BlackListedSuitsRetriever()
+
+	def retrieveBlackListedSuits(self, gameObj):
+		sequence = gameObj.getSequence()
+		if None != sequence:
+			return sequence.getTrumpSelector().getBlackListedSuits()
+		return None
+
 class GameStatusRetriever(object):
 	instance = None
 	@classmethod

@@ -258,15 +258,16 @@ class GetGameDataExecutable(FacebookUserExecutable):
 	def getInstance(cls, requestDataAccessor, responseWriter, session):
 		if None != cls.instance:
 			return cls.instance
-		return GetGameDataExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance(), retriever.TrickLeaderRetriever.getInstance(), retriever.PreviousTrickRetriever.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
+		return GetGameDataExecutable(requestDataAccessor, responseWriter, session, model.GameModelFinder.getInstance(), serializer.GameSerializer.getInstance(), retriever.TurnRetriever.getInstance(), retriever.HandRetriever.getInstance(), retriever.UpCardRetriever.getInstance(), retriever.BlackListedSuitsRetriever.getInstance(), retriever.DealerRetriever.getInstance(), retriever.GameStatusRetriever.getInstance(euchre.WINNING_SCORE), retriever.LedSuitRetriever.getInstance(), retriever.CurrentTrickRetriever.getInstance(), retriever.TrumpRetriever.getInstance(), retriever.TeamRetriever.getInstance(), retriever.ScoreRetriever.getInstance(), retriever.TrickLeaderRetriever.getInstance(), retriever.PreviousTrickRetriever.getInstance(), social.Facebook.getInstance(requestDataAccessor, session))
 
-	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever, trickLeaderRetriever, previousTrickRetriever, facebook):
+	def __init__(self, requestDataAccessor, responseWriter, session, gameModelFinder, gameSerializer, turnRetriever, handRetriever, upCardRetriever, blackListedSuitsRetriever, dealerRetriever, gameStatusRetriever, ledSuitRetriever, currentTrickRetriever, trumpRetriever, teamRetriever, scoreRetriever, trickLeaderRetriever, previousTrickRetriever, facebook):
 		super(GetGameDataExecutable, self).__init__(requestDataAccessor, responseWriter, session, facebook)
 		self._gameModelFinder = gameModelFinder
 		self._gameSerializer = gameSerializer
 		self._turnRetriever = turnRetriever
 		self._handRetriever = handRetriever
 		self._upCardRetriever = upCardRetriever
+		self._blackListedSuitsRetriever = blackListedSuitsRetriever
 		self._dealerRetriever = dealerRetriever
 		self._gameStatusRetriever = gameStatusRetriever
 		self._ledSuitRetriever = ledSuitRetriever
@@ -311,6 +312,7 @@ class GetGameDataExecutable(FacebookUserExecutable):
 		roundData["tricksTaken"] = self._scoreRetriever.retrieveRoundScores(gameObj)
 		roundData["trump"] = self._trumpRetriever.retrieveTrump(gameObj)
 		roundData["upCard"] = {"suit" : upCard.suit, "value" : upCard.value} if None != upCard else None
+		roundData["blackListedSuits"] = [suit for suit in self._blackListedSuitsRetriever.retrieveBlackListedSuits(gameObj)]
 		roundData["dealerId"] = self._dealerRetriever.retrieveDealer(gameObj)
 		roundData["hand"] = self._convertHand(self._handRetriever.retrieveHand(playerId, gameObj))
 		roundData["currentPlayerId"] = self._turnRetriever.retrieveTurn(gameObj)

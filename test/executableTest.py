@@ -521,6 +521,10 @@ class GetGameDataExecutableTest(BaseExecutableTestCase):
 		self.upCardRetriever = testhelper.createSingletonMock(retriever.UpCardRetriever)
 		when(self.upCardRetriever).retrieveUpCard(self.gameObj).thenReturn(self.upCard)
 
+		self.blackListedSuits = [euchre.SUIT_SPADES]
+		self.blackListedSuitsRetriever = testhelper.createSingletonMock(retriever.BlackListedSuitsRetriever)
+		when(self.blackListedSuitsRetriever).retrieveBlackListedSuits(self.gameObj).thenReturn(self.blackListedSuits)
+
 		self.dealer = "123456"
 		self.dealerRetriever = testhelper.createSingletonMock(retriever.DealerRetriever)
 		when(self.dealerRetriever).retrieveDealer(self.gameObj).thenReturn(self.dealer)
@@ -587,6 +591,7 @@ class GetGameDataExecutableTest(BaseExecutableTestCase):
 				"tricksTaken" : self.roundScores,
 				"trump" : self.trump,
 				"upCard" : expectedUpCard,
+				"blackListedSuits" : [suit for suit in self.blackListedSuits],
 				"dealerId" : self.dealer,
 				"hand": [{"suit" : card.suit, "value" : card.value} for card in self.hand],
 				"currentPlayerId" : self.playerId,
