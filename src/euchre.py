@@ -292,6 +292,7 @@ class TrumpSelector(object):
 	def __init__(self, turnTracker, availableTrump=SUIT_NONE):
 		self._turnTracker = turnTracker
 		self._availableTrump = availableTrump
+		self._blackListedSuits = []
 		self._selectedTrump = SUIT_NONE
 		self._selectingPlayerId = None
 
@@ -310,6 +311,8 @@ class TrumpSelector(object):
 	def selectTrump(self, player, trumpSuit):
 		if self._turnTracker.getCurrentPlayerId() != player.playerId:
 			raise game.GameRuleException("Player %s cannot select the trump right now, it is player %s's turn" % (player.playerId, self._turnTracker.getCurrentPlayerId()))
+		if trumpSuit in self._blackListedSuits:
+			raise game.GameRuleException("Cannot choose suit %s as trump when that suit has been blacklisted" % trumpSuit)
 		if SUIT_NONE != trumpSuit:
 			if SUIT_NONE != self._availableTrump and self._availableTrump != trumpSuit:
 				raise game.GameRuleException("Cannot choose suit %s as trump while only suit %s is available" % (trumpSuit, self._availableTrump))
@@ -319,10 +322,11 @@ class TrumpSelector(object):
 	def isComplete(self):
 		return (SUIT_NONE != self._selectedTrump) or (1 <= self._turnTracker.getAllTurnCount())
 
-	def reset(self):
+	def reset(self, blackListedSuit):
 		self._turnTracker.reset()
 		self._availableTrump = SUIT_NONE
 		self._selectedTrump = SUIT_NONE
+		self._blackListedSuits = [blackListedSuit]
 
 	def _recordTrumpSelection(self, player, trumpSuit):
 		self._selectedTrump = trumpSuit
@@ -376,7 +380,7 @@ class Sequence(object):
 		if self._trumpSelector.isComplete():
 			selectedTrump = self._trumpSelector.getSelectedTrump()
 			if SUIT_NONE == selectedTrump and Sequence.STATE_TRUMP_SELECTION_FAILED != self.getState():
-				self._trumpSelector.reset()
+				self._trumpSelector.reset(self._trumpSelector.getAvailableTrump())
 			else:
 				self._round.setTrump(selectedTrump)
 

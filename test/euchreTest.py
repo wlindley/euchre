@@ -426,9 +426,19 @@ class TrumpSelectorTest(testhelper.TestCase):
 			self.trumpSelector.selectTrump(self.players[1], self.availableTrump)
 
 	def testAnySuitCanBeSelectedIfNoTrumpIsAvailable(self):
-		self.trumpSelector._availableTrump = euchre.SUIT_NONE
+		self.trumpSelector.reset(euchre.SUIT_NONE)
 		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_HEARTS)
 		self.assertEqual(euchre.SUIT_HEARTS, self.trumpSelector.getSelectedTrump())
+
+	def testBlackListedSuitCannotBeSelected(self):
+		self.trumpSelector.reset(euchre.SUIT_SPADES)
+		with self.assertRaises(game.GameRuleException):
+			self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_SPADES)
+
+	def testCanPlayNonBlackListedSuit(self):
+		self.trumpSelector.reset(euchre.SUIT_HEARTS)
+		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_CLUBS)
+		self.assertEqual(euchre.SUIT_CLUBS, self.trumpSelector.getSelectedTrump())
 
 	def testSelectingSuitNoneAdvancesTurnWithoutSettingTrump(self):
 		self.trumpSelector.selectTrump(self.players[0], euchre.SUIT_NONE)
@@ -443,13 +453,13 @@ class TrumpSelectorTest(testhelper.TestCase):
 	def testResetResetsTurnTrackerAndClearsAvailableTrump(self):
 		for player in self.players:
 			self.trumpSelector.selectTrump(player, euchre.SUIT_NONE)
-		self.trumpSelector.reset()
+		self.trumpSelector.reset(euchre.SUIT_NONE)
 		self.assertEqual(self.players[0].playerId, self.trumpSelector._turnTracker.getCurrentPlayerId())
 		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getAvailableTrump())
 
 	def testResetClearsSelectedTrump(self):
 		self.trumpSelector.selectTrump(self.players[0], self.trumpSelector.getAvailableTrump())
-		self.trumpSelector.reset()
+		self.trumpSelector.reset(euchre.SUIT_NONE)
 		self.assertEqual(euchre.SUIT_NONE, self.trumpSelector.getSelectedTrump())
 
 	def testSelectingTrumpRecordsIdOfSelectingPlayer(self):
@@ -554,7 +564,7 @@ class SequenceTest(testhelper.TestCase):
 	def testAllPlayersPassingOnTrumpSelectionResetsTrumpSelector(self):
 		self._train(euchre.SUIT_SPADES, euchre.SUIT_NONE, True)
 		self.sequence.selectTrump(self.players[-1], euchre.SUIT_NONE)
-		verify(self.trumpSelector).reset()
+		verify(self.trumpSelector).reset(euchre.SUIT_SPADES)
 
 	def testAllPlayersPassingOnTrumpSelection2DoesNotResetTrumpSelector(self):
 		self._train(euchre.SUIT_NONE, euchre.SUIT_NONE, True)

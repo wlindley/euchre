@@ -155,6 +155,7 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 		self.turnTracker = testhelper.createMock(game.TurnTracker)
 		self.availableTrump = euchre.SUIT_HEARTS
 		self.selectedTrump = euchre.SUIT_DIAMONDS
+		self.blackListedSuits = [euchre.SUIT_SPADES]
 		self.selectingPlayerId = "123456"
 		self.trumpSelector = euchre.TrumpSelector(self.turnTracker, self.availableTrump)
 		self.turnTrackerSerializer = testhelper.createSingletonMock(serializer.TurnTrackerSerializer)
@@ -165,11 +166,14 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 		when(self.turnTrackerSerializer).serialize(self.turnTracker).thenReturn(expectedTurnTracker)
 		self.trumpSelector._selectingPlayerId = self.selectingPlayerId
 		self.trumpSelector._selectedTrump = self.selectedTrump
+		self.trumpSelector._blackListedSuits = self.blackListedSuits
 		data = self.testObj.serialize(self.trumpSelector)
 		self.assertEqual(expectedTurnTracker, data["turnTracker"])
 		self.assertEqual(self.availableTrump, data["availableTrump"])
 		self.assertEqual(self.selectedTrump, data["selectedTrump"])
 		self.assertEqual(self.selectingPlayerId, data["selectingPlayerId"])
+		for suit in self.blackListedSuits:
+			self.assertIn(suit, data["blackListedSuits"])
 
 	def testSerializeUsesCorrectValueWhenSelectingPlayerIdIsNone(self):
 		data = self.testObj.serialize(self.trumpSelector)
@@ -178,18 +182,20 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 	def testDeserializesTrumpSelectorCorrectly(self):
 		players = "some players"
 		serializedTurnTracker = "a turnTracker"
-		data = {"turnTracker" : serializedTurnTracker, "availableTrump" : self.availableTrump, "selectedTrump" : self.selectedTrump, "selectingPlayerId" : self.selectingPlayerId}
+		data = {"turnTracker" : serializedTurnTracker, "availableTrump" : self.availableTrump, "selectedTrump" : self.selectedTrump, "selectingPlayerId" : self.selectingPlayerId, "blackListedSuits" : self.blackListedSuits}
 		when(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players).thenReturn(self.turnTracker)
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(self.turnTracker, obj._turnTracker)
 		self.assertEqual(self.availableTrump, obj._availableTrump)
 		self.assertEqual(self.selectedTrump, obj._selectedTrump)
 		self.assertEqual(self.selectingPlayerId, obj._selectingPlayerId)
+		for suit in self.blackListedSuits:
+			self.assertIn(suit, obj._blackListedSuits)
 		verify(self.turnTrackerSerializer).deserialize(data["turnTracker"], players)
 
 	def testDeserializeSetsCorrectValueForSelectingPlayerIdOfEmptyString(self):
 		players = "some players"
-		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectedTrump" : self.selectedTrump, "selectingPlayerId" : ""}
+		data = {"turnTracker" : "a turn tracker", "availableTrump" : self.availableTrump, "selectedTrump" : self.selectedTrump, "selectingPlayerId" : "", "blackListedSuits" : self.blackListedSuits}
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(None, obj._selectingPlayerId)
 

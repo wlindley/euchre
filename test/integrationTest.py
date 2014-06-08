@@ -4,6 +4,7 @@ import unittest
 from mockito import *
 from google.appengine.ext import ndb
 import json
+import random
 
 from src import executable
 from src import social
@@ -50,6 +51,9 @@ class IntegrationTest(testhelper.TestCase):
 		self.gameModelFinder = testhelper.createSingletonMock(model.GameModelFinder)
 		testhelper.createSingletonMock(model.MatchmakingTicketFinder)
 		model.MatchmakingTicketFinder.instance = FakeMatchmakingTicketFinder()
+
+		self.gameSerializer = serializer.GameSerializer.getInstance()
+		self.upCardRetriever = retriever.UpCardRetriever.getInstance()
 
 		self.doTraining()
 
@@ -157,6 +161,14 @@ class IntegrationTest(testhelper.TestCase):
 			self.users.append(self.createUser("euchre_robot_random_" + str(i)))
 		self.fillGameWithPlayers()
 
+	def getValidTrumpSuit(self, gameId):
+		gameObj = self.gameSerializer.deserialize(self.gameModel.serializedGame)
+		upCard = self.upCardRetriever.retrieveUpCard(gameObj)
+		while True:
+			validSuit = random.randrange(1, 5)
+			if upCard.suit != validSuit:
+				return validSuit
+
 	###TESTS###
 
 	def testAdding4PlayersStartsGame(self):
@@ -219,8 +231,9 @@ class IntegrationTest(testhelper.TestCase):
 		#actions
 		self.runCreateGame(self.users[0])
 		self.runAddRobots(self.users[0], self.gameId, [[None, "euchre_robot_random_1"], ["euchre_robot_random_2", "euchre_robot_random_3"]])
+		selectedTrump = self.getValidTrumpSuit(self.gameId)
 		self.runSelectTrump(self.users[0], self.gameId, euchre.SUIT_NONE)
-		self.runSelectTrump(self.users[0], self.gameId, euchre.SUIT_HEARTS)
+		self.runSelectTrump(self.users[0], self.gameId, selectedTrump)
 
 		#verification
 		gameSerializer = serializer.GameSerializer.getInstance()

@@ -86,7 +86,10 @@ class RandomCardPlayerAI(BasePlayerAI):
 		gameObj.selectTrump(self._getPlayerForId(playerId), euchre.SUIT_NONE)
 
 	def selectTrump2(self, playerId, gameObj):
-		gameObj.selectTrump(self._getPlayerForId(playerId), random.choice([euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS]))
+		try:
+			gameObj.selectTrump(self._getPlayerForId(playerId), random.choice([euchre.SUIT_CLUBS, euchre.SUIT_DIAMONDS, euchre.SUIT_SPADES, euchre.SUIT_HEARTS]))
+		except game.GameRuleException as e:
+			logging.error("Caught exception while random AI was selecting trump: %s" % e)
 
 	def discardCard(self, playerId, gameObj):
 		hand = self._handRetriever.retrieveHand(playerId, gameObj)
