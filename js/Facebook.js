@@ -2,24 +2,24 @@ if (AVOCADO === undefined) {
 	var AVOCADO = {};
 }
 
-AVOCADO.StandardFacebookLoginStrategy = function() {
+AVOCADO.LegacyFacebookLoginStrategy = function() {
 	this.login = function(callback) {
 		FB.Event.subscribe("auth.authResponseChange", callback);
 	};
 };
 
-AVOCADO.StandardFacebookLoginStrategy.getInstance = function() {
-	return new AVOCADO.StandardFacebookLoginStrategy();
+AVOCADO.LegacyFacebookLoginStrategy.getInstance = function() {
+	return new AVOCADO.LegacyFacebookLoginStrategy();
 };
 
-AVOCADO.LocalFacebookLoginStrategy = function() {
+AVOCADO.StandardFacebookLoginStrategy = function() {
 	this.login = function(callback) {
 		FB.login(callback);
 	};
 };
 
-AVOCADO.LocalFacebookLoginStrategy.getInstance = function() {
-	return new AVOCADO.LocalFacebookLoginStrategy();
+AVOCADO.StandardFacebookLoginStrategy.getInstance = function() {
+	return new AVOCADO.StandardFacebookLoginStrategy();
 };
 
 AVOCADO.FacebookRequest = function(requestId, gameId, message) {
@@ -155,11 +155,6 @@ AVOCADO.Facebook = function(jqueryWrapper, dataRetriever, loginStrategy) {
 };
 
 AVOCADO.Facebook.getInstance = function(jqueryWrapper, dataRetriever) {
-	var loginStrategy = null;
-	if ("local" == dataRetriever.get("environment")) {
-		loginStrategy = AVOCADO.LocalFacebookLoginStrategy.getInstance();
-	} else {
-		loginStrategy = AVOCADO.StandardFacebookLoginStrategy.getInstance();
-	}
+	var loginStrategy = AVOCADO.StandardFacebookLoginStrategy.getInstance();
 	return new AVOCADO.Facebook(jqueryWrapper, dataRetriever, loginStrategy);
 };

@@ -132,7 +132,10 @@ FacebookTest.prototype.setupAjaxCall = function(trainingValueForLogin, authStatu
 			}
 			var callback = mockFunction();
 
-			window.FB.login = function() {
+			window.FB.login = function(func) {
+				if (func) {
+					callback = func;
+				}
 				if (updatedAuthStatus) {
 					response.status = updatedAuthStatus;
 				} else {
@@ -203,7 +206,7 @@ FacebookTest.prototype.testHandleAjaxResponseSubscribesToAuthChangedEvent = func
 
 	this.triggerInit();
 
-	verify(window.FB.Event.subscribe)("auth.authResponseChange", func());
+	verify(window.FB).login(func());
 };
 
 FacebookTest.prototype.testHandleAjaxResponseLogsInIfEnvironmentIsLocal = function() {
@@ -222,6 +225,9 @@ FacebookTest.prototype.testHandleAjaxResponseInitsBeforeLoggingIn = function() {
 	window.FB.Event = {};
 	window.FB.Event.subscribe = mockFunction();
 	this.jqueryWrapper.ajax = function(url, params) {
+		params["success"]();
+	};
+	window.FB.login = function() {
 		params["success"]();
 	};
 	when(window.FB).init().thenThrow("Exception!");
