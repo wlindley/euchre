@@ -199,6 +199,19 @@ class TrumpSelectorSerializerTest(testhelper.TestCase):
 		obj = self.testObj.deserialize(data, players)
 		self.assertEqual(None, obj._selectingPlayerId)
 
+	def testDeserializeGracefullyHandlesMissingSuitBlacklist(self):
+		players = "some players"
+		serializedTurnTracker = "a turnTracker"
+		data = {"turnTracker" : serializedTurnTracker, "availableTrump" : self.availableTrump, "selectedTrump" : self.selectedTrump, "selectingPlayerId" : self.selectingPlayerId}
+		when(self.turnTrackerSerializer).deserialize(serializedTurnTracker, players).thenReturn(self.turnTracker)
+		obj = self.testObj.deserialize(data, players)
+		self.assertEqual(self.turnTracker, obj._turnTracker)
+		self.assertEqual(self.availableTrump, obj._availableTrump)
+		self.assertEqual(self.selectedTrump, obj._selectedTrump)
+		self.assertEqual(self.selectingPlayerId, obj._selectingPlayerId)
+		self.assertEqual([], obj._blackListedSuits)
+		verify(self.turnTrackerSerializer).deserialize(data["turnTracker"], players)
+
 	def testHandlesNoneGracefully(self):
 		self.assertEqual(None, self.testObj.serialize(None))
 		self.assertEqual(None, self.testObj.deserialize(None, "some players"))

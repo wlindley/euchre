@@ -160,7 +160,10 @@ class TrumpSelectorSerializer(AbstractSerializer):
 		trumpSelector = euchre.TrumpSelector(turnTracker, data["availableTrump"])
 		trumpSelector._selectedTrump = data["selectedTrump"]
 		trumpSelector._selectingPlayerId = selectingPlayerId
-		trumpSelector._blackListedSuits = [suit for suit in data["blackListedSuits"]]
+		if "blackListedSuits" in data:
+			trumpSelector._blackListedSuits = [suit for suit in data["blackListedSuits"]]
+		else:
+			trumpSelector._blackListedSuits = []
 		return trumpSelector
 
 class RoundSerializer(AbstractSerializer):
