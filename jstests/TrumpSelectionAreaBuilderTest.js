@@ -1,7 +1,18 @@
 TrumpSelectionAreaBuilderTest = TestCase("TrumpSelectionAreaBuilderTest");
 
 TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
-	this.locStrings = {"yourTeam" : "your team", "otherTeam" : "other team"};
+	this.locStrings = {
+		"yourTeam" : "your team",
+		"otherTeam" : "other team",
+		"suit_1" : "clubs",
+		"suit_2" : "diamonds",
+		"suit_3" : "spades",
+		"suit_4" : "hearts",
+		"suit_1_cap" : "Clubs",
+		"suit_2_cap" : "Diamonds",
+		"suit_3_cap" : "Spades",
+		"suit_4_cap" : "Hearts"
+	};
 	this.playerId = "030480983";
 	this.currentPlayerId = this.playerId;
 	this.gameId = 34987234;
@@ -18,6 +29,8 @@ TrumpSelectionAreaBuilderTest.prototype.setUp = function() {
 
 	this.upCard = {"suit" : 1, "value" : 10};
 	this.upCardHtml = "up card html";
+
+	this.blackListedSuits = [this.upCard.suit];
 
 	this.trumpSelection1ActionHtml = "trump 1 action";
 	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
@@ -87,8 +100,30 @@ TrumpSelectionAreaBuilderTest.prototype.train = function(trumpSelectionActionHtm
 	}
 };
 
+TrumpSelectionAreaBuilderTest.prototype.trainForTrumpSelection2 = function(blackListedSuits) {
+	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
+	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
+	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
+	this.trunkSelection2ItemsHtmls = [];
+	this.trumpSelection2FinalItemsHtml = "";
+	this.activeTrumpId = "";
+	this.activeTrumpName = "";
+	for (var i = 1; i <= 4; i++) {
+		this.trunkSelection2ItemsHtmls[i] = "trump selection 2 item for suit " + i;
+		when(this.templateRenderer).renderTemplate("trumpSelection2Item", {"trumpId" : this.locStrings["suit_" + i], "trumpName" : this.locStrings["suit_" + i + "_cap"]}).thenReturn(this.trunkSelection2ItemsHtmls[i]);
+		if (this.blackListedSuits.indexOf(i) < 0) {
+			this.trumpSelection2FinalItemsHtml += this.trunkSelection2ItemsHtmls[i];
+			if ("" == this.activeTrumpId) {
+				this.activeTrumpId = this.locStrings["suit_" + i];
+				this.activeTrumpName = this.locStrings["suit_" + i + "_cap"];
+			}
+		}
+	}
+	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml, {"trumpSelectionItems" : this.trumpSelection2FinalItemsHtml, "activeTrumpId" : this.activeTrumpId, "activeTrumpName" : this.activeTrumpName});
+};
+
 TrumpSelectionAreaBuilderTest.prototype.trigger = function(upCard) {
-	return this.testObj.buildTrumpSelectionArea(upCard, this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams);
+	return this.testObj.buildTrumpSelectionArea(upCard, this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams, this.blackListedSuits);
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenValidData = function() {
@@ -126,10 +161,7 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildHooksUpDealerNamePromise = func
 };
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2 = function() {
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
+	this.trainForTrumpSelection2(this.blackListedSuits);
 
 	this.buildTestObj();
 	this.status = "trump_selection_2";
@@ -151,10 +183,7 @@ TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenV
 
 TrumpSelectionAreaBuilderTest.prototype.testBuildReturnsExpectedResultWhenGivenValidDataAndStatusIsTrumpSelection2AndNotPlayersTurn = function() {
 	this.currentPlayerId = this.playerId + "4325";
-	this.templateRenderer = mock(AVOCADO.TemplateRenderer);
-	when(this.templateRenderer).renderTemplate("card", allOf(hasMember("suit", 0), hasMember("value", 0))).thenReturn(this.upCardHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection1Action").thenReturn(this.trumpSelection1ActionHtml);
-	when(this.templateRenderer).renderTemplate("trumpSelection2Action").thenReturn(this.trumpSelection2ActionHtml);
+	this.trainForTrumpSelection2(this.blackListedSuits);
 
 	this.buildTestObj();
 	this.status = "trump_selection_2";

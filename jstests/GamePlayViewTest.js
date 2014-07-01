@@ -15,6 +15,7 @@ GamePlayViewTest.prototype.setUp = function() {
 	this.roundScores = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
 	this.trumpSuit = Math.floor(Math.random() * 4) + 1;
 	this.dealerId = "098765";
+	this.blackListedSuits = [3];
 	this.hand = [{"suit" : 2, "value" : 8}, {"suit" : 3, "value" : 10}, {"suit" : 1, "value" : 12}];
 	this.upCard = {"suit" : 4, "value" : 12};
 	this.status = "awesome status";
@@ -83,6 +84,7 @@ GamePlayViewTest.prototype.buildResponseObj = function() {
 		"teams" : this.teams,
 		"scores" : this.gameScores,
 		"round" : {
+			"blackListedSuits" : this.blackListedSuits,
 			"hand" : this.hand,
 			"currentPlayerId" : this.currentPlayerId,
 			"upCard" : this.upCard, "dealerId" : this.dealerId,
@@ -116,7 +118,7 @@ GamePlayViewTest.prototype.doTraining = function() {
 	}
 	when(this.templateRenderer).renderTemplate("hand", hasMember("hand", this.completeCardHtml)).thenReturn(this.handHtml);
 	when(this.gamePlayDiv).find(".viewGameList").thenReturn(this.viewGameListElement);
-	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams).thenReturn(this.trumpSelectionElement);
+	when(this.trumpSelectionAreaBuilder).buildTrumpSelectionArea(allOf(hasMember("suit", this.upCard.suit), hasMember("value", this.upCard.value)), this.status, this.gameId, this.dealerId, this.currentPlayerId, this.teams, this.blackListedSuits).thenReturn(this.trumpSelectionElement);
 	var trumpString = this.locStrings["suit_" + this.trumpSuit];
 	if (!(("suit_" + this.trumpSuit) in this.locStrings)) {
 		trumpString = this.locStrings["n/a"];
